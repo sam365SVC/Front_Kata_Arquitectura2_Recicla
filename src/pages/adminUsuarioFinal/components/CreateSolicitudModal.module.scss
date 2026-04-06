@@ -1,0 +1,570 @@
+@use '../styles/variables' as *;
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba($black, 0.55);
+  backdrop-filter: blur(3px);
+  z-index: 1000;
+  @include flex-center;
+  padding: 20px;
+  animation: overlayIn 0.22s ease;
+
+  @include respond-to($bp-md) {
+    align-items: flex-end;
+    padding: 0;
+  }
+}
+
+@keyframes overlayIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.modal {
+  background: $white;
+  border-radius: 24px;
+  width: 100%;
+  max-width: 640px;
+  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: modalIn 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  @include respond-to($bp-md) {
+    border-radius: 24px 24px 0 0;
+    max-height: 96vh;
+    max-width: 100%;
+  }
+}
+
+@keyframes modalIn {
+  from { opacity: 0; transform: translateY(30px) scale(0.97); }
+  to   { opacity: 1; transform: none; }
+}
+
+.header {
+  padding: 26px 30px 18px;
+  border-bottom: 1px solid $grey-4;
+  background: linear-gradient(135deg, rgba($main-1, 0.06) 0%, rgba($main-2, 0.18) 100%);
+  position: relative;
+
+  @include respond-to($bp-md) { padding: 20px 18px 16px; }
+
+  &__title {
+    font-size: 20px;
+    font-weight: 900;
+    color: $black;
+    margin: 0 0 4px;
+    font-family: $font-heading;
+    @include flex(center, flex-start, 10px);
+
+    svg { color: $main-1; flex-shrink: 0; }
+  }
+
+  &__sub {
+    font-size: 13px;
+    color: $black-2;
+    margin: 0;
+  }
+
+  &__close {
+    position: absolute;
+    top: 18px;
+    right: 18px;
+    width: 34px;
+    height: 34px;
+    border: none;
+    border-radius: 50%;
+    background: $grey-2;
+    color: $black-2;
+    font-size: 18px;
+    cursor: pointer;
+    @include flex-center;
+    @include transition;
+
+    &:hover { background: $grey-4; color: $black; transform: rotate(90deg); }
+  }
+}
+
+.stepper {
+  @include flex(center, flex-start, 0);
+  padding: 18px 30px;
+  border-bottom: 1px solid $grey-4;
+  background: $white;
+  overflow-x: auto;
+
+  @include respond-to($bp-md) { padding: 14px 18px; }
+
+  &__step {
+    @include flex(center, flex-start, 8px);
+    flex-shrink: 0;
+  }
+
+  &__connector {
+    flex: 1;
+    min-width: 20px;
+    height: 2px;
+    background: $grey-4;
+    margin: 0 6px;
+    @include transition(background);
+
+    &--done   { background: $main-1; }
+    &--active { background: linear-gradient(90deg, $main-1, $grey-4); }
+  }
+
+  &__circle {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 2px solid $grey-4;
+    background: $white;
+    color: $black-2;
+    font-size: 12px;
+    font-weight: 800;
+    @include flex-center;
+    @include transition;
+    flex-shrink: 0;
+    font-family: $font-heading;
+
+    &--active {
+      border-color: $main-1;
+      background: $main-1;
+      color: $white;
+      box-shadow: 0 4px 12px rgba($main-1, 0.35);
+    }
+
+    &--done {
+      border-color: $main-1;
+      background: $main-1;
+      color: $white;
+    }
+  }
+
+  &__label {
+    font-size: 11px;
+    font-weight: 700;
+    color: $black-2;
+    white-space: nowrap;
+    font-family: $font-body;
+    @include transition(color);
+
+    &--active { color: $main-4; }
+    &--done   { color: $main-1; }
+
+    @include respond-to($bp-md) { display: none; }
+  }
+}
+
+.body {
+  padding: 26px 30px;
+  overflow-y: auto;
+  flex: 1;
+
+  @include respond-to($bp-md) { padding: 18px; }
+
+  &::-webkit-scrollbar { width: 4px; }
+  &::-webkit-scrollbar-thumb { background: $grey-4; border-radius: 4px; }
+}
+
+.stepContent {
+  animation: stepIn 0.26s ease;
+}
+
+@keyframes stepIn {
+  from { opacity: 0; transform: translateX(16px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.tip {
+  @include flex(flex-start, flex-start, 10px);
+  background: rgba($main-2, 0.45);
+  border: 1.5px solid rgba($main-3, 0.45);
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-size: 13px;
+  color: $main-5;
+  line-height: 1.5;
+  margin-bottom: 20px;
+  font-family: $font-body;
+
+  svg { flex-shrink: 0; margin-top: 1px; }
+}
+
+.formGroup {
+  margin-bottom: 18px;
+
+  &__label {
+    display: block;
+    font-size: 13px;
+    font-weight: 700;
+    color: $black;
+    margin-bottom: 7px;
+    font-family: $font-body;
+    @include flex(center, flex-start, 5px);
+
+    svg { color: $black-2; }
+  }
+
+  &__req { color: $orange; }
+
+  input,
+  select,
+  textarea {
+    width: 100%;
+    padding: 11px 14px;
+    border: 1.5px solid $grey-4;
+    border-radius: 11px;
+    font-size: 14px;
+    color: $black;
+    background: $white;
+    font-family: $font-body;
+    outline: none;
+    box-sizing: border-box;
+    @include transition(border-color);
+
+    &:focus {
+      border-color: $main-1;
+      box-shadow: 0 0 0 3px rgba($main-1, 0.12);
+    }
+
+    &::placeholder { color: lighten($black-2, 20%); }
+  }
+
+  select {
+    appearance: none;
+    cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%234D5756' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    padding-right: 38px;
+  }
+
+  textarea {
+    resize: vertical;
+    min-height: 88px;
+    line-height: 1.5;
+  }
+
+  &--error {
+    input, select, textarea {
+      border-color: $orange !important;
+      box-shadow: 0 0 0 3px rgba($orange, 0.12) !important;
+    }
+  }
+
+  &__errMsg {
+    @include flex(center, flex-start, 5px);
+    font-size: 12px;
+    color: $orange;
+    font-weight: 600;
+    margin-top: 5px;
+  }
+}
+
+.formRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+
+  @include respond-to($bp-xs) { grid-template-columns: 1fr; }
+}
+
+.condGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+
+  @include respond-to($bp-sm) { grid-template-columns: repeat(2, 1fr); }
+}
+
+.condCard {
+  border: 2px solid $grey-4;
+  border-radius: 13px;
+  padding: 14px 8px;
+  text-align: center;
+  cursor: pointer;
+  @include transition;
+  background: $white;
+  user-select: none;
+
+  &:hover { border-color: $main-3; background: rgba($main-2, 0.2); }
+
+  &--selected {
+    border-color: $main-1;
+    background: rgba($main-1, 0.07);
+    box-shadow: 0 4px 14px rgba($main-1, 0.16);
+  }
+
+  &__icon {
+    font-size: 22px;
+    display: block;
+    margin-bottom: 6px;
+    color: $black-2;
+
+    .condCard--selected & { color: $main-4; }
+  }
+
+  &__label {
+    font-size: 12px;
+    font-weight: 700;
+    color: $black;
+    font-family: $font-body;
+    line-height: 1.2;
+  }
+
+  &__sub {
+    font-size: 10.5px;
+    color: $black-2;
+    margin-top: 3px;
+    display: block;
+  }
+}
+
+.photoUploader {
+  border: 2px dashed $main-3;
+  border-radius: 13px;
+  padding: 24px;
+  text-align: center;
+  cursor: pointer;
+  @include transition;
+  background: rgba($main-2, 0.12);
+
+  &:hover { border-color: $main-1; background: rgba($main-2, 0.25); }
+
+  &__icon { font-size: 28px; display: block; margin-bottom: 8px; color: $main-3; }
+  &__text { font-size: 13px; color: $black-2; font-weight: 600; font-family: $font-body; }
+  &__hint { font-size: 11px; color: lighten($black-2, 25%); margin-top: 3px; display: block; }
+}
+
+.photoList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+
+  &__item {
+    @include flex(center, flex-start, 6px);
+    background: $main-2;
+    border-radius: 8px;
+    padding: 5px 10px;
+    font-size: 12px;
+    color: $main-4;
+    font-weight: 700;
+    font-family: $font-body;
+
+    button {
+      border: none;
+      background: none;
+      color: $orange;
+      cursor: pointer;
+      font-size: 14px;
+      line-height: 1;
+      padding: 0;
+      @include transition(color);
+
+      &:hover { color: darken($orange, 10%); }
+    }
+  }
+}
+
+.previewCard {
+  background: linear-gradient(135deg, rgba($main-1, 0.07), rgba($main-2, 0.28));
+  border: 1.5px solid rgba($main-3, 0.42);
+  border-radius: 18px;
+  padding: 24px;
+  margin-bottom: 20px;
+
+  &__monto {
+    text-align: center;
+    margin-bottom: 22px;
+    padding-bottom: 20px;
+    border-bottom: 1px dashed rgba($main-3, 0.4);
+
+    p   { margin: 0 0 5px; font-size: 13px; color: $main-5; font-weight: 600; }
+    big {
+      display: block;
+      font-size: 44px;
+      font-weight: 900;
+      color: $main-4;
+      line-height: 1;
+      font-family: $font-heading;
+    }
+    span { font-size: 13px; color: $black-2; }
+  }
+
+  &__regla {
+    @include flex-between;
+    padding: 8px 0;
+    border-bottom: 1px dashed rgba($main-3, 0.35);
+    font-size: 13px;
+    font-family: $font-body;
+
+    &:last-child { border-bottom: none; }
+    span   { color: $black-2; }
+    strong { font-weight: 700; }
+  }
+}
+
+.previewEquipo {
+  background: $white;
+  border: 1.5px solid $grey-4;
+  border-radius: 13px;
+  padding: 16px 18px;
+  margin-bottom: 18px;
+
+  h4 {
+    font-size: 12px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: $black-2;
+    margin: 0 0 12px;
+    font-family: $font-heading;
+  }
+
+  &__row {
+    @include flex-between;
+    padding: 5px 0;
+    border-bottom: 1px dashed $grey-4;
+    font-size: 13px;
+    font-family: $font-body;
+
+    &:last-child { border-bottom: none; }
+    span   { color: $black-2; }
+    strong { color: $black; font-weight: 700; }
+  }
+}
+
+.confirmStep {
+  text-align: center;
+  padding: 10px 0 4px;
+
+  &__icon {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: rgba($main-1, 0.1);
+    @include flex-center;
+    margin: 0 auto 18px;
+    animation: bounceIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+
+    svg { color: $main-1; }
+  }
+
+  &__title {
+    font-size: 22px;
+    font-weight: 900;
+    color: $black;
+    margin: 0 0 8px;
+    font-family: $font-heading;
+  }
+
+  &__text {
+    font-size: 14px;
+    color: $black-2;
+    line-height: 1.6;
+    max-width: 360px;
+    margin: 0 auto;
+    font-family: $font-body;
+  }
+
+  &__summary {
+    background: rgba($main-2, 0.28);
+    border: 1.5px solid rgba($main-3, 0.32);
+    border-radius: 16px;
+    padding: 20px;
+    margin-top: 24px;
+    text-align: left;
+
+    h4 {
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: $main-4;
+      margin: 0 0 14px;
+    }
+
+    &-row {
+      @include flex-between;
+      padding: 5px 0;
+      border-bottom: 1px dashed rgba($main-3, 0.3);
+      font-size: 13px;
+      font-family: $font-body;
+
+      &:last-child { border-bottom: none; }
+      span   { color: $black-2; }
+      strong { color: $black; font-weight: 700; }
+    }
+  }
+}
+
+@keyframes bounceIn {
+  0%   { transform: scale(0); opacity: 0; }
+  60%  { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(1); }
+}
+
+.footer {
+  padding: 18px 30px;
+  border-top: 1px solid $grey-4;
+  @include flex-between;
+  gap: 10px;
+  background: $grey-3;
+
+  @include respond-to($bp-md) { padding: 14px 18px; }
+
+  &__back {
+    @include flex(center, center, 7px);
+    padding: 11px 18px;
+    background: $grey-2;
+    color: $black-2;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 800;
+    cursor: pointer;
+    font-family: $font-body;
+    @include transition;
+
+    &:hover { background: $grey-4; color: $black; }
+    &:disabled { opacity: 0.6; cursor: not-allowed; }
+  }
+
+  &__next {
+    @include flex(center, center, 8px);
+    padding: 11px 22px;
+    background: $main-1;
+    color: $white;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 800;
+    cursor: pointer;
+    font-family: $font-body;
+    @include transition;
+    box-shadow: 0 4px 14px rgba($main-1, 0.3);
+
+    &:hover:not(:disabled) {
+      background: $main-4;
+      box-shadow: 0 6px 20px rgba($main-1, 0.42);
+      transform: translateY(-1px);
+    }
+
+    &:disabled { opacity: 0.6; cursor: not-allowed; }
+  }
+
+  &__spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba($white, 0.35);
+    border-top-color: $white;
+    border-radius: 50%;
+    animation: spinBtn 0.65s linear infinite;
+    flex-shrink: 0;
+  }
+}
+
+@keyframes spinBtn { to { transform: rotate(360deg); } }
