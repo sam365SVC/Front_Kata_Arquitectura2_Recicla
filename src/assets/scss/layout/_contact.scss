@@ -432,17 +432,23 @@
     &-input{
         & input {
             border-radius: 5px;
-            color:#0E2A46;
+            background-color: #EEE9BF;
+            border: 1px solid #BDB77C;
+            color: #78793F;
             font-size: 16px;
             font-style: normal;
             font-weight: 400;
             text-transform: capitalize;
             &::placeholder{
-                color:#0E2A46;
+                color: #8A7D4C;
                 font-size: 16px;
                 font-style: normal;
                 font-weight: 400;
                 text-transform: capitalize;
+            }
+            &:focus {
+                border: 1px solid #79864B;
+                outline: none;
             }
         }
     }

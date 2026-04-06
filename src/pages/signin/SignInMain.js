@@ -94,7 +94,7 @@ const SignInMain = () => {
                             left: 12,
                             top: "50%",
                             transform: "translateY(-50%)",
-                            color: "#888"
+                            color: "#78793F"
                           }}
                         />
 
@@ -118,7 +118,7 @@ const SignInMain = () => {
                             left: 12,
                             top: "50%",
                             transform: "translateY(-50%)",
-                            color: "#888"
+                            color: "#78793F"
                           }}
                         />
 
@@ -142,7 +142,7 @@ const SignInMain = () => {
                             top: "50%",
                             transform: "translateY(-50%)",
                             cursor: "pointer",
-                            color: "#888"
+                            color: "#78793F"
                           }}
                         >
                           {showPassword ? <FiEyeOff /> : <FiEye />}
@@ -151,7 +151,7 @@ const SignInMain = () => {
                       <div
                         style={{
                           fontSize: "12px",
-                          color: "#6c757d",
+                          color: "#78793F",
                           marginBottom: "20px",
                           lineHeight: "1.4"
                         }}
