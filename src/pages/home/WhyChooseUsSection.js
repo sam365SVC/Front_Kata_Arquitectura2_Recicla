@@ -1,13 +1,13 @@
 import React from 'react';
 import SectionTitle from '../../components/SectionTitle';
 
-import shapeImg1 from '../../assets/img/choose/shape-1-7.png';
+import shapeImg1 from '../../assets/img/choose/shape-1-12.png';
 import shapeImg2 from '../../assets/img/choose/shape-1-8.png';
-import shapeImg3 from '../../assets/img/choose/shape-1-9.png';
+import shapeImg3 from '../../assets/img/about/shape-1-9.png';
 import shapeImg4 from '../../assets/img/choose/shape-1-10.png';
 import shapeImg5 from '../../assets/img/choose/shape-1-5.png';
-import shapeImg6 from '../../assets/img/choose/shape-1-6.png';
-import chooseImg from '../../assets/img/choose/choose-2-2.jpg';
+import shapeImg6 from '../../assets/img/choose/shape-1-12.png';
+import chooseImg from '../../assets/img/choose/choose2-3.png';
 
 const WhyChooseUs = () => {
   const items = [

@@ -17,9 +17,8 @@ const SingleCareer = (props) => {
       <div className="it-career-content">
         <span>{title ? title : 'Comienza hoy'}</span>
         <p>
-          Únete a nuestros cursos y <br />
-          Desarrolla tus <br />
-          habilidades.
+          Potencia total para <br />grandes corporaciones. <br />
+          Sin límites para liderar<br /> el mercado del <br />reciclaje electrónico.
         </p>
         <Link
           className={btnClass ? btnClass : 'ed-btn-yellow dark-bg'}

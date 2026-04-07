@@ -6,11 +6,11 @@ import Career from './CareerSection';
 import Category from './CategorySection';
 import Course from './CourseSection';
 import FunFact from './FunFactSection';
-import HomeBanner from './HomeBanner';
+import HomeBanner from '../home-3/HomeThreeBanner';
 import Team from './TeamSection';
 import Testimonial from './TestimonialSection';
 import WhyChooseUs from './WhyChooseUsSection';
-import Video from './VideoSection';
+import Video from '../home-3/VideoSection';
 
 const HomeMain = () => {
   return (

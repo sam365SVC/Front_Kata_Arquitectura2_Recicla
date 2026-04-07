@@ -4,8 +4,8 @@ import MenuItems from './MenuItems';
 import MenuItemsOnePage from './MenuItemsOnePage';
 import OffCanvasInsta from '../OffCanvas';
 
-import LogoWhite from '../../assets/img/logo/logo-gatobyte.png';
-import Logo from '../../assets/img/logo/logo-gatobyte.png';
+import LogoWhite from '../../assets/img/logo/logo.png';
+import Logo from '../../assets/img/logo/logo.png';
 import phoneSVG from '../../assets/img/footer/1.svg';
 import mailSVG from '../../assets/img/footer/2.svg';
 
