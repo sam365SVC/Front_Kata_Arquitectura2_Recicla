@@ -3,10 +3,10 @@ import { Link } from 'react-router-dom';
 import SectionTitleSpecial from '../../components/SectionTitle/SectionTitleSpecial';
 import RightArrow from '../../components/SVG';
 
-import shapeImg1 from '../../assets/img/about/shape-1-4.png';
+import shapeImg1 from '../../assets/img/about/shape-1-9.png';
 import shapeImg2 from '../../assets/img/about/ed-shape-1-1.png';
-import aboutImg1 from '../../assets/img/about/ed-about-1-1.jpg';
-import aboutImg2 from '../../assets/img/about/ed-about-1-2.jpg';
+import aboutImg1 from '../../assets/img/slider/slider-1-3.png';
+import aboutImg2 from '../../assets/img/slider/slider-1-7.png';
 import aboutImg3 from '../../assets/img/about/ed-about-1-3.jpg';
 
 const About = () => {

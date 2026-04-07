@@ -96,6 +96,7 @@
             right: -85px;
             z-index: -1;
             animation: itupdown 0.8s infinite alternate;
+            
         }
         &-4 {
             position: absolute;
@@ -106,6 +107,7 @@
                 top: 150px;
                 left: 35%;
             }
+           
         }
         &-5 {
             position: absolute;
@@ -115,6 +117,7 @@
             @media #{$xl,$lg,$md,$xs}{                 
                 bottom: -20%;
             }
+            
         }
         &-6 {
             position: absolute;
@@ -129,6 +132,10 @@
             right: 180px;
             z-index: -1;
             animation: rotate2 4s linear infinite;
+             & img {
+                width: 60px;  
+                height: auto;
+            }
         }
         &-8 {
             position: absolute;

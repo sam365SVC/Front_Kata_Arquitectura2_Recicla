@@ -127,6 +127,10 @@
                 top: 241px;
                 right: 114px;
             }
+            & img {
+                width: 60px;  
+                height: auto;
+            }
         }
     }
 }
@@ -595,6 +599,8 @@
             left: -10%;
             & img {
                 border-radius: 10px;
+                width: 320px; 
+                height: 285px;
                 @media #{$xs}{
                     width: 100%;
                 }
@@ -632,6 +638,7 @@
             }
             & img {
                 border-radius: 10px;
+                
                 @media #{$xs}{
                     width: 100%;
                 }

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import ModalVideo from 'react-modal-video';
 
-import videoBG from '../../assets/img/video/bg-4-1.jpg';
+import videoBG from '../../assets/img/slider/slider-1-5.png';
 import shapeImg1 from '../../assets/img/video/ed-shape-1-1.png';
 import shapeImg2 from '../../assets/img/video/ed-shape-1-2.png';
 import shapeImg3 from '../../assets/img/video/shape-1-5.png';
@@ -23,7 +23,7 @@ const Video = () => {
       <ModalVideo
         channel="youtube"
         isOpen={isOpen}
-        videoId="PO_fBTkoznc"
+        videoId="JPEogmekywU"
         onClose={() => openModal()}
       />
       <div className="it-video-shape-2 d-none d-lg-block">
@@ -41,25 +41,23 @@ const Video = () => {
             <div className="it-video-content">
               <span className="it-section-subtitle-5 sky">
                 <img src={subTitleSVG} alt="" />
-                are you ready for this offer
+                PROGRAMA REECICLA: RÁPIDO, FÁCIL Y VERDE
               </span>
-              <h3 className="it-video-title">40% offer for very first 100</h3>
+              <h3 className="it-video-title">¡Dale una nueva vida a tus electrodomésticos!</h3>
               <p>
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-                eiusmod tempor <br />
-                incididunt ut labore et dolore magna aliqua. Ut enim ad minim
-                veniam, quis <br />
-                nostrud exercitation ullamco laboris nisi.
+                Cotiza en segundos tus lavadoras, refrigeradores o lavaplatos desde nuestra web o app. <br />
+                Te enviamos el embalaje, lo recogemos y, tras la inspección, recibes tu pago directo por <br />
+                transferencia. ¡Únete al mercado verde!
               </p>
               <div className="it-video-button">
                 <Link
                   className="ed-btn-square theme mr-25"
                   to="/student-registration"
                 >
-                  <span>admission Now</span>
+                  <span>cotizar ahora</span>
                 </Link>
                 <Link className="ed-btn-square purple-3" to="/course-details">
-                  <span>Our Courses</span>
+                  <span>cómo funciona</span>
                 </Link>
               </div>
             </div>
@@ -69,7 +67,7 @@ const Video = () => {
               <div className="it-video-play text-center">
                 <Link
                   className="popup-video play"
-                  to="#"
+                  to=""
                   onClick={() => openModal()}
                 >
                   <i className="fas fa-play"></i>
