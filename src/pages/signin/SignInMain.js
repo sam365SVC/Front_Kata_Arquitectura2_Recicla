@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from "react-redux"
 
 import Breadcrumb from "../../components/Breadcrumb"
 import RightArrow from "../../components/SVG"
-import signInImg from "../../assets/img/contact/signin.jpg"
+import signInImg from "../../assets/img/contact/signin1.png"
 
 import { loginUser } from "./slices/loginThunks"
 import { clearError } from "./slices/loginSlice"
