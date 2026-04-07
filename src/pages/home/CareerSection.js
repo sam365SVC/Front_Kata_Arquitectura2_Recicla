@@ -46,7 +46,7 @@ const Career = () => {
             <SingleCareer
               itemClass="it-career-item theme-bg p-relative fix"
               careerImage={careerImg1}
-              title="Plan Básico"
+              title="Plan Premium"
               description="Recolección programada de electrodomésticos en desuso, ideal para pequeñas empresas."
               btnClass="ed-btn-yellow dark-bg"
             />
@@ -60,7 +60,7 @@ const Career = () => {
             <SingleCareer
               itemClass="it-career-item yellow-bg p-relative fix"
               careerImage={careerImg2}
-              title="Plan Empresarial"
+              title="Plan Enterprise"
               description="Gestión integral de residuos de línea blanca, con reportes, trazabilidad y cumplimiento ambiental."
               btnClass="ed-btn-theme"
             />

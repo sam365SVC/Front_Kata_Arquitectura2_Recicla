@@ -89,7 +89,7 @@ const FooterTwo = (props) => {
                   </div>
                   <div className="it-footer-text pb-5">
                     <p>
-                      UCB “San Pablo” – La Paz
+                     Transformamos la industria de la electrónica<br/> a través de la economía circular. Cotiza, <br/>recicla y recibe beneficios por tus <br/>equipos en desuso de forma segura y profesional.
                     </p>
                   </div>
                   <div className="it-footer-social">
@@ -114,33 +114,34 @@ const FooterTwo = (props) => {
                 data-wow-delay=".5s"
               >
                 <div className="it-footer-widget footer-col-6">
-                  <h4 className="it-footer-title">Nuestros Cursos:</h4>
+                  <h4 className="it-footer-title">Equipos Aceptados:</h4>
                   <div className="it-footer-list">
                     <ul>
                       <li>
                         <a href="#">
-                          <i className="fa-regular fa-angle-right"></i>Arte y Diseño
+                          <i className="fa-regular fa-angle-right"></i>Refrigeradores
                         </a>
                       </li>
                       <li>
                         <a href="#">
-                          <i className="fa-regular fa-angle-right"></i>UI/UX
+                          <i className="fa-regular fa-angle-right"></i>Lavadoras
+
                           Design
                         </a>
                       </li>
                       <li>
                         <a href="#">
-                          <i className="fa-regular fa-angle-right"></i>Administración
+                          <i className="fa-regular fa-angle-right"></i>Lavaplatos
                         </a>
                       </li>
                       <li>
                         <a href="#">
-                          <i className="fa-regular fa-angle-right"></i>Marketing Digital
+                          <i className="fa-regular fa-angle-right"></i>Cocinas y más
                         </a>
                       </li>
                       <li>
                         <a href="#">
-                          <i className="fa-regular fa-angle-right"></i>PowerSkills
+                          <i className="fa-regular fa-angle-right"></i>Nuevos Lanzamientos
                         </a>
                       </li>
                     </ul>
