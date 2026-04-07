@@ -57,7 +57,7 @@ const MisCotizaciones = () => {
 
     // Carga 
     const cargar = useCallback(() => {
-    dispatch(fetchCotizacionesByClienteId({ tenantId: 1, clienteId: "1" }));
+    dispatch(fetchCotizacionesByClienteId({ tenantId: 1, clienteId: "CLI-2024-0001" }));
     }, [dispatch]);
 
     useEffect(() => { cargar(); }, [cargar]);

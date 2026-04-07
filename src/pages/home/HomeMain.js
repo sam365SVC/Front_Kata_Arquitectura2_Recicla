@@ -16,12 +16,9 @@ const HomeMain = () => {
   return (
     <main>
       <HomeBanner />
-      <Category />
-      <Course />
       <About />
       <Video />
       <WhyChooseUs />
-      <FunFact />
       <Testimonial />
       {/* <Team /> */}
       <Career />

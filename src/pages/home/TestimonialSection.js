@@ -30,6 +30,7 @@ const Testimonial = () => {
       },
     },
   };
+
   return (
     <div
       className="it-testimonial-area ed-testimonial-ptb fix p-relative"
@@ -42,11 +43,12 @@ const Testimonial = () => {
               <SectionTitle
                 itemClass="it-testimonial-title-box text-center"
                 subTitle="Testimonios"
-                title="Creando una comunidad de profesionales."
+                title="Clientes comprometidos con el cuidado del medio ambiente."
               />
             </div>
           </div>
         </div>
+
         <div className="row">
           <div className="col-xl-12">
             <div className="ed-testimonial-wrapper">
@@ -58,42 +60,33 @@ const Testimonial = () => {
                 >
                   <SwiperSlide className="swiper-slide">
                     <SingleTestimonial
-                      description={`“Lorem ipsum dolor sit amet, elit, sed do eiusmod
-                          tempor incididunt ut labore et dolore magna aliqua.
-                          Orci nulla pellentesque dignissim enim. Amet
-                          consectetur adipiscing”`}
+                      description={`“Gracias a este servicio pude deshacerme de mi refrigerador antiguo de forma segura y ecológica. Excelente atención.”`}
                       authorName="Elena Orozco"
-                      designation="CEO"
+                      designation="Cliente"
                     />
                   </SwiperSlide>
+
                   <SwiperSlide className="swiper-slide">
                     <SingleTestimonial
-                      description={`“Lorem ipsum dolor sit amet, elit, sed do eiusmod
-                          tempor incididunt ut labore et dolore magna aliqua.
-                          Orci nulla pellentesque dignissim enim. Amet
-                          consectetur adipiscing”`}
-                      authorName="Maria Paz"
-                      designation="CEO"
+                      description={`“Muy responsables con el reciclaje. Recogieron mi lavadora en desuso y me explicaron todo el proceso.”`}
+                      authorName="María Paz"
+                      designation="Cliente"
                     />
                   </SwiperSlide>
+
                   <SwiperSlide className="swiper-slide">
                     <SingleTestimonial
-                      description={`“Lorem ipsum dolor sit amet, elit, sed do eiusmod
-                          tempor incididunt ut labore et dolore magna aliqua.
-                          Orci nulla pellentesque dignissim enim. Amet
-                          consectetur adipiscing”`}
+                      description={`“Un servicio rápido y confiable. Me ayudaron a reciclar varios electrodomésticos de mi negocio.”`}
                       authorName="Ellie Daza"
-                      designation="CEO"
+                      designation="Cliente"
                     />
                   </SwiperSlide>
+
                   <SwiperSlide className="swiper-slide">
                     <SingleTestimonial
-                      description={`“Lorem ipsum dolor sit amet, elit, sed do eiusmod
-                          tempor incididunt ut labore et dolore magna aliqua.
-                          Orci nulla pellentesque dignissim enim. Amet
-                          consectetur adipiscing”`}
+                      description={`“Me encanta que promuevan el cuidado del medio ambiente. Muy recomendados para reciclar línea blanca.”`}
                       authorName="Lucero Oropeza"
-                      designation="CEO"
+                      designation="Cliente"
                     />
                   </SwiperSlide>
                 </Swiper>
@@ -105,4 +98,5 @@ const Testimonial = () => {
     </div>
   );
 };
+
 export default Testimonial;

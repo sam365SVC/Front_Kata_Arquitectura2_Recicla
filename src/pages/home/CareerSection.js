@@ -1,4 +1,3 @@
-import React from 'react';
 import SectionTitle from '../../components/SectionTitle';
 import SingleCareer from '../../components/Career';
 
@@ -28,15 +27,17 @@ const Career = () => {
       <div className="it-career-shape-6 d-none d-xl-block">
         <img src={shapeImg5} alt="" />
       </div>
+
       <div className="container">
         <div className="row">
           <div className="col-xl-12">
             <SectionTitle
               itemClass="it-career-title-box text-center mb-70"
-              subTitle="Elige tu carrera"
-              title="Descubre tu ganancia"
+              subTitle="Planes para empresas"
+              title="Soluciones de reciclaje adaptadas a tu negocio"
             />
           </div>
+
           <div
             className="col-xl-6 col-lg-6 mb-30 wow animate__fadeInLeft"
             data-wow-duration=".9s"
@@ -45,10 +46,12 @@ const Career = () => {
             <SingleCareer
               itemClass="it-career-item theme-bg p-relative fix"
               careerImage={careerImg1}
-              title="Comienza hoy"
+              title="Plan Básico"
+              description="Recolección programada de electrodomésticos en desuso, ideal para pequeñas empresas."
               btnClass="ed-btn-yellow dark-bg"
             />
           </div>
+
           <div
             className="col-xl-6 col-lg-6 mb-30 wow animate__fadeInRight"
             data-wow-duration=".9s"
@@ -57,7 +60,8 @@ const Career = () => {
             <SingleCareer
               itemClass="it-career-item yellow-bg p-relative fix"
               careerImage={careerImg2}
-              title="Comienza hoy"
+              title="Plan Empresarial"
+              description="Gestión integral de residuos de línea blanca, con reportes, trazabilidad y cumplimiento ambiental."
               btnClass="ed-btn-theme"
             />
           </div>
@@ -66,4 +70,5 @@ const Career = () => {
     </div>
   );
 };
+
 export default Career;
