@@ -1,10 +1,24 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect} from "react";
 import {
   FiX, FiUser, FiCpu, FiClipboard, FiCheckCircle,
   FiAlertTriangle, FiCamera, FiTrash2, FiInfo,
   FiArrowLeft, FiSend, FiChevronRight,
 } from "react-icons/fi";
 import { MdOutlineDevices, MdOutlineSmartphone, MdOutlineLaptop, MdOutlineWatch, MdOutlineDesktopWindows, MdOutlineTablet } from "react-icons/md";
+
+// para consumo inicial
+//sin tokens, solo para mostrar la info de la cotización y probar la UI
+import { useDispatch, useSelector } from 'react-redux';
+
+import { clearError, selectTiposDispositivo } from "../slicesTiposDispositivo/TiposDispositivoSlice";
+import { fetchTiposDispositivo} from "../slicesTiposDispositivo/TiposDispositivoThunk";
+
+// para crear la cotizacion
+
+import { crearSolicitudCotizacion } from "../slicesCotizaciones/CotizacionesThunk";
+import { selectCotizacionesState, selectCotizacionesCreating, selectCotizacionesError} from "../slicesCotizaciones/CotizacionesSlice";
+
+
 import styles from "./CreateSolicitudModal.module.scss";
 import {
   TIPOS_DISPOSITIVO, CLIENTE_ACTUAL,
@@ -38,6 +52,7 @@ const TIPO_ICONOS = {
 // Validaciones
 const validar1 = (d) => {
     const e = {};
+    if (!d.id.trim())       e.id       = "El id es obligatorio";
     if (!d.nombre.trim())   e.nombre   = "El nombre es obligatorio";
     if (!d.email.trim())    e.email    = "El email es obligatorio";
     else if (!/^[^@]+@[^@]+\.[^@]+$/.test(d.email)) e.email = "Email inválido";
@@ -56,6 +71,61 @@ const validar2 = (d) => {
     if (!d.condicionDeclarada)  e.condicionDeclarada = "Selecciona la condición del equipo";
     return e;
 };
+
+const comparar = (valorDocumento, operador, valorRegla) => {
+  switch (operador) {
+    case "=":
+      return valorDocumento === valorRegla;
+    case "!=":
+      return valorDocumento !== valorRegla;
+    case ">":
+      return Number(valorDocumento) > Number(valorRegla);
+    case "<":
+      return Number(valorDocumento) < Number(valorRegla);
+    case ">=":
+      return Number(valorDocumento) >= Number(valorRegla);
+    case "<=":
+      return Number(valorDocumento) <= Number(valorRegla);
+    default:
+      return false;
+  }
+};
+
+const calcularPreview = (tipo, equipoData) => {
+  if (!tipo) {
+    return {
+      total: 0,
+      base: 0,
+      reglas: [],
+    };
+  }
+
+  let total = Number(tipo.precioBase || 0);
+  const reglas = [];
+
+  for (const regla of tipo.reglasCotizacion || []) {
+    const valorCampo = equipoData[regla.campo];
+
+    if (comparar(valorCampo, regla.operador, regla.valor)) {
+      total += Number(regla.ajusteMonto || 0);
+      reglas.push({
+        desc: regla.descripcion || regla.codigo,
+        val: Number(regla.ajusteMonto || 0),
+      });
+    }
+  }
+
+  if (total < 0) total = 0;
+
+  return {
+    total,
+    base: Number(tipo.precioBase || 0),
+    reglas,
+  };
+};
+
+
+
 
 // Paso 1: Cliente 
 const Paso1 = ({ data, onChange, errors }) => (
@@ -116,7 +186,9 @@ const Paso1 = ({ data, onChange, errors }) => (
 );
 
 // Paso 2: Equipo
-const Paso2 = ({ data, onChange, errors }) => {
+
+
+const Paso2 = ({ data, onChange, errors, tiposDispositivo }) => {
   const [fotos, setFotos] = useState(data.fotosSimuladas || []);
 
   const addFoto = () => {
@@ -133,27 +205,32 @@ const Paso2 = ({ data, onChange, errors }) => {
 
   return (
     <div className={styles.stepContent}>
-        {/* Tipo dispositivo */}
-        <div className={`${styles.formGroup} ${errors.tipoDispositivoId ? styles["formGroup--error"] : ""}`}>
-            <label className={styles.formGroup__label}>
-            <MdOutlineDevices size={14} />
-            Tipo de dispositivo<span className={styles.formGroup__req}> *</span>
-            </label>
-            <select
-            value={data.tipoDispositivoId}
-            onChange={(e) => onChange("tipoDispositivoId", e.target.value)}
-            >
-            <option value="">— Selecciona el tipo —</option>
-            {TIPOS_DISPOSITIVO.map((t) => (
-                <option key={t._id} value={t._id}>{t.nombre}</option>
-            ))}
-            </select>
-            {errors.tipoDispositivoId && (
-            <span className={styles.formGroup__errMsg}><FiAlertTriangle size={12}/> {errors.tipoDispositivoId}</span>
-            )}
-        </div>
+      <div className={`${styles.formGroup} ${errors.tipoDispositivoId ? styles["formGroup--error"] : ""}`}>
+        <label className={styles.formGroup__label}>
+          <MdOutlineDevices size={14} />
+          Tipo de dispositivo<span className={styles.formGroup__req}> *</span>
+        </label>
 
-        <div className={styles.formRow}>
+        <select
+          value={data.tipoDispositivoId}
+          onChange={(e) => onChange("tipoDispositivoId", e.target.value)}
+        >
+          <option value="">— Selecciona el tipo —</option>
+          {tiposDispositivo.map((t) => (
+            <option key={t._id} value={t._id}>
+              {t.nombre}
+            </option>
+          ))}
+        </select>
+
+        {errors.tipoDispositivoId && (
+          <span className={styles.formGroup__errMsg}>
+            <FiAlertTriangle size={12} /> {errors.tipoDispositivoId}
+          </span>
+        )}
+      </div>
+
+       <div className={styles.formRow}>
             <div className={`${styles.formGroup} ${errors.marca ? styles["formGroup--error"] : ""}`}>
             <label className={styles.formGroup__label}>
                 Marca<span className={styles.formGroup__req}> *</span>
@@ -272,35 +349,34 @@ const Paso2 = ({ data, onChange, errors }) => {
             </div>
             )}
         </div>
-        </div>
-    );
+
+    
+    </div>
+  );
 };
 
 // Paso 3: Revisión preliminar 
-const Paso3 = ({ clienteData, equipoData }) => {
-  const base     = MONTO_BASE[equipoData.tipoDispositivoId] || 2000;
-  const adjCond  = AJUSTE_CONDICION[equipoData.condicionDeclarada] || 0;
-  const adjAntig = -(Number(equipoData.antiguedad || 0) * 180);
-  const total    = Math.max(0, base + adjCond + adjAntig);
-  const tipo     = TIPOS_DISPOSITIVO.find((t) => t._id === equipoData.tipoDispositivoId);
+const Paso3 = ({ equipoData, tiposDispositivo }) => {
+  const tipo = tiposDispositivo.find((t) => t._id === equipoData.tipoDispositivoId);
+  const preview = calcularPreview(tipo, equipoData);
 
   return (
     <div className={styles.stepContent}>
       <div className={styles.tip}>
         <FiInfo size={15} />
         <span>
-          Monto <strong>estimado</strong> — el valor final se confirma tras la inspección física.
+          Monto <strong>estimado</strong>. Calculado según las características del equipo.
         </span>
       </div>
 
       <div className={styles.previewEquipo}>
         <h4>Resumen del equipo</h4>
         {[
-          ["Tipo",       tipo?.nombre || "—"],
-          ["Marca",      equipoData.marca],
-          ["Modelo",     equipoData.modelo],
+          ["Tipo", tipo?.nombre || "—"],
+          ["Marca", equipoData.marca],
+          ["Modelo", equipoData.modelo],
           ["Antigüedad", `${equipoData.antiguedad} año${equipoData.antiguedad !== 1 ? "s" : ""}`],
-          ["Condición",  equipoData.condicionDeclarada],
+          ["Condición", equipoData.condicionDeclarada],
         ].map(([k, v]) => (
           <div key={k} className={styles.previewEquipo__row}>
             <span>{k}</span>
@@ -312,19 +388,22 @@ const Paso3 = ({ clienteData, equipoData }) => {
       <div className={styles.previewCard}>
         <div className={styles.previewCard__monto}>
           <p>Monto preliminar estimado</p>
-          <big>Bs. {total.toLocaleString("es-BO")}</big>
+          <big>Bs. {preview.total.toLocaleString("es-BO")}</big>
           <span>bolivianos</span>
         </div>
 
-        {[
-          { desc: `Valor base para ${tipo?.nombre || "dispositivo"}`,             val: base,     isBase: true  },
-          { desc: `Descuento por ${equipoData.antiguedad} año(s) de uso`,          val: adjAntig, isBase: false },
-          { desc: `Ajuste por condición ${equipoData.condicionDeclarada || "—"}`,  val: adjCond,  isBase: false },
-        ].map((r, i) => (
+        <div className={styles.previewCard__regla}>
+          <span>Precio base</span>
+          <strong style={{ color: "#0E2A46" }}>
+            Bs. {preview.base.toLocaleString("es-BO")}
+          </strong>
+        </div>
+
+        {preview.reglas.map((r, i) => (
           <div key={i} className={styles.previewCard__regla}>
             <span>{r.desc}</span>
-            <strong style={{ color: r.isBase ? "#0E2A46" : r.val >= 0 ? "#1A7A56" : "#FC6441" }}>
-              {r.isBase ? "" : r.val >= 0 ? "+" : "−"} Bs. {Math.abs(r.val).toLocaleString("es-BO")}
+            <strong style={{ color: r.val >= 0 ? "#1A7A56" : "#FC6441" }}>
+              {r.val >= 0 ? "+" : "−"} Bs. {Math.abs(r.val).toLocaleString("es-BO")}
             </strong>
           </div>
         ))}
@@ -334,33 +413,43 @@ const Paso3 = ({ clienteData, equipoData }) => {
 };
 
 // Paso 4: Confirmación 
-const Paso4 = ({ clienteData, equipoData }) => {
-  const tipo = TIPOS_DISPOSITIVO.find((t) => t._id === equipoData.tipoDispositivoId);
+const Paso4 = ({ clienteData, equipoData, tiposDispositivo }) => {
+  const tipo = tiposDispositivo.find((t) => t._id === equipoData.tipoDispositivoId);
+
   return (
     <div className={styles.stepContent}>
       <div className={styles.confirmStep}>
         <div className={styles.confirmStep__icon}>
           <FiSend size={32} />
         </div>
-        <h3 className={styles.confirmStep__title}>¡Todo listo!</h3>
+
+        <h3 className={styles.confirmStep__title}>Confirmación final</h3>
         <p className={styles.confirmStep__text}>
-          Enviaremos tu solicitud y en minutos recibirás una oferta preliminar para revisar.
+          Estás a punto de enviar tu solicitud para continuar con el proceso de cotización del equipo.
         </p>
 
         <div className={styles.confirmStep__summary}>
           <h4>Resumen final</h4>
           {[
-            ["Cliente",    clienteData.nombre],
-            ["Equipo",     `${equipoData.marca} ${equipoData.modelo}`],
-            ["Tipo",       tipo?.nombre || "—"],
-            ["Condición",  equipoData.condicionDeclarada || "—"],
-            ["Canal",      "Web"],
+            ["Cliente", clienteData.nombre],
+            ["Equipo", `${equipoData.marca} ${equipoData.modelo}`],
+            ["Tipo", tipo?.nombre || "—"],
+            ["Condición", equipoData.condicionDeclarada || "—"],
+            ["Canal", "Web"],
           ].map(([k, v]) => (
             <div key={k} className={styles.confirmStep__summary_row}>
               <span>{k}</span>
               <strong>{v}</strong>
             </div>
           ))}
+        </div>
+
+        <div className={styles.tip} style={{ marginTop: 16 }}>
+          <FiInfo size={15} />
+          <span>
+            Al enviar esta solicitud, la <strong>cotización inicial o preliminar</strong> quedará registada en el sistema.
+            Puedes aceptarla o rechazarla desde el panel de tus solicitudes. Si la aceptas, el proceso continuará con la etapa de envío del equipo para valoración física.
+          </span>
         </div>
       </div>
     </div>
@@ -369,197 +458,272 @@ const Paso4 = ({ clienteData, equipoData }) => {
 
 // Modal principal 
 const CreateSolicitudModal = ({ onClose, onSuccess }) => {
-    const [paso,    setPaso]    = useState(1);
-    const [loading, setLoading] = useState(false);
-    const [errors,  setErrors]  = useState({});
+  const dispatch = useDispatch();
 
-    const [clienteData, setClienteData] = useState({ ...CLIENTE_ACTUAL });
-    const [equipoData,  setEquipoData]  = useState({
-        tipoDispositivoId:  "",
-        marca:              "",
-        modelo:             "",
-        antiguedad:         "",
-        condicionDeclarada: "",
-        descripcion:        "",
-        fotosSimuladas:     [],
+  const tiposDispositivo = useSelector(selectTiposDispositivo) || [];
+
+  console.log("Tipos dispositivo en CreateSolicitudModal:", tiposDispositivo);
+
+  const [solicitudCreada, setSolicitudCreada] = useState(null);
+  const isCreating = useSelector(selectCotizacionesCreating);
+  const cotizacionesError = useSelector(selectCotizacionesError);
+
+  const [paso, setPaso] = useState(1);
+  const [errors, setErrors] = useState({});
+
+  const [clienteData, setClienteData] = useState({
+    id: "CLI-2024-0001",
+    nombre:   "María García López",
+    email:    "maria.garcia@email.com",
+    telefono: "+591 70123456",
+  });
+
+  const [equipoData, setEquipoData] = useState({
+    tipoDispositivoId: "",
+    marca: "",
+    modelo: "",
+    antiguedad: "",
+    condicionDeclarada: "",
+    descripcion: "",
+    fotosSimuladas: [],
+  });
+
+  useEffect(() => {
+    dispatch(fetchTiposDispositivo({ tenantId: 1 }));
+  }, [dispatch]);
+
+
+  const handleClienteChange = useCallback((field, value) => {
+    setClienteData((p) => ({ ...p, [field]: value }));
+    setErrors((p) => {
+      const c = { ...p };
+      delete c[field];
+      return c;
     });
+  }, []);
 
-    const handleClienteChange = useCallback((field, value) => {
-        setClienteData((p) => ({ ...p, [field]: value }));
-        setErrors((p) => { const c = { ...p }; delete c[field]; return c; });
-    }, []);
+  const handleEquipoChange = useCallback((field, value) => {
+    setEquipoData((p) => ({ ...p, [field]: value }));
+    setErrors((p) => {
+      const c = { ...p };
+      delete c[field];
+      return c;
+    });
+  }, []);
 
-    const handleEquipoChange = useCallback((field, value) => {
-        setEquipoData((p) => ({ ...p, [field]: value }));
-        setErrors((p) => { const c = { ...p }; delete c[field]; return c; });
-    }, []);
-
-    const avanzar = async () => {
-        if (paso === 1) {
-        const errs = validar1(clienteData);
-        if (Object.keys(errs).length > 0) { setErrors(errs); return; }
-        }
-        if (paso === 2) {
-        const errs = validar2(equipoData);
-        if (Object.keys(errs).length > 0) { setErrors(errs); return; }
-        }
-        if (paso === 4) {
-        await enviar();
+  const avanzar = async () => {
+    if (paso === 1) {
+      const errs = validar1(clienteData);
+      if (Object.keys(errs).length > 0) {
+        setErrors(errs);
         return;
-        }
-        setErrors({});
-        setPaso((p) => p + 1);
-    };
+      }
+    }
 
-    const retroceder = () => {
-        if (paso === 1) { onClose(); return; }
-        setPaso((p) => p - 1);
-        setErrors({});
-    };
+    if (paso === 2) {
+      const errs = validar2(equipoData);
+      if (Object.keys(errs).length > 0) {
+        setErrors(errs);
+        return;
+      }
+    }
 
-    const enviar = async () => {
-        setLoading(true);
-        try {
-        const tipo = TIPOS_DISPOSITIVO.find((t) => t._id === equipoData.tipoDispositivoId);
-        const payload = {
-            tenantId:          1,
-            tipoDispositivoId: tipo || { _id: equipoData.tipoDispositivoId, nombre: "Dispositivo" },
-            cliente: {
-            nombre:   clienteData.nombre,
-            email:    clienteData.email,
-            telefono: clienteData.telefono,
-            },
-            canal:      "web",
-            datosEquipo: {
-            marca:             equipoData.marca,
-            modelo:            equipoData.modelo,
-            antiguedad:        Number(equipoData.antiguedad),
-            condicionDeclarada: equipoData.condicionDeclarada,
-            descripcion:       equipoData.descripcion,
-            fotos:             equipoData.fotosSimuladas,
-            },
-            moneda: "BOB",
-        };
-        const res = await solicitudesApi.create(payload);
-        if (res.ok) onSuccess(res.data);
-        } finally {
-        setLoading(false);
-        }
-    };
+    if (paso === 4) {
+      await enviar();
+      return;
+    }
 
-    const renderPaso = () => {
-        switch (paso) {
-        case 1: return <Paso1 data={clienteData} onChange={handleClienteChange} errors={errors} />;
-        case 2: return <Paso2 data={equipoData}  onChange={handleEquipoChange}  errors={errors} />;
-        case 3: return <Paso3 clienteData={clienteData} equipoData={equipoData} />;
-        case 4: return <Paso4 clienteData={clienteData} equipoData={equipoData} />;
-        default: return null;
-        }
-    };
+    setErrors({});
+    setPaso((p) => p + 1);
+  };
 
-    return (
-        <div
-        className={styles.overlay}
-        onClick={(e) => e.target === e.currentTarget && onClose()}
-        >
-        <div className={styles.modal} role="dialog" aria-modal="true" aria-label="Nueva solicitud">
+  const retroceder = () => {
+    if (paso === 1) {
+      onClose();
+      return;
+    }
+    setPaso((p) => p - 1);
+    setErrors({});
+  };
 
-            {/* Header */}
-            <div className={styles.header}>
-            <h2 className={styles.header__title}>
-                <FiClipboard size={20} />
-                Nueva solicitud
-            </h2>
-            <p className={styles.header__sub}>
-                Completa los pasos para enviar tu dispositivo a valoración
-            </p>
-            <button className={styles.header__close} onClick={onClose} aria-label="Cerrar">
-                <FiX />
-            </button>
-            </div>
-
-            {/* Stepper */}
-            <div className={styles.stepper}>
-            {PASOS.map((p, idx) => {
-                const estado = paso > p.id ? "done" : paso === p.id ? "active" : "pending";
-                const Icon   = p.icon;
-                return (
-                <React.Fragment key={p.id}>
-                    {idx > 0 && (
-                    <div
-                        className={`${styles.stepper__connector} ${
-                        paso > p.id
-                            ? styles["stepper__connector--done"]
-                            : paso === p.id
-                            ? styles["stepper__connector--active"]
-                            : ""
-                        }`}
-                    />
-                    )}
-                    <div className={styles.stepper__step}>
-                    <div
-                        className={`${styles.stepper__circle} ${
-                        estado === "active"
-                            ? styles["stepper__circle--active"]
-                            : estado === "done"
-                            ? styles["stepper__circle--done"]
-                            : ""
-                        }`}
-                    >
-                        {estado === "done" ? <FiCheckCircle size={14} /> : <Icon size={14} />}
-                    </div>
-                    <span
-                        className={`${styles.stepper__label} ${
-                        estado === "active"
-                            ? styles["stepper__label--active"]
-                            : estado === "done"
-                            ? styles["stepper__label--done"]
-                            : ""
-                        }`}
-                    >
-                        {p.label}
-                    </span>
-                    </div>
-                </React.Fragment>
-                );
-            })}
-            </div>
-
-            {/* Body */}
-            <div className={styles.body}>{renderPaso()}</div>
-
-            {/* Footer */}
-            <div className={styles.footer}>
-            <button
-                className={styles.footer__back}
-                onClick={retroceder}
-                disabled={loading}
-            >
-                <FiArrowLeft size={15} />
-                {paso === 1 ? "Cancelar" : "Atrás"}
-            </button>
-
-            <button
-                className={styles.footer__next}
-                onClick={avanzar}
-                disabled={loading}
-            >
-                {loading ? (
-                <span className={styles.footer__spinner} />
-                ) : paso === 4 ? (
-                <>
-                    <FiSend size={15} />
-                    Enviar solicitud
-                </>
-                ) : (
-                <>
-                    Continuar
-                    <FiChevronRight size={15} />
-                </>
-                )}
-            </button>
-            </div>
-        </div>
-        </div>
+  const enviar = async () => {
+    const resultAction = await dispatch(
+      crearSolicitudCotizacion({
+        tenantId: 1, // fijo por ahora
+        cliente: {
+          id: clienteData.id,
+          nombre: clienteData.nombre,
+          email: clienteData.email,
+          telefono: clienteData.telefono,
+        },
+        tipoDispositivoId: equipoData.tipoDispositivoId,
+        datosEquipo: {
+          marca: equipoData.marca,
+          modelo: equipoData.modelo,
+          antiguedad: Number(equipoData.antiguedad),
+          condicionDeclarada: equipoData.condicionDeclarada,
+          descripcion: equipoData.descripcion,
+          fotos: equipoData.fotosSimuladas,
+        },
+      })
     );
-}; export default CreateSolicitudModal;
+
+    if (crearSolicitudCotizacion.fulfilled.match(resultAction)) {
+      onSuccess?.(resultAction.payload);
+      onClose?.();
+    }
+  };
+
+  const renderPaso = () => {
+    switch (paso) {
+      case 1:
+        return (
+          <Paso1
+            data={clienteData}
+            onChange={handleClienteChange}
+            errors={errors}
+          />
+        );
+      case 2:
+        return (
+          <Paso2
+            data={equipoData}
+            onChange={handleEquipoChange}
+            errors={errors}
+            tiposDispositivo={tiposDispositivo}
+          />
+        );
+      case 3:
+        return (
+          <Paso3
+            equipoData={equipoData}
+            tiposDispositivo={tiposDispositivo}
+          />
+        );
+      case 4:
+        return (
+          <Paso4
+            clienteData={clienteData}
+            equipoData={equipoData}
+            tiposDispositivo={tiposDispositivo}
+          />
+        );
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div
+      className={styles.overlay}
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+    >
+      <div className={styles.modal} role="dialog" aria-modal="true" aria-label="Nueva solicitud">
+        <div className={styles.header}>
+          <h2 className={styles.header__title}>
+            <FiClipboard size={20} />
+            Nueva solicitud
+          </h2>
+          <p className={styles.header__sub}>
+            Completa los pasos para enviar tu dispositivo a valoración
+          </p>
+          <button className={styles.header__close} onClick={onClose} aria-label="Cerrar">
+            <FiX />
+          </button>
+        </div>
+
+        <div className={styles.stepper}>
+          {PASOS.map((p, idx) => {
+            const estado = paso > p.id ? "done" : paso === p.id ? "active" : "pending";
+            const Icon = p.icon;
+
+            return (
+              <React.Fragment key={p.id}>
+                {idx > 0 && (
+                  <div
+                    className={`${styles.stepper__connector} ${
+                      paso > p.id
+                        ? styles["stepper__connector--done"]
+                        : paso === p.id
+                        ? styles["stepper__connector--active"]
+                        : ""
+                    }`}
+                  />
+                )}
+
+                <div className={styles.stepper__step}>
+                  <div
+                    className={`${styles.stepper__circle} ${
+                      estado === "active"
+                        ? styles["stepper__circle--active"]
+                        : estado === "done"
+                        ? styles["stepper__circle--done"]
+                        : ""
+                    }`}
+                  >
+                    {estado === "done" ? <FiCheckCircle size={14} /> : <Icon size={14} />}
+                  </div>
+
+                  <span
+                    className={`${styles.stepper__label} ${
+                      estado === "active"
+                        ? styles["stepper__label--active"]
+                        : estado === "done"
+                        ? styles["stepper__label--done"]
+                        : ""
+                    }`}
+                  >
+                    {p.label}
+                  </span>
+                </div>
+              </React.Fragment>
+            );
+          })}
+        </div>
+
+        <div className={styles.body}>
+          {renderPaso()}
+          {cotizacionesError && (
+            <div style={{ marginTop: 12, color: "#B82020", fontSize: 14 }}>
+              {typeof cotizacionesError === "string"
+                ? cotizacionesError
+                : cotizacionesError?.message || "Ocurrió un error"}
+            </div>
+          )}
+        </div>
+
+        <div className={styles.footer}>
+          <button
+            className={styles.footer__back}
+            onClick={retroceder}
+            disabled={isCreating}
+          >
+            <FiArrowLeft size={15} />
+            {paso === 1 ? "Cancelar" : "Atrás"}
+          </button>
+
+          <button
+            className={styles.footer__next}
+            onClick={avanzar}
+            disabled={isCreating}
+          >
+            {isCreating ? (
+              <span className={styles.footer__spinner} />
+            ) : paso === 4 ? (
+              <>
+                <FiSend size={15} />
+                Enviar solicitud
+              </>
+            ) : (
+              <>
+                Continuar
+                <FiChevronRight size={15} />
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+export default CreateSolicitudModal;

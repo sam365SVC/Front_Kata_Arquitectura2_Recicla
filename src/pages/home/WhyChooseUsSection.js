@@ -13,21 +13,21 @@ const WhyChooseUs = () => {
   const items = [
     {
       icon: 'flaticon-skill',
-      title: 'Cursos accesibles',
+      title: 'Compromiso ambiental',
       description:
-        'Ofrecemos programas de alta calidad a precios competitivos, brindando educación profesional al alcance de todos.',
+        'Trabajamos para reducir el impacto ambiental mediante el reciclaje adecuado de electrodomésticos en desuso.',
     },
     {
       icon: 'flaticon-funds',
-      title: 'Eficiencia y flexibilidad',
+      title: 'Recolección eficiente',
       description:
-        'Nuestra metodología permite aprender a tu propio ritmo, con horarios adaptables y contenidos optimizados.',
+        'Ofrecemos un servicio rápido y confiable para recoger equipos de línea blanca directamente desde tu hogar o negocio.',
     },
     {
       icon: 'flaticon-flexibility',
-      title: 'Docentes especializados',
+      title: 'Procesos responsables',
       description:
-        'Contamos con profesionales altamente capacitados que combinan experiencia académica y práctica.',
+        'Clasificamos y reciclamos materiales cumpliendo con normativas ambientales, garantizando un manejo seguro.',
     },
   ];
 
@@ -52,7 +52,7 @@ const WhyChooseUs = () => {
           <div className="col-xl-6 col-lg-6 mb-30">
             <div className="it-choose-thumb-box text-center text-lg-end">
               <div className="it-choose-thumb p-relative">
-                <img src={chooseImg} alt="Estudiantes en clase" />
+                <img src={chooseImg} alt="Reciclaje de electrodomésticos" />
                 <div className="it-choose-shape-1">
                   <img src={shapeImg5} alt="" />
                 </div>
@@ -70,7 +70,7 @@ const WhyChooseUs = () => {
                 subTitleClass="it-section-subtitle-2 white-bg"
                 subTitle="¿Por qué elegirnos?"
                 titleClass="ed-section-title"
-                title="Construyendo una comunidad de aprendizaje continuo."
+                title="Soluciones sostenibles para el reciclaje de línea blanca."
               />
 
               <div className="it-choose-content-box">

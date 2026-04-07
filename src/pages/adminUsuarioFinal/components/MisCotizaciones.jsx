@@ -11,6 +11,14 @@ import CreateSolicitudModal from "./CreateSolicitudModal";
 import CotizacionModal from "./CotizacionModal";
 import DetailDrawer from "./DetailDrawer";
 import { ESTADOS_SOLICITUD, solicitudesApi } from "../mock/data";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  fetchCotizacionesByClienteId,
+} from "../slicesCotizaciones/CotizacionesThunk";
+import {
+  selectCotizaciones,
+  selectCotizacionesLoading,
+} from "../slicesCotizaciones/CotizacionesSlice";
 
 const fmtFecha = (d) =>
   d
@@ -31,8 +39,11 @@ const Toast = ({ msg, tipo }) => (
 );
 
 const MisCotizaciones = () => {
-    const [solicitudes, setSolicitudes] = useState([]);
-    const [loading,     setLoading]     = useState(true);
+    const dispatch = useDispatch();
+
+    const solicitudes = useSelector(selectCotizaciones) || [];
+    console.log("Solicitudes desde store:", solicitudes);
+    const loading = useSelector(selectCotizacionesLoading);
 
     const [busqueda,     setBusqueda]     = useState("");
     const [filtroEstado, setFiltroEstado] = useState("");
@@ -45,15 +56,9 @@ const MisCotizaciones = () => {
     const [toast, setToast] = useState(null);
 
     // Carga 
-    const cargar = useCallback(async () => {
-        setLoading(true);
-        try {
-        const res = await solicitudesApi.getAll();
-        if (res.ok) setSolicitudes(res.data);
-        } finally {
-        setLoading(false);
-        }
-    }, []);
+    const cargar = useCallback(() => {
+    dispatch(fetchCotizacionesByClienteId({ tenantId: 1, clienteId: "CLI-2024-0001" }));
+    }, [dispatch]);
 
     useEffect(() => { cargar(); }, [cargar]);
 
@@ -108,9 +113,12 @@ const MisCotizaciones = () => {
     };
 
     const handleDecisionCotizacion = (solicitudId, decision) => {
-        cargar();
-        if (decision === "aceptada") showToast("Oferta aceptada. Coordinaremos la inspección técnica.", "success");
-        else showToast("Oferta rechazada. Puedes crear una nueva solicitud cuando quieras.", "info");
+    cargar();
+    if (decision === "aceptada") {
+        showToast("Oferta aceptada. Coordinaremos la inspección técnica.", "success");
+    } else {
+        showToast("Oferta rechazada. Puedes crear una nueva solicitud cuando quieras.", "info");
+    }
     };
 
     const limpiar = () => { setBusqueda(""); setFiltroEstado(""); setFiltroFecha(""); };
@@ -215,7 +223,7 @@ const MisCotizaciones = () => {
                 </thead>
                 <tbody>
                 {filtradas.map((sol) => {
-                    const tieneCotizacion = sol.cotizacion && sol.cotizacion.estado === "preliminar_generada";
+                    const tieneCotizacion = sol.estado === "preliminar_generada" || sol.estado === "preliminar_aceptada";
                     return (
                     <tr key={sol._id} onClick={() => setDetalle(sol)}>
                         <td><span className={styles.idCell}>{sol._id}</span></td>

@@ -1,8 +1,11 @@
 import axios from 'axios';
 import { store } from '../store/index';
 
+
+// por ahora con la api del microservicio del core
+//NOTA: CAMBIAR CON LA INTEGRACION DE LOS DEMAS
 const api = axios.create({
-  baseURL: 'http://localhost:3000/api/',
+  baseURL: 'http://localhost:4001/api/core',
 });
 
 const METODO_TRANSFERENCIA = 'TRANSFERENCIA';
@@ -343,3 +346,30 @@ export const saldosMovimientosApi = {
     api.get(`/saldo-movimientos/${estudianteId}`).then((res) => res.data).catch(handleError),
 };
 export default api;
+
+// para cotizaciones
+
+// primero tipo de dispositivo por id de la empresa
+export const tipoDispositivoApi = {
+  fetchTiposByTenantId: (tenantId) =>
+    api
+      .get(`/tipos-dispositivo?tenantId=${tenantId}&activo=true`)
+      .then((res) => res.data)
+      .catch(handleError),
+};
+
+// luego cotizaciones por id de cliente y tipo de dispositivo
+export const cotizacionesApi = {
+  fetchCotizacionesByClienteId: (tenantId, clienteId) =>
+    api.get(`/solicitudes-cotizacion?tenantId=${tenantId}&clienteId=${clienteId}`).then((res) => res.data).catch(handleError),
+  fetchCotizacionById: (id) =>
+    api.get(`/solicitudes-cotizacion/${id}`).then((res) => res.data).catch(handleError),
+  crearSolicitudCotizacion: (data) =>
+    api.post('/solicitudes-cotizacion', data).then((res) => res.data).catch(handleError),
+  aceptarCotizacionInicial: (idSolicitud, usuario) =>
+    api.patch(`/solicitudes-cotizacion/${idSolicitud}/aceptar`, { usuario }).then((res) => res.data).catch(handleError),
+  rechazarCotizacionInicial: (idSolicitud, estado) =>
+    api.patch(`/solicitudes-cotizacion/${idSolicitud}/estado`, { estado }).then((res) => res.data).catch(handleError),
+};
+
+  
