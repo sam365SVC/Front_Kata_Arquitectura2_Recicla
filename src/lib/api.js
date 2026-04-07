@@ -362,10 +362,14 @@ export const tipoDispositivoApi = {
 export const cotizacionesApi = {
   fetchCotizacionesByClienteId: (tenantId, clienteId) =>
     api.get(`/solicitudes-cotizacion?tenantId=${tenantId}&clienteId=${clienteId}`).then((res) => res.data).catch(handleError),
+  fetchCotizacionById: (id) =>
+    api.get(`/solicitudes-cotizacion/${id}`).then((res) => res.data).catch(handleError),
   crearSolicitudCotizacion: (data) =>
     api.post('/solicitudes-cotizacion', data).then((res) => res.data).catch(handleError),
   aceptarCotizacionInicial: (idSolicitud, usuario) =>
     api.patch(`/solicitudes-cotizacion/${idSolicitud}/aceptar`, { usuario }).then((res) => res.data).catch(handleError),
+  rechazarCotizacionInicial: (idSolicitud, estado) =>
+    api.patch(`/solicitudes-cotizacion/${idSolicitud}/estado`, { estado }).then((res) => res.data).catch(handleError),
 };
 
   

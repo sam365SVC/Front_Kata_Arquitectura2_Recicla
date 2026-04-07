@@ -1,8 +1,9 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { fetchCotizacionesByClienteId, aceptarCotizacionInicial, crearSolicitudCotizacion } from "./CotizacionesThunk";
+import { fetchCotizacionesByClienteId, fetchCotizacionById, aceptarCotizacionInicial, crearSolicitudCotizacion, rechazarCotizacionInicial } from "./CotizacionesThunk";
 
 const initialState = {
     cotizaciones: [],
+    cotizacionesById: {},
     totalItems: 0,
     totalPages: 1,
     currentPage: 1,
@@ -34,6 +35,19 @@ const CotizacionesSlice = createSlice({
                 state.isLoading = false;
                 state.error = action.payload || "Ocurrió un error al cargar las cotizaciones";
             })
+            .addCase(fetchCotizacionById.pending, (state) => {
+                state.isLoading = true;
+                state.error = null;
+            })
+            .addCase(fetchCotizacionById.fulfilled, (state, action) => {
+                state.isLoading = false;
+                state.cotizacionesById[action.payload._id] = action.payload;
+            })
+            .addCase(fetchCotizacionById.rejected, (state, action) => {
+                state.isLoading = false;
+                state.error = action.payload || "Ocurrió un error al cargar la cotización";
+            })
+
             .addCase(crearSolicitudCotizacion.pending, (state) => {
                 state.cotizacionesCreating = true;
                 state.cotizacionesError = null;
@@ -60,8 +74,22 @@ const CotizacionesSlice = createSlice({
             .addCase(aceptarCotizacionInicial.rejected, (state, action) => {
                 state.isLoading = false;
                 state.error = action.payload || "Ocurrió un error al aceptar la cotización";
-            }
-        );
+            })
+            .addCase(rechazarCotizacionInicial.pending, (state) => {
+                state.isLoading = true;
+                state.error = null;
+            })
+            .addCase(rechazarCotizacionInicial.fulfilled, (state, action) => {
+                state.isLoading = false;
+                const index = state.cotizaciones.findIndex(c => c._id === action.payload._id);
+                if (index !== -1) {
+                    state.cotizaciones[index] = action.payload;
+                }
+            })
+            .addCase(rechazarCotizacionInicial.rejected, (state, action) => {
+                state.isLoading = false;
+                state.error = action.payload || "Ocurrió un error al rechazar la cotización";
+            });
     }
 });
 
