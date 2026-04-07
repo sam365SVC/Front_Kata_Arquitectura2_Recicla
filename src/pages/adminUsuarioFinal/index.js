@@ -8,6 +8,8 @@ import ClientOffersWrapper from './Clientofferswrapper';
 const AdminUsuarioFinal = ({
     clienteNombre = "María García López",
     clienteEmail  = "maria.garcia@email.com",
+    clienteId = "12",
+    tenantId = "1",
   }) => {
   return (
     <>
@@ -15,6 +17,8 @@ const AdminUsuarioFinal = ({
       <ClientOffersWrapper
         clienteNombre={clienteNombre}
         clienteEmail={clienteEmail}
+        clienteId={clienteId}
+        tenantId={tenantId}
       />
 
       

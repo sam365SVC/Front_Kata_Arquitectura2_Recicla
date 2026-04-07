@@ -11,6 +11,10 @@ import { MdOutlineDevices } from "react-icons/md";
 import styles from "./CotizacionModal.module.scss";
 import { CONDICIONES, TIPOS_DISPOSITIVO, cotizacionesApi } from "../mock/data";
 
+// para consumo inicial
+//sin tokens, solo para mostrar la info de la cotización y probar la UI
+
+
 
 const CotizacionModal = ({ solicitud, onClose, onDecision }) => {
     const [step, setStep]       = useState("ver");     // "ver" | "confirmarRechazo"

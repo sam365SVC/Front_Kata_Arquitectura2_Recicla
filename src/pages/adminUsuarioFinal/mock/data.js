@@ -325,6 +325,7 @@ export const MOCK_SOLICITUDES = [
 ];
 
 export const CLIENTE_ACTUAL = {
+  id: "CLI-2024-0001",
   nombre:   "María García López",
   email:    "maria.garcia@email.com",
   telefono: "+591 70123456",
