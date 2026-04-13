@@ -5,7 +5,7 @@ import MenuItemsOnePage from './MenuItemsOnePage';
 import RightArrow from '../SVG';
 import OffCanvasInsta from '../OffCanvas';
 
-import Logo from '../../assets/img/logo/logo-gatobyte.png';
+import Logo from '../../assets/img/logo/logo.png';
 import svgImg1 from '../../assets/img/header/1.svg';
 import svgImg2 from '../../assets/img/header/2.svg';
 import svgImg3 from '../../assets/img/header/3.svg';

@@ -2,31 +2,32 @@
 
 // Common
 $white:    #ffffff;
-$black:    #0e3b46;
-$black-2:  #4D5756;
-$black-3:  #174e3e;
-$yellow:   #FFD25D;
-$orange:   #FC6441;
-$orange-2: #F2A227;
-$orange-3: #FC9F0B;
+$black:    #2F3E2C;   // verde oscuro natural
+$black-2:  #5A6650;   // gris verdoso
+$black-3:  #1F2A1D;   // más profundo
 
-// Grises
-$grey-1: #F2F2F2;
-$grey-2: #F3F5F5;
+$yellow:   #EEE9BF;   // main-2
+$orange:   #8A7D4C;   // tierra
+$orange-2: #BDB77C;   // arena
+$orange-3: #78793F;   // oliva oscuro
+
+// Grises (con tinte verde)
+$grey-1: #F5F7F2;
+$grey-2: #EEF1E8;
 $grey-3: #FBFFFE;
-$grey-4: #E8E8F4;
-$grey-5: #FFF8F0;
+$grey-4: #E4E8DC;
+$grey-5: #F8F6EC;
 
 // Texto
-$text-body: #333931;
+$text-body: #4A5743;
 
-// Tema
-$theme-1: #704FE6;
-$theme-2: #FE543D;
-$theme-3: #2FC7A1;
-$theme-4: #674DF0;
-$theme-5: #00BEAE;
-$theme-6: #FF9E0E;
+// Tema (ahora basado en MAIN)
+$theme-1: #79864B;
+$theme-2: #EEE9BF;
+$theme-3: #BDB77C;
+$theme-4: #78793F;
+$theme-5: #8A7D4C;
+$theme-6: #5A6650; // tono extra para variaciones
 
 // ─── Paleta MAIN (acento principal) ──────────────────────────────────────────
 $main-1: #79864B;
@@ -35,15 +36,22 @@ $main-3: #BDB77C;
 $main-4: #78793F;
 $main-5: #8A7D4C;
 
-// ─── Status semánticos ────────────────────────────────────────────────────────
+// ─── Status semánticos (eco-friendly) ────────────────────────────────────────
 $status: (
-  neutral: (#F0F2F0, #4D5756, #D0D4D0),
-  info:    (#E3EFF9, #1A5FA8, #B3CDE8),
-  pending: (#FFF3E0, #C45E00, #FFD09A),
-  active:  (#E6F7F1, #1A7A56, #A3DBBF),
-  warning: (#FFFAEB, #946900, #FFE68A),
-  success: (#E8F5EE, #1B6B3A, #8FD3A8),
-  danger:  (#FDECEA, #B82020, #F4AEAD),
+  neutral: (#F5F7F2, #5A6650, #D6DBC8),
+
+  info:    (#EEF1E8, #5A6650, #D6DBC8),
+
+  pending: (#F8F6EC, #8A7D4C, #D4CC8A),
+
+  active:  (#E8F5EE, #79864B, #BBD4A8),
+
+  warning: (#FDF8E4, #78793F, #E6D98C),
+
+  success: (#E8F5EE, #79864B, #A9C49A),
+
+  danger:  (#FDECEA, #A94442, #E5A5A3), // se mantiene rojizo para alertas reales
+
   done:    (#EEE9BF, #78793F, #D4CC8A),
 );
 
@@ -93,5 +101,8 @@ $bp-xl:  1200px;
   background: $bg;
   color: $color;
   border: 1px solid $border;
-  .badge__dot { background: $color; }
+
+  .badge__dot {
+    background: $color;
+  }
 }

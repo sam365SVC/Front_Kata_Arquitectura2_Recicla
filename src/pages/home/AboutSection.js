@@ -3,10 +3,10 @@ import { Link } from 'react-router-dom';
 import SectionTitleSpecial from '../../components/SectionTitle/SectionTitleSpecial';
 import RightArrow from '../../components/SVG';
 
-import shapeImg1 from '../../assets/img/about/shape-1-4.png';
+import shapeImg1 from '../../assets/img/about/shape-1-9.png';
 import shapeImg2 from '../../assets/img/about/ed-shape-1-1.png';
-import aboutImg1 from '../../assets/img/about/ed-about-1-1.jpg';
-import aboutImg2 from '../../assets/img/about/ed-about-1-2.jpg';
+import aboutImg1 from '../../assets/img/slider/slider-1-3.png';
+import aboutImg2 from '../../assets/img/slider/slider-1-7.png';
 import aboutImg3 from '../../assets/img/about/ed-about-1-3.jpg';
 
 const About = () => {
@@ -56,37 +56,38 @@ const About = () => {
               <SectionTitleSpecial
                 itemClass="it-about-title-box mb-20 section-title-fixed-width"
                 subTitle="Acerca de Nosotros"
-                preTitle="Aprende y desarrolla tus"
-                highlightText="habilidades"
-                postTitle="Desde cualquier lugar"
+                preTitle="Cuidamos el"
+                highlightText="medio ambiente"
+                postTitle="reciclando tus electrodomésticos"
               />
 
               <div className="it-about-text pb-10">
                 <p>
-                  Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
-                  do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-                  Ut enim ad minim veniam, quis nostrud exercitation ullamco
-                  laboris..
+                  Somos una empresa comprometida con el reciclaje responsable de 
+                  dispositivos de línea blanca, ayudando a reducir el impacto ambiental 
+                  mediante la correcta gestión de residuos electrónicos.
                 </p>
               </div>
+
               <div className="it-about-content-wrapper d-flex align-items-center justify-content-between pb-15">
                 <div className="it-about-content">
-                  <h5>Titulo</h5>
+                  <h5>Recolección Segura</h5>
                   <p>
-                    Suspendisse ultrice gravida dictum fusce placerat ultricies
-                    integer quis auctor elit sed vulputate mi sit.
+                    Retiramos electrodomésticos en desuso directamente desde tu hogar 
+                    de manera segura y eficiente.
                   </p>
                 </div>
                 <div className="it-about-content">
-                  <h5>Titulo</h5>
+                  <h5>Reciclaje Responsable</h5>
                   <p>
-                    Suspendisse ultrice gravida dictum fusce placerat ultricies
-                    integer quis auctor elit sed vulputate mi sit.
+                    Clasificamos y reciclamos materiales como metales y componentes 
+                    electrónicos, contribuyendo a un futuro más sostenible.
                   </p>
                 </div>
               </div>
+
               <Link className="ed-btn-theme" to="/about-us">
-                Ver más
+                Conoce más
                 <i>
                   <RightArrow />
                 </i>

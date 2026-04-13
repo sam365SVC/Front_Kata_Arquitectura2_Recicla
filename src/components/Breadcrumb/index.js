@@ -16,7 +16,7 @@ const Breadcrumb = (props) => {
           ? itemClass
           : 'it-breadcrumb-area fix it-breadcrumb-bg p-relative'
       }
-      style={{ backgroundImage: `url(${breadcrumbBG})` }}
+      style={{ backgroundColor: "#BDB77C" }}
     >
       <div className="it-breadcrumb-shape-1 d-none d-md-block">
         <img src={shapeImg1} alt="" />

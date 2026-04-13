@@ -7,8 +7,8 @@ import NextArrow from '../../components/SVG/NextArrow';
 
 import shapeImg1 from '../../assets/img/slider/shape-3-2.png';
 import shapeImg2 from '../../assets/img/slider/shape-3-3.png';
-import sliderImg1 from '../../assets/img/slider/slider-1-1.jpg';
-import sliderImg2 from '../../assets/img/slider/slider-1-2.jpg';
+import sliderImg1 from '../../assets/img/slider/slider-1-8.png';
+import sliderImg2 from '../../assets/img/slider/slider-1-6.jpeg';
 
 const Banner = () => {
   const sliderOption = {
@@ -71,34 +71,32 @@ const Banner = () => {
                         <div className="ed-slider-2-content">
                           <div className="ed-slider-2-subtitle pb-10">
                             <div>
-                              <span>Welcome Edunity online courses</span>
+                              <span>Bienvenid@ a ReeCicla</span>
                             </div>
                           </div>
                           <div className="ed-slider-title text-white">
                             <div>
-                              <span>Achieving Your Dreams</span>
+                              <span>Dando nueva vida a tus</span>
                             </div>
                             <div>
                               <span>
-                                Through
-                                <i>Education</i>
+                                <i>Electrodomésticos</i>
                               </span>
                             </div>
                           </div>
                           <div className="ed-slider-2-text pb-25">
                             <div>
                               <p className=" text-white">
-                                We are experienced in educationl platform and
-                                skilled strategies
+                                Nos especializamos en el reciclaje responsable de línea blanca
                                 <br />
-                                for the success of our online learning.
+                                como refrigeradores, lavadoras y cocinas, cuidando el medio ambiente.
                               </p>
                             </div>
                           </div>
                           <div className="ed-slider-2-button">
                             <div>
                               <Link className="ed-btn-square" to="/about-us">
-                                Discover More
+                                Descubre más
                               </Link>
                             </div>
                           </div>
@@ -138,34 +136,32 @@ const Banner = () => {
                         <div className="ed-slider-2-content">
                           <div className="ed-slider-2-subtitle pb-10">
                             <div>
-                              <span>Welcome Edunity online courses</span>
+                              <span>Bienvenid@ a ReeCicla</span>
                             </div>
                           </div>
                           <div className="ed-slider-title text-white">
                             <div>
-                              <span>Achieving Your Dreams</span>
+                              <span>Dando nueva vida a tus</span>
                             </div>
                             <div>
                               <span>
-                                Through
-                                <i>Education</i>
+                                <i>Electrodomésticos</i>
                               </span>
                             </div>
                           </div>
                           <div className="ed-slider-2-text pb-25">
                             <div>
                               <p className=" text-white">
-                                We are experienced in educationl platform and
-                                skilled strategies
+                               Nos especializamos en el reciclaje responsable de línea blanca
                                 <br />
-                                for the success of our online learning.
+                                como refrigeradores, lavadoras y cocinas, cuidando el medio ambiente.
                               </p>
                             </div>
                           </div>
                           <div className="ed-slider-2-button">
                             <div>
                               <Link className="ed-btn-square" to="/about-us">
-                                Discover More
+                                Descubre más
                               </Link>
                             </div>
                           </div>

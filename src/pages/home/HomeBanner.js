@@ -18,7 +18,7 @@ const HomeBanner = () => {
         <div className="ed-slider-instructor-box d-none d-lg-block">
           <div>
             <span>
-              <i>200+</i> Instructores
+              <i>500+</i> Equipos 
             </span>
             <img src={instructorImg} alt="" />
           </div>
@@ -35,24 +35,24 @@ const HomeBanner = () => {
                   data-wow-duration=".9s"
                   data-wow-delay=".3s"
                 >
-                  Bienvenido a Gatobyte
+                  Bienvenido a ReeCicla
                 </span>
                 <h1
                   className="ed-slider-title wow animate__fadeInUp"
                   data-wow-duration=".9s"
                   data-wow-delay=".4s"
                 >
-                  Logrando tus sueños <br />
-                  A través de la <br />
-                  <span> educación</span>
+                  Dando nueva vida <br />
+                  a tus <br />
+                  <span> electrodomésticos</span>
                 </h1>
                 <p
                   className="pb-25 wow animate__fadeInUp"
                   data-wow-duration=".9s"
                   data-wow-delay=".5s"
                 >
-                  Somos expertos en plataformas educativas y estrategias hábiles <br />
-                  para el éxito de nuestro aprendizaje.
+                  Nos especializamos en el reciclaje responsable de línea blanca <br />
+                  como refrigeradores, lavadoras y cocinas, cuidando el medio ambiente.
                 </p>
                 <Link
                   className="ed-btn-dark wow animate__fadeInUp"
@@ -60,7 +60,7 @@ const HomeBanner = () => {
                   data-wow-delay=".7s"
                   to="/course-details"
                 >
-                  Buscar cursos
+                  Solicitar recolección
                   <i>
                     <RightArrow />
                   </i>

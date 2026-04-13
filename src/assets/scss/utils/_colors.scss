@@ -1,47 +1,52 @@
 $colors: (
     'common': (
         'white': #ffffff,
-        'black': #0E2A46,
-        'black-3': #17254E,
-        'yellow': #FFD25D,
-        'purple-2': #785DD7,
-        'purple-3': #7768E5,
-        'orange': #FC6441,
-        'orange-2': #F2A227,
-        'orange-3': #FC9F0B,
+        'black': #2F3E2C,      // verde oscuro en vez de azul
+        'black-2': #5A6650,    // gris verdoso
+        'black-3': #1F2A1D,    // más profundo
 
-        'black-2': #4D5756,
+        'yellow': #EEE9BF,     // alineado con main-2
+        'purple-2': #79864B,   // reemplazado por verde principal
+        'purple-3': #BDB77C,   // tono tierra claro
+
+        'orange': #8A7D4C,     // tierra oscuro
+        'orange-2': #BDB77C,
+        'orange-3': #78793F,
     ),
+
     'heading': (
-        'primary': #0E2A46,
+        'primary': #2F3E2C,    // consistente con textos fuertes
     ),
+
     'grey': (
-        '1':#F2F2F2,
-        '2':#F3F5F5,
-        '3':#FBFFFE,
-        '4':#E8E8F4,
-        '5':#FFF8F0,
+        '1': #F5F7F2,          // gris con tinte verde
+        '2': #EEF1E8,
+        '3': #FBFFFE,
+        '4': #E4E8DC,
+        '5': #F8F6EC,
     ),
+
     'text': (
-        'body':#333931,
+        'body': #4A5743,       // texto con tono natural
     ),
+
     'theme': (
-        '1':#704FE6,
-        '2':#FE543D,
-        '3':#2FC7A1,
-        '4':#674DF0,
-        '5':#00BEAE,
-        '6':#FF9E0E,
-        '7':#FF9500,
+        '1': #79864B,
+        '2': #EEE9BF,
+        '3': #BDB77C,
+        '4': #78793F,
+        '5': #8A7D4C,
     ),
+
     'border': (
+        '1': #D6DBC8,          // borde suave verdoso
     ),
+
     'main': (
-        '1':#79864B,
-        '2':#EEE9BF,
-        '3':#BDB77C,
-        '4':#78793F,
-        '5':#8A7D4C,
+        '1': #79864B,
+        '2': #EEE9BF,
+        '3': #BDB77C,
+        '4': #78793F,
+        '5': #8A7D4C,
     )
 );
-

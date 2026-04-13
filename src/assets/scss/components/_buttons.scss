@@ -13,7 +13,7 @@
 	letter-spacing: -0.01em;
 	text-transform: capitalize;
 	color: var(--it-common-white);
-	background-color: var(--it-theme-1);
+	background-color: var(--it-main-1);
 	border-radius: 200px;
 	& i {
 		position: absolute;
@@ -27,7 +27,7 @@
 		text-align: center;
 		transition: .3s;
 		color: var(--it-common-white);
-		background-color: var(--it-common-purple-2);
+		background-color: var(--it-main-4);
 		@media #{$xs}{  
 			width: 48px;     
 			height: 48px;
@@ -69,10 +69,10 @@
 	}
 	&:hover {
 		color: var(--it-common-white);
-		background-color: var(--it-common-black-3);
+		background-color: var(--it-main-4);
 		& i {
 			color: var(--it-common-white);
-			background-color: #1F3061;
+			background-color: #8A7D4C;
 		}
 		&.theme-2{
 			background-color:var(--it-theme-2) ;

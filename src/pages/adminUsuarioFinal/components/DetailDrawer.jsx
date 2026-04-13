@@ -1,5 +1,5 @@
 import React from "react";
-import { FiX, FiSmartphone, FiTool, FiDollarSign, FiWifi } from "react-icons/fi";
+import { FiX, FiSmartphone, FiTool, FiDollarSign, FiWifi, FiXCircle } from "react-icons/fi";
 import { MdOutlineDevices, MdOutlineHistory } from "react-icons/md";
 import styles from "./DetailDrawer.module.scss";
 import StatusBadge from "./StatusBadge";
@@ -10,13 +10,19 @@ import {
 } from "../mock/data";
 
 // Pasos del flujo para el timeline
-const FLUJO = [
-  { key: "creada",               label: "Solicitud creada",        icon: FiSmartphone },
-  { key: "preliminar_generada",  label: "Oferta preliminar",       icon: FiDollarSign },
-  { key: "preliminar_aceptada",  label: "Oferta aceptada",         icon: FiDollarSign },
-  { key: "en_inspeccion",        label: "Inspección técnica",      icon: FiTool       },
-  { key: "aprobada",             label: "Cotización aprobada",     icon: FiDollarSign },
-  { key: "pagada",               label: "Pago realizado",          icon: FiDollarSign },
+const FLUJO_NORMAL = [
+  { key: "creada",              label: "Solicitud creada",    icon: FiSmartphone },
+  { key: "preliminar_generada", label: "Oferta preliminar",   icon: FiDollarSign },
+  { key: "preliminar_aceptada", label: "Oferta aceptada",     icon: FiDollarSign },
+  { key: "en_inspeccion",       label: "Inspección técnica",  icon: FiTool },
+  { key: "aprobada",            label: "Cotización aprobada", icon: FiDollarSign },
+  { key: "pagada",              label: "Pago realizado",      icon: FiDollarSign },
+];
+
+const FLUJO_RECHAZADO = [
+  { key: "creada",              label: "Solicitud creada",    icon: FiSmartphone },
+  { key: "preliminar_generada", label: "Oferta preliminar",   icon: FiDollarSign },
+  { key: "rechazada",           label: "Oferta rechazada",    icon: FiX },
 ];
 
 const fmt = (d) =>
@@ -34,8 +40,23 @@ const DetailDrawer = ({ solicitud, onClose }) => {
   const eq    = solicitud.datosEquipo;
   const tipo  = solicitud.tipoDispositivoId;
   const cond  = CONDICIONES[eq?.condicionDeclarada];
-  const pasoActual = cfg.paso || 1;
   const esRechazada = solicitud.estado === "rechazada";
+  const flujo = esRechazada ? FLUJO_RECHAZADO : FLUJO_NORMAL;
+  const pasoActual = esRechazada
+  ? flujo.findIndex((f) => f.key === solicitud.estado) + 1
+  : (cfg.paso || 1);
+  
+
+  const mensajeEstado = esRechazada
+  ? {
+      titulo: "Solicitud no viable",
+      descripcion:
+        "Esta solicitud fue rechazada y el proceso se detuvo. Si quieres, puedes registrar una nueva solicitud con información actualizada del equipo.",
+    }
+  : {
+      titulo: cfg.descripcion || "Estado de la solicitud",
+      descripcion: cfg.detalle || "La solicitud sigue en proceso.",
+    };
 
   return (
     <>
@@ -60,7 +81,7 @@ const DetailDrawer = ({ solicitud, onClose }) => {
 
             <StatusBadge estado={solicitud.estado} tooltip={false} />
             <p className={styles.header__desc}>
-                {cfg.descripcion} — {cfg.detalle}
+                <strong>{mensajeEstado.titulo}</strong> — {mensajeEstado.descripcion}
             </p>
             </div>
 
@@ -73,7 +94,7 @@ const DetailDrawer = ({ solicitud, onClose }) => {
                 Estado del proceso
                 </p>
                 <div className={styles.timeline}>
-                {FLUJO.map((f, i) => {
+                {flujo.map((f, i) => {
                     const Icon     = f.icon;
                     const esCurr   = f.key === solicitud.estado;
                     const esDone   = i < pasoActual - 1;
@@ -105,14 +126,34 @@ const DetailDrawer = ({ solicitud, onClose }) => {
                         >
                         {f.label}
                         </span>
-                        {esCurr && !esDanger && (
-                        <span className={styles.timeline__pill}>Actual</span>
+                        {esCurr && (
+                        <span
+                            className={styles.timeline__pill}
+                            style={esDanger ? { background: "#FDECEC", color: "#B82020" } : {}}
+                        >
+                            {esDanger ? "Detenida" : "Actual"}
+                        </span>
                         )}
                     </div>
                     );
                 })}
                 </div>
             </div>
+
+            {esRechazada && (
+            <div className={styles.infoBox} style={{ border: "1px solid #F3C7C7", background: "#FFF6F6", marginBottom: 24 }}>
+                <div className={styles.infoBox__row}>
+                <span>Estado</span>
+                <strong style={{ color: "#B82020" }}>No viable / Rechazada</strong>
+                </div>
+                <div className={styles.infoBox__row}>
+                <span>Observación</span>
+                <strong>
+                    La solicitud fue cerrada y ya no continuará dentro del flujo normal de cotización.
+                </strong>
+                </div>
+            </div>
+            )}
 
             {/* Monto si existe */}
             {solicitud.montoInicial != null && (
