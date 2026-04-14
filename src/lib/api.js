@@ -6,6 +6,7 @@ import { store } from '../store/index';
 //NOTA: CAMBIAR CON LA INTEGRACION DE LOS DEMAS
 const api = axios.create({
   baseURL: 'http://localhost:3001/api/',
+  baseURL: 'http://localhost:3000',
 });
 
 const METODO_TRANSFERENCIA = 'TRANSFERENCIA';
@@ -345,7 +346,6 @@ export const saldosMovimientosApi = {
   fetchSaldosByEstudianteId: (estudianteId) =>
     api.get(`/saldo-movimientos/${estudianteId}`).then((res) => res.data).catch(handleError),
 };
-export default api;
 
 // para cotizaciones
 
@@ -353,7 +353,7 @@ export default api;
 export const tipoDispositivoApi = {
   fetchTiposByTenantId: (tenantId) =>
     api
-      .get(`/tipos-dispositivo?tenantId=${tenantId}&activo=true`)
+      .get(`/api/core/tipos-dispositivo?tenantId=${tenantId}&activo=true`)
       .then((res) => res.data)
       .catch(handleError),
 };
@@ -361,15 +361,89 @@ export const tipoDispositivoApi = {
 // luego cotizaciones por id de cliente y tipo de dispositivo
 export const cotizacionesApi = {
   fetchCotizacionesByClienteId: (tenantId, clienteId) =>
-    api.get(`/solicitudes-cotizacion?tenantId=${tenantId}&clienteId=${clienteId}`).then((res) => res.data).catch(handleError),
+    api.get(`/api/core/solicitudes-cotizacion?tenantId=${tenantId}&clienteId=${clienteId}`).then((res) => res.data).catch(handleError),
   fetchCotizacionById: (id) =>
-    api.get(`/solicitudes-cotizacion/${id}`).then((res) => res.data).catch(handleError),
+    api.get(`/api/core/solicitudes-cotizacion/${id}`).then((res) => res.data).catch(handleError),
   crearSolicitudCotizacion: (data) =>
-    api.post('/solicitudes-cotizacion', data).then((res) => res.data).catch(handleError),
+    api.post('/api/core/solicitudes-cotizacion', data).then((res) => res.data).catch(handleError),
   aceptarCotizacionInicial: (idSolicitud, usuario) =>
-    api.patch(`/solicitudes-cotizacion/${idSolicitud}/aceptar`, { usuario }).then((res) => res.data).catch(handleError),
+    api.patch(`/api/core/solicitudes-cotizacion/${idSolicitud}/aceptar`, { usuario }).then((res) => res.data).catch(handleError),
   rechazarCotizacionInicial: (idSolicitud, estado) =>
-    api.patch(`/solicitudes-cotizacion/${idSolicitud}/estado`, { estado }).then((res) => res.data).catch(handleError),
+    api.patch(`/api/core/solicitudes-cotizacion/${idSolicitud}/estado`, { estado }).then((res) => res.data).catch(handleError),
+};
+export const empresasApi = {
+  fetchUsuariosEmpresaByTenantId: (tenantId) =>
+    api
+      .get(`/api/core/empresas/${tenantId}/usuarios`)
+      .then((res) => res.data)
+      .catch(handleError),
+
+  createUsuarioEmpresa: (data) =>
+    api
+      .post(`/api/core/empresas/usuarios`, data)
+      .then((res) => res.data)
+      .catch(handleError),
+
+  updateUsuarioEmpresa: (id, data) =>
+    api
+      .put(`/api/core/empresas/usuarios/${id}`, data)
+      .then((res) => res.data)
+      .catch(handleError),
+
+  changeEstadoUsuarioEmpresa: (id, data) =>
+    api
+      .patch(`/api/core/empresas/usuarios/${id}/estado`, data)
+      .then((res) => res.data)
+      .catch(handleError),
+
+  fetchTiposDispositivoEmpresaByTenantId: (tenantId, params = {}) =>
+    api
+      .get(`/api/core/tipos-dispositivo`, {
+        params: {
+          tenantId,
+          ...params,
+        },
+      })
+      .then((res) => res.data)
+      .catch(handleError),
+
+  fetchTipoDispositivoEmpresaById: (id) =>
+    api
+      .get(`/api/core/tipos-dispositivo/${id}`)
+      .then((res) => res.data)
+      .catch(handleError),
+
+  createTipoDispositivoEmpresa: (data) =>
+    api
+      .post(`/api/core/tipos-dispositivo`, data)
+      .then((res) => res.data)
+      .catch(handleError),
+
+  updateTipoDispositivoEmpresa: (id, data) =>
+    api
+      .put(`/api/core/tipos-dispositivo/${id}`, data)
+      .then((res) => res.data)
+      .catch(handleError),
+
+  changeEstadoTipoDispositivoEmpresa: (id, data) =>
+    api
+      .patch(`/api/core/tipos-dispositivo/${id}/estado`, data)
+      .then((res) => res.data)
+      .catch(handleError),
+};
+// para inspecciones
+export const inspeccionesApi = {
+  fetchInspeccionesByInspectorId: (tenantId, inspectorId) =>
+    api.get(`/api/core/inspecciones?tenantId=${tenantId}&inspectorId=${inspectorId}`).then((res) => res.data).catch(handleError),
+  fetchInspeccionById: (id) =>
+    api.get(`/api/core/inspecciones/${id}`).then((res) => res.data).catch(handleError),
+  iniciarInspeccion: (data) =>
+    api.post(`/api/core/inspecciones`, data).then((res) => res.data).catch(handleError),
+  completarInspeccion: (idInspeccion, data) =>
+    api.put(`/api/core/inspecciones/${idInspeccion}`, data).then((res) => res.data).catch(handleError),
+  observarInspeccion: (idInspeccion, data) =>
+    api.post(`/api/core/inspecciones/observar/${idInspeccion}`, data).then((res) => res.data).catch(handleError),
 };
 
   
+export default api;

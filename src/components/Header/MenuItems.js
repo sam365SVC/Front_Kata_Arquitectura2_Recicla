@@ -62,8 +62,8 @@ const MenuItems = (props) => {
         </Link>
       </li>
       <li>
-        <Link to="/course-1">
-          <span>Ofertas de cursos</span>
+        <Link to="/admin-usfin">
+          <span>Cotiza tu equipo</span>
         </Link>
       </li>
     </ul>

@@ -52,9 +52,11 @@ import {
   Docente,
   AdminUsuarioFinal,
   Despachador,
-  Conductor
+  Conductor,
   PlanesPagos,
   CheckoutPago,
+  AdminEmpresa,
+  Inspector
 } from '../pages';
 
 function App() {
@@ -132,6 +134,9 @@ function App() {
         <Route path="/planes-pagos" element={<PlanesPagos />} />
         <Route path="/checkout-pagos" element={<CheckoutPago />} />
         
+        <Route path="/admin-empresa" element={<AdminEmpresa />} />
+
+        <Route path="/inspector" element={<Inspector />} />
       </Routes>
     </div>
   );
