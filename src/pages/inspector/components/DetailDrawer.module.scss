@@ -1,238 +1,379 @@
 @use '../styles/variables' as *;
 
+// ─────────────────────────────────────────────
+//  Overlay
+// ─────────────────────────────────────────────
 .overlay {
   position: fixed;
   inset: 0;
   background: rgba($black, 0.38);
-  backdrop-filter: blur(2px);
-  z-index: 900;
+  z-index: 400;
   animation: fadeIn 0.2s ease;
-  cursor: pointer;
+  backdrop-filter: blur(2px);
 }
 
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
 
+// ─────────────────────────────────────────────
+//  Drawer
+// ─────────────────────────────────────────────
 .drawer {
   position: fixed;
   top: 0;
   right: 0;
   bottom: 0;
-  width: min(480px, 100vw);
-  background: $white;
-  z-index: 901;
+  width: 440px;
+  max-width: 100vw;
+  background: $grey-2;
+  z-index: 500;
   display: flex;
   flex-direction: column;
-  box-shadow: -16px 0 56px rgba($black, 0.14);
-  animation: slideIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   overflow: hidden;
+  box-shadow: -8px 0 40px rgba($black, 0.14);
+  animation: slideIn 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+
+  @include respond-to($bp-md) { width: 100vw; }
 }
 
 @keyframes slideIn {
-  from { transform: translateX(100%); opacity: 0; }
-  to   { transform: none; opacity: 1; }
+  from { transform: translateX(100%); opacity: 0.6; }
+  to   { transform: translateX(0);    opacity: 1;   }
 }
 
-.header {
-  padding: 22px 22px 18px;
-  background: linear-gradient(135deg, rgba($main-1, 0.07), rgba($main-2, 0.22));
-  border-bottom: 1px solid $grey-4;
-  position: sticky;
-  top: 0;
-  z-index: 10;
+// ─────────────────────────────────────────────
+//  Banner header
+// ─────────────────────────────────────────────
+.banner {
+  background: linear-gradient(135deg, $main-4 0%, darken($main-1, 8%) 100%);
+  padding: 22px 22px 20px;
+  position: relative;
   flex-shrink: 0;
 
-  &__top {
-    @include flex-between;
-    gap: 12px;
-    margin-bottom: 10px;
-  }
-
-  &__eyebrow {
-    font-size: 11px;
-    font-weight: 800;
-    letter-spacing: 0.07em;
-    text-transform: uppercase;
-    color: $main-1;
-    margin: 0 0 3px;
-  }
-
-  &__id {
-    font-size: 20px;
-    font-weight: 900;
-    color: $black;
-    margin: 0 0 2px;
-    font-family: $font-heading;
-  }
-
-  &__date {
-    font-size: 12px;
-    color: $black-2;
-    margin: 0 0 10px;
-  }
-
   &__close {
-    width: 34px;
-    height: 34px;
-    border: none;
-    border-radius: 50%;
-    background: $grey-2;
-    color: $black-2;
-    font-size: 18px;
-    cursor: pointer;
-    @include flex-center;
-    @include transition;
-    flex-shrink: 0;
-
-    &:hover { background: $grey-4; color: $black; }
-  }
-
-  &__desc {
-    font-size: 13px;
-    color: $black-2;
-    margin: 8px 0 0;
-    line-height: 1.5;
-  }
-}
-
-.body {
-  padding: 20px 22px;
-  overflow-y: auto;
-  flex: 1;
-
-  &::-webkit-scrollbar { width: 4px; }
-  &::-webkit-scrollbar-thumb { background: $grey-4; border-radius: 4px; }
-}
-
-.section {
-  margin-bottom: 22px;
-
-  &__title {
-    @include flex(center, flex-start, 7px);
-    font-size: 11px;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: $black-2;
-    margin: 0 0 12px;
-
-    svg { color: $main-1; }
-  }
-}
-
-.timeline {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-
-  &__item {
-    @include flex(center, flex-start, 12px);
-    padding: 4px 0;
-  }
-
-  &__circle {
+    position: absolute;
+    top: 14px;
+    right: 14px;
     width: 32px;
     height: 32px;
     border-radius: 50%;
-    border: 2px solid $grey-4;
-    background: $grey-2;
+    border: none;
+    background: rgba($white, 0.18);
+    color: $white;
+    cursor: pointer;
     @include flex-center;
-    font-size: 14px;
-    flex-shrink: 0;
     @include transition;
 
+    &:hover {
+      background: rgba($white, 0.32);
+      transform: rotate(90deg);
+    }
+  }
+
+  &__device {
+    @include flex(center, flex-start, 14px);
+    margin-bottom: 14px;
+  }
+
+  &__deviceIcon {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    background: rgba($white, 0.18);
+    border: 1.5px solid rgba($white, 0.25);
+    @include flex-center;
+
+    svg { color: $white; }
+  }
+
+  &__deviceInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  &__deviceType {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: rgba($white, 0.7);
+  }
+
+  &__deviceModel {
+    font-size: 18px;
+    font-weight: 900;
+    color: $white;
+    font-family: $font-heading;
+    line-height: 1.15;
+  }
+
+  &__meta {
+    @include flex(center, flex-start, 10px);
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  &__id {
+    display: inline-flex;
+    align-items: center;
+    font-size: 11.5px;
+    font-weight: 700;
+    font-family: 'Courier New', monospace;
+    color: rgba($white, 0.82);
+    background: rgba($white, 0.14);
+    padding: 3px 9px;
+    border-radius: 6px;
+    letter-spacing: 0.3px;
+  }
+
+  &__client {
+    @include flex(center, flex-start, 0px);
+    font-size: 12.5px;
+    color: rgba($white, 0.75);
+    font-weight: 500;
+
+    svg { color: rgba($white, 0.6); }
+  }
+
+  &__sep {
+    margin: 0 10px;
+    color: rgba($white, 0.4);
+  }
+}
+
+// ─────────────────────────────────────────────
+//  Cuerpo scrollable
+// ─────────────────────────────────────────────
+.body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 18px 18px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+
+  &::-webkit-scrollbar       { width: 5px; }
+  &::-webkit-scrollbar-track { background: transparent; }
+  &::-webkit-scrollbar-thumb { background: rgba($main-3, 0.35); border-radius: 10px; }
+}
+
+// ─────────────────────────────────────────────
+//  Timeline horizontal
+// ─────────────────────────────────────────────
+.timeline {
+  @include card(12px);
+  padding: 16px 18px;
+  @include flex(center, space-between, 0px);
+
+  &__step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    position: relative;
+    z-index: 1;
+  }
+
+  &__node {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 2px solid $grey-4;
+    background: $white;
+    @include flex-center;
+    @include transition;
+
+    svg { color: $black-2; }
+
     &--done {
-      border-color: $main-1;
-      background: rgba($main-1, 0.12);
-      color: $main-1;
+      border-color: $theme-3;
+      background: rgba($theme-3, 0.12);
+      svg { color: $theme-3; }
     }
 
     &--current {
       border-color: $main-1;
       background: $main-1;
-      color: $white;
-    }
-
-    &--danger {
-      border-color: #B82020;
-      background: #FDECEA;
-      color: #B82020;
+      box-shadow: 0 0 0 4px rgba($main-1, 0.2);
+      animation: pulse 2s ease infinite;
+      svg { color: $white; }
     }
   }
 
   &__label {
-    font-size: 13px;
+    font-size: 11px;
     font-weight: 600;
-    color: #bbb;
-    font-family: $font-body;
-    @include transition(color);
-    flex: 1;
+    color: $black-2;
+    text-align: center;
+    white-space: nowrap;
 
-    &--done    { color: $black-2; }
-    &--current { color: $black; font-weight: 800; }
+    &--done    { color: $theme-3; }
+    &--current { color: $main-4; font-weight: 800; }
   }
 
   &__pill {
-    font-size: 11px;
-    font-weight: 700;
+    font-size: 9.5px;
+    font-weight: 800;
+    background: $main-1;
+    color: $white;
+    padding: 2px 7px;
+    border-radius: 20px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  &__line {
+    flex: 1;
+    height: 2px;
+    background: $grey-4;
+    margin: 0 4px;
+    margin-bottom: 22px; // alinea con centro del nodo
+    @include transition(background-color);
+
+    &--done { background: $theme-3; }
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 4px rgba($main-1, 0.2); }
+  50%       { box-shadow: 0 0 0 8px rgba($main-1, 0.1); }
+}
+
+// ─────────────────────────────────────────────
+//  Section cards
+// ─────────────────────────────────────────────
+.sectionCard {
+  @include card(12px);
+  overflow: hidden;
+  border-left: 4px solid $grey-4;
+  @include transition;
+
+  &:hover { @include card-hover; }
+
+  &--primary { border-left-color: $main-1; }
+  &--device  { border-left-color: $orange-2; }
+  &--money   { border-left-color: $theme-3; }
+  &--check   { border-left-color: $main-3; }
+
+  &__header {
+    @include flex(center, flex-start, 8px);
+    padding: 12px 16px;
+    border-bottom: 1.5px solid $grey-2;
+    background: rgba($main-2, 0.2);
+  }
+
+  &__icon {
+    @include flex-center;
+    width: 26px;
+    height: 26px;
+    border-radius: 7px;
     background: rgba($main-1, 0.12);
-    color: $main-1;
-    padding: 2px 9px;
-    border-radius: 100px;
-    white-space: nowrap;
+
+    svg { color: $main-4; }
   }
-}
 
-.infoBox {
-  background: $grey-3;
-  border: 1.5px solid $grey-4;
-  border-radius: 14px;
-  padding: 16px 18px;
-
-  &__row {
-    @include flex-between;
-    align-items: flex-start;
-    padding: 6px 0;
-    border-bottom: 1px dashed $grey-4;
-    font-size: 13px;
+  &__title {
+    font-size: 12px;
+    font-weight: 800;
+    color: $main-4;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
     font-family: $font-body;
+  }
 
-    &:last-child { border-bottom: none; }
-    span   { color: $black-2; }
-    strong { color: $black; font-weight: 700; text-align: right; max-width: 55%; }
+  &__body {
+    padding: 4px 0;
   }
 }
 
-.montoCard {
-  background: linear-gradient(135deg, rgba($main-1, 0.08), rgba($main-2, 0.28));
-  border: 1.5px solid rgba($main-3, 0.42);
-  border-radius: 16px;
-  padding: 18px 20px;
-  text-align: center;
-  margin-bottom: 20px;
-
-  p      { margin: 0 0 4px; font-size: 12px; font-weight: 600; color: $main-5; }
-  strong { display: block; font-size: 34px; font-weight: 900; color: $main-4; line-height: 1; font-family: $font-heading; }
-  span   { font-size: 12px; color: $black-2; }
-}
-
-.reglaRow {
-  @include flex-between;
-  padding: 7px 0;
-  border-bottom: 1px dashed $grey-4;
-  font-size: 13px;
-  font-family: $font-body;
+// ─────────────────────────────────────────────
+//  Filas de info
+// ─────────────────────────────────────────────
+.infoRow {
+  @include flex(flex-start, space-between, 12px);
+  padding: 9px 16px;
+  border-bottom: 1px solid $grey-2;
+  @include transition(background-color);
 
   &:last-child { border-bottom: none; }
-  span   { color: $black-2; }
-  strong { font-weight: 700; }
+
+  &:hover { background: rgba($main-2, 0.12); }
+
+  &--highlight {
+    background: rgba($main-2, 0.22);
+
+    .infoRow__value { color: $main-4; font-size: 14px; }
+  }
+
+  &__label {
+    font-size: 12.5px;
+    color: $black-2;
+    flex-shrink: 0;
+    font-family: $font-body;
+  }
+
+  &__value {
+    font-size: 13px;
+    font-weight: 700;
+    color: $black;
+    text-align: right;
+    word-break: break-word;
+    font-family: $font-body;
+  }
 }
 
-.canalBadge {
-  @include flex-center;
-  gap: 6px;
-  font-size: 12px;
-  color: $black-2;
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px dashed $grey-4;
+// ─────────────────────────────────────────────
+//  Checklist rows
+// ─────────────────────────────────────────────
+.checkRow {
+  @include flex(center, space-between, 12px);
+  padding: 10px 16px;
+  border-bottom: 1px solid $grey-2;
+  @include transition(background-color);
+
+  &:last-child { border-bottom: none; }
+  &:hover      { background: rgba($main-2, 0.12); }
+
+  &__left {
+    @include flex(center, flex-start, 8px);
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__desc {
+    font-size: 13px;
+    color: $black;
+    font-weight: 500;
+    font-family: $font-body;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__badge {
+    flex-shrink: 0;
+    font-size: 10px;
+    font-weight: 800;
+    background: rgba($orange, 0.14);
+    color: $orange;
+    padding: 2px 7px;
+    border-radius: 20px;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+  }
+
+  &__code {
+    flex-shrink: 0;
+    font-size: 11px;
+    font-weight: 800;
+    font-family: 'Courier New', monospace;
+    color: $main-4;
+    background: rgba($main-2, 0.5);
+    padding: 3px 8px;
+    border-radius: 6px;
+  }
 }
