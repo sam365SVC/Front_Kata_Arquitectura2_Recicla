@@ -10,6 +10,7 @@ import {
   FiChevronLeft,
   FiAlertTriangle,
   FiInfo,
+  FiCamera
 } from "react-icons/fi";
 import { MdOutlineDevices } from "react-icons/md";
 import { useDispatch, useSelector } from "react-redux";
@@ -28,6 +29,7 @@ const CONDICIONES = {
 const STEPS = ["checklist", "condicion", "confirmar"];
 
 const InspeccionModal = ({ inspeccion, onClose, onSuccess }) => {
+  const [fotoActiva, setFotoActiva] = useState(null);
   const dispatch = useDispatch();
   const loading = useSelector(selectInspeccionesLoading);
   const tiposDispositivo = useSelector(selectTiposDispositivo) || [];
@@ -35,6 +37,7 @@ const InspeccionModal = ({ inspeccion, onClose, onSuccess }) => {
   const solicitud = inspeccion?.solicitudCotizacionId || {};
   console.log("Solicitud de la inspección:", solicitud);
   const eq = solicitud?.datosEquipo || {};
+  const fotos = eq?.fotos || [];
 
   const tipo = useMemo(() => {
     const tipoId =
@@ -195,173 +198,197 @@ const InspeccionModal = ({ inspeccion, onClose, onSuccess }) => {
 
         <div className={styles.body}>
           {step === "checklist" && (
-            <>
-              <div className={styles.equipoResumen}>
-                <p className={styles.equipoResumen__title}>
-                  <MdOutlineDevices
-                    size={13}
-                    style={{ marginRight: 5, verticalAlign: "middle" }}
-                  />
-                  Equipo a inspeccionar
-                </p>
+  <>
+    <div className={styles.resumenGrid}>
+      <div className={styles.equipoCard}>
+        <p className={styles.equipoCard__title}>
+          <MdOutlineDevices size={14} style={{ marginRight: 6, verticalAlign: "middle" }} />
+          Ficha del equipo
+        </p>
 
-                {[
-                  ["Tipo", tipo?.nombre || "—"],
-                  ["Marca", eq?.marca || "—"],
-                  ["Modelo", eq?.modelo || "—"],
-                  [
-                    "Condición declarada",
-                    CONDICIONES[eq?.condicionDeclarada]?.label ||
-                      eq?.condicionDeclarada ||
-                      "—",
-                  ],
-                  ["Antigüedad (en años)", eq?.antiguedad || "—"],
-                  ["Descripción dada por el cliente", eq?.descripcion || "—"],
-                  [
-                    "Monto preliminar",
-                    `Bs. ${Number(
-                      solicitud?.montoInicial || 0
-                    ).toLocaleString("es-BO")}`,
-                  ],
-                ].map(([k, v]) => (
-                  <div key={k} className={styles.equipoResumen__row}>
-                    <span>{k}</span>
-                    <strong>{v}</strong>
-                  </div>
-                ))}
-              </div>
+        <div className={styles.infoTable}>
+          {[
+            ["Tipo de dispositivo", tipo?.nombre || "—"],
+            ["Marca", eq?.marca || "—"],
+            ["Modelo", eq?.modelo || "—"],
+            [
+              "Condición declarada",
+              CONDICIONES[eq?.condicionDeclarada]?.label ||
+                eq?.condicionDeclarada ||
+                "—",
+            ],
+            ["Antigüedad", eq?.antiguedad != null ? `${eq.antiguedad} año(s)` : "—"],
+            ["Descripción", eq?.descripcion || "—"],
+            [
+              "Monto preliminar",
+              `Bs. ${Number(solicitud?.montoInicial || 0).toLocaleString("es-BO")}`,
+            ],
+          ].map(([k, v]) => (
+            <div key={k} className={styles.infoTable__row}>
+              <div className={styles.infoTable__label}>{k}</div>
+              <div className={styles.infoTable__value}>{v}</div>
+            </div>
+          ))}
+        </div>
+      </div>
 
-              <div className={styles.section}>
-                <p className={styles.section__title}>
-                  <FiClipboard
-                    size={13}
-                    style={{ marginRight: 5, verticalAlign: "middle" }}
-                  />
-                  Checklist de inspección
-                </p>
+      <div className={styles.galeriaCard}>
+        <p className={styles.galeriaCard__title}>
+          <FiCamera size={14} style={{ marginRight: 6, verticalAlign: "middle" }} />
+          Fotos del cliente
+        </p>
 
-                <div className={styles.checklistSummary}>
-                  <div className={styles.checklistSummary__item}>
-                    <span>Completados</span>
-                    <strong>
-                      {completadosChecklist}/{totalChecklist}
-                    </strong>
-                  </div>
-                  <div className={styles.checklistSummary__item}>
-                    <span>Aprobados</span>
-                    <strong>{aprobadosChecklist}</strong>
-                  </div>
-                  <div className={styles.checklistSummary__item}>
-                    <span>Observados</span>
-                    <strong>{observadosChecklist}</strong>
-                  </div>
-                </div>
+        {fotos.length > 0 ? (
+          <div className={styles.galeriaGrid}>
+            {fotos.map((foto, index) => {
+              const src = typeof foto === "string" ? foto : foto.url;
+              const nombre =
+                typeof foto === "string"
+                  ? `Foto ${index + 1}`
+                  : foto.nombreArchivo || `Foto ${index + 1}`;
 
-                {obligatoriosPendientes.length > 0 && (
-                  <div className={styles.alertInfo}>
-                    <FiAlertTriangle size={15} />
-                    <span>
-                      Te faltan completar {obligatoriosPendientes.length} ítem(s)
-                      obligatorios.
-                    </span>
-                  </div>
-                )}
+              return (
+                <button
+                  key={index}
+                  type="button"
+                  className={styles.galeriaGrid__item}
+                  onClick={() => setFotoActiva(src)}
+                >
+                  <img src={src} alt={nombre} />
+                  <span>{nombre}</span>
+                </button>
+              );
+            })}
+          </div>
+        ) : (
+          <div className={styles.galeriaEmpty}>
+            No hay fotos adjuntas en esta solicitud.
+          </div>
+        )}
+      </div>
+    </div>
 
-                <div className={styles.checklist}>
-                  {checklistItems.map((item, index) => {
-                    const val = checkResults[item.codigo];
-                    const estadoVisual =
-                      val === true
-                        ? "ok"
-                        : val === false
-                        ? "no"
-                        : "neutral";
+    <div className={styles.section}>
+      <p className={styles.section__title}>
+        <FiClipboard
+          size={13}
+          style={{ marginRight: 5, verticalAlign: "middle" }}
+        />
+        Checklist de inspección
+      </p>
 
-                    return (
-                      <div
-                        key={item.codigo}
-                        className={`${styles.checklist__item} ${
-                          estadoVisual === "ok"
-                            ? styles["checklist__item--ok"]
-                            : estadoVisual === "no"
-                            ? styles["checklist__item--no"]
-                            : ""
-                        }`}
+      <div className={styles.checklistSummary}>
+        <div className={styles.checklistSummary__item}>
+          <span>Completados</span>
+          <strong>
+            {completadosChecklist}/{totalChecklist}
+          </strong>
+        </div>
+        <div className={styles.checklistSummary__item}>
+          <span>Aprobados</span>
+          <strong>{aprobadosChecklist}</strong>
+        </div>
+        <div className={styles.checklistSummary__item}>
+          <span>Observados</span>
+          <strong>{observadosChecklist}</strong>
+        </div>
+      </div>
+
+      {obligatoriosPendientes.length > 0 && (
+        <div className={styles.alertInfo}>
+          <FiAlertTriangle size={15} />
+          <span>
+            Te faltan completar {obligatoriosPendientes.length} ítem(s)
+            obligatorios.
+          </span>
+        </div>
+      )}
+
+      <div className={styles.checklist}>
+        {checklistItems.map((item, index) => {
+          const val = checkResults[item.codigo];
+          const estadoVisual =
+            val === true ? "ok" : val === false ? "no" : "neutral";
+
+          return (
+            <div
+              key={item.codigo}
+              className={`${styles.checklist__item} ${
+                estadoVisual === "ok"
+                  ? styles["checklist__item--ok"]
+                  : estadoVisual === "no"
+                  ? styles["checklist__item--no"]
+                  : ""
+              }`}
+            >
+              <div className={styles.checklist__itemHeader}>
+                <div className={styles.checklist__itemIndex}>{index + 1}</div>
+
+                <div className={styles.checklist__itemContent}>
+                  <p className={styles.checklist__itemDesc}>
+                    {item.descripcion}
+                    {item.obligatorio && (
+                      <span className={styles.checklist__required}>
+                        {" "}
+                        * Obligatorio
+                      </span>
+                    )}
+                  </p>
+
+                  <div className={styles.checklist__itemStatus}>
+                    {val === null && (
+                      <span className={styles.checklist__pill}>
+                        Sin revisar
+                      </span>
+                    )}
+                    {val === true && (
+                      <span
+                        className={`${styles.checklist__pill} ${styles["checklist__pill--ok"]}`}
                       >
-                        <div className={styles.checklist__itemHeader}>
-                          <div className={styles.checklist__itemIndex}>
-                            {index + 1}
-                          </div>
-
-                          <div className={styles.checklist__itemContent}>
-                            <p className={styles.checklist__itemDesc}>
-                              {item.descripcion}
-                              {item.obligatorio && (
-                                <span className={styles.checklist__required}>
-                                  {" "}
-                                  * Obligatorio
-                                </span>
-                              )}
-                            </p>
-
-                            <div className={styles.checklist__itemStatus}>
-                              {val === null && (
-                                <span className={styles.checklist__pill}>
-                                  Sin revisar
-                                </span>
-                              )}
-                              {val === true && (
-                                <span
-                                  className={`${styles.checklist__pill} ${styles["checklist__pill--ok"]}`}
-                                >
-                                  Aprobado
-                                </span>
-                              )}
-                              {val === false && (
-                                <span
-                                  className={`${styles.checklist__pill} ${styles["checklist__pill--no"]}`}
-                                >
-                                  Observado
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className={styles.checklist__toggles}>
-                          <button
-                            type="button"
-                            className={`${styles.checklist__btn} ${
-                              val === true
-                                ? styles["checklist__btn--ok"]
-                                : ""
-                            }`}
-                            onClick={() => toggleItem(item.codigo, true)}
-                          >
-                            <FiCheck size={12} />
-                            Sí
-                          </button>
-
-                          <button
-                            type="button"
-                            className={`${styles.checklist__btn} ${
-                              val === false
-                                ? styles["checklist__btn--no"]
-                                : ""
-                            }`}
-                            onClick={() => toggleItem(item.codigo, false)}
-                          >
-                            <FiXCircle size={12} />
-                            No
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })}
+                        Aprobado
+                      </span>
+                    )}
+                    {val === false && (
+                      <span
+                        className={`${styles.checklist__pill} ${styles["checklist__pill--no"]}`}
+                      >
+                        Observado
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
-            </>
-          )}
+
+              <div className={styles.checklist__toggles}>
+                <button
+                  type="button"
+                  className={`${styles.checklist__btn} ${
+                    val === true ? styles["checklist__btn--ok"] : ""
+                  }`}
+                  onClick={() => toggleItem(item.codigo, true)}
+                >
+                  <FiCheck size={12} />
+                  Sí
+                </button>
+
+                <button
+                  type="button"
+                  className={`${styles.checklist__btn} ${
+                    val === false ? styles["checklist__btn--no"] : ""
+                  }`}
+                  onClick={() => toggleItem(item.codigo, false)}
+                >
+                  <FiXCircle size={12} />
+                  No
+                </button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  </>
+)}
 
           {step === "condicion" && (
             <>
@@ -556,6 +583,26 @@ const InspeccionModal = ({ inspeccion, onClose, onSuccess }) => {
           )}
         </div>
       </div>
+      {fotoActiva && (
+  <div
+    className={styles.imageViewer}
+    onClick={() => setFotoActiva(null)}
+  >
+    <div
+      className={styles.imageViewer__content}
+      onClick={(e) => e.stopPropagation()}
+    >
+      <button
+        type="button"
+        className={styles.imageViewer__close}
+        onClick={() => setFotoActiva(null)}
+      >
+        <FiX />
+      </button>
+      <img src={fotoActiva} alt="Vista ampliada" />
+    </div>
+  </div>
+)}
     </div>
   );
 };
