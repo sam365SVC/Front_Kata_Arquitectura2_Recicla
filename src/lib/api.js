@@ -371,7 +371,66 @@ export const cotizacionesApi = {
   rechazarCotizacionInicial: (idSolicitud, estado) =>
     api.patch(`/solicitudes-cotizacion/${idSolicitud}/estado`, { estado }).then((res) => res.data).catch(handleError),
 };
+export const empresasApi = {
+  fetchUsuariosEmpresaByTenantId: (tenantId) =>
+    api
+      .get(`/empresas/${tenantId}/usuarios`)
+      .then((res) => res.data)
+      .catch(handleError),
 
+  createUsuarioEmpresa: (data) =>
+    api
+      .post(`/empresas/usuarios`, data)
+      .then((res) => res.data)
+      .catch(handleError),
+
+  updateUsuarioEmpresa: (id, data) =>
+    api
+      .put(`/empresas/usuarios/${id}`, data)
+      .then((res) => res.data)
+      .catch(handleError),
+
+  changeEstadoUsuarioEmpresa: (id, data) =>
+    api
+      .patch(`/empresas/usuarios/${id}/estado`, data)
+      .then((res) => res.data)
+      .catch(handleError),
+
+  fetchTiposDispositivoEmpresaByTenantId: (tenantId, params = {}) =>
+    api
+      .get(`/tipos-dispositivo`, {
+        params: {
+          tenantId,
+          ...params,
+        },
+      })
+      .then((res) => res.data)
+      .catch(handleError),
+
+  fetchTipoDispositivoEmpresaById: (id) =>
+    api
+      .get(`/tipos-dispositivo/${id}`)
+      .then((res) => res.data)
+      .catch(handleError),
+
+  createTipoDispositivoEmpresa: (data) =>
+    api
+      .post(`/tipos-dispositivo`, data)
+      .then((res) => res.data)
+      .catch(handleError),
+
+  updateTipoDispositivoEmpresa: (id, data) =>
+    api
+      .put(`/tipos-dispositivo/${id}`, data)
+      .then((res) => res.data)
+      .catch(handleError),
+
+  changeEstadoTipoDispositivoEmpresa: (id, data) =>
+    api
+      .patch(`/tipos-dispositivo/${id}/estado`, data)
+      .then((res) => res.data)
+      .catch(handleError),
+};
 // para inspecciones
 export const inspeccionesApi = {
   fetchInspeccionesByInspectorId: (tenantId, inspectorId) =>

@@ -42,6 +42,9 @@ import Admin from './admin';
 import Estudiante from './adminEstudiantes';
 import Docente from './adminDocentes';
 
+
+import AdminUsuarioFinal from './adminUsuarioFinal';
+import AdminEmpresa from './adminEmpresa';
 //nuevo
 import AdminUsuarioFinal from './adminUsuarioFinal';
 import Inspector from './inspector';
@@ -90,6 +93,7 @@ export {
   Estudiante,
   Docente,
   AdminUsuarioFinal,
+  AdminEmpresa,
   Inspector,
 };
 

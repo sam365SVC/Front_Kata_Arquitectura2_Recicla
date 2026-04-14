@@ -51,6 +51,7 @@ import {
   Estudiante,
   Docente,
   AdminUsuarioFinal,
+  AdminEmpresa,
   Inspector
 } from '../pages';
 
@@ -124,6 +125,8 @@ function App() {
         <Route path="/admin-estudiante" element={<Estudiante />} />
         <Route path="/admin-docente" element={<Docente />} />
         <Route path="/admin-usfin" element={<AdminUsuarioFinal />} />
+        <Route path="/admin-empresa" element={<AdminEmpresa />} />
+
         <Route path="/inspector" element={<Inspector />} />
       </Routes>
     </div>
