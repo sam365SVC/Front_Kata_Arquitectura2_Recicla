@@ -29,6 +29,7 @@ import notasDocenteReducer from '../pages/adminDocentes/slicesNotas/NotasSlices'
 // nivel inicial, posible actualizacion
 import cotizacionesReducer from '../pages/adminUsuarioFinal/slicesCotizaciones/CotizacionesSlice';
 import tiposDispositivoReducer from '../pages/adminUsuarioFinal/slicesTiposDispositivo/TiposDispositivoSlice';
+import inspeccionesReducer from '../pages/inspector/slicesInspecciones/InspeccionesSlice';
 const loginPersistConfig = {
   key: 'login',
   storage,
@@ -60,6 +61,9 @@ export const rootReducer = combineReducers({
   //COTIZACIONES POR EL CLIENTE 
   cotizaciones: cotizacionesReducer,
   tiposDispositivo: tiposDispositivoReducer,
+
+  //PARA EL INSPECTOR
+  inspecciones: inspeccionesReducer,
 });
 
 export default rootReducer;

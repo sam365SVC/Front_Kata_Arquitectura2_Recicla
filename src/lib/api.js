@@ -372,4 +372,18 @@ export const cotizacionesApi = {
     api.patch(`/solicitudes-cotizacion/${idSolicitud}/estado`, { estado }).then((res) => res.data).catch(handleError),
 };
 
+// para inspecciones
+export const inspeccionesApi = {
+  fetchInspeccionesByInspectorId: (tenantId, inspectorId) =>
+    api.get(`/inspecciones?tenantId=${tenantId}&inspectorId=${inspectorId}`).then((res) => res.data).catch(handleError),
+  fetchInspeccionById: (id) =>
+    api.get(`/inspecciones/${id}`).then((res) => res.data).catch(handleError),
+  iniciarInspeccion: (data) =>
+    api.post(`/inspecciones`, data).then((res) => res.data).catch(handleError),
+  completarInspeccion: (idInspeccion, data) =>
+    api.put(`/inspecciones/${idInspeccion}`, data).then((res) => res.data).catch(handleError),
+  observarInspeccion: (idInspeccion, data) =>
+    api.post(`/inspecciones/observar/${idInspeccion}`, data).then((res) => res.data).catch(handleError),
+};
+
   
