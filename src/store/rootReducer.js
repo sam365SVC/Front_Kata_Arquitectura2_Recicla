@@ -31,6 +31,7 @@ import cotizacionesReducer from '../pages/adminUsuarioFinal/slicesCotizaciones/C
 import tiposDispositivoReducer from '../pages/adminUsuarioFinal/slicesTiposDispositivo/TiposDispositivoSlice';
 import usuariosEmpresaReducer from '../pages/adminEmpresa/slicesUsuariosEmpresa/UsuariosEmpresaSlice';
 import tiposDispositivoEmpresaReducer from '../pages/adminEmpresa/slicesTiposDispositivoEmpresa/TiposDispositivoEmpresaSlice';
+import inspeccionesReducer from '../pages/inspector/slicesInspecciones/InspeccionesSlice';
 const loginPersistConfig = {
   key: 'login',
   storage,
@@ -65,6 +66,9 @@ export const rootReducer = combineReducers({
     // admin empresa
   usuariosEmpresa: usuariosEmpresaReducer,
   tiposDispositivoEmpresa: tiposDispositivoEmpresaReducer,
+
+  //PARA EL INSPECTOR
+  inspecciones: inspeccionesReducer,
 });
 
 export default rootReducer;

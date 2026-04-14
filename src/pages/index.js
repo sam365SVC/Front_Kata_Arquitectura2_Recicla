@@ -45,6 +45,9 @@ import Docente from './adminDocentes';
 
 import AdminUsuarioFinal from './adminUsuarioFinal';
 import AdminEmpresa from './adminEmpresa';
+//nuevo
+import AdminUsuarioFinal from './adminUsuarioFinal';
+import Inspector from './inspector';
 
 export {
   Home,
@@ -91,5 +94,6 @@ export {
   Docente,
   AdminUsuarioFinal,
   AdminEmpresa,
+  Inspector,
 };
 

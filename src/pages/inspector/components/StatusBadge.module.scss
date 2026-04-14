@@ -1,0 +1,137 @@
+@use '../styles/variables' as *;
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 11px 4px 9px;
+  border-radius: 100px;
+  font-size: 11.5px;
+  font-weight: 700;
+  font-family: $font-body;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  cursor: default;
+  position: relative;
+  line-height: 1;
+
+  &__dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  &__text {
+    line-height: 1;
+  }
+
+  &--neutral {
+    background: #F0F2F0;
+    color: #4D5756;
+    border: 1px solid #D0D4D0;
+    .badge__dot { background: #4D5756; }
+  }
+
+  &--info {
+    background: #E3EFF9;
+    color: #1A5FA8;
+    border: 1px solid #B3CDE8;
+    .badge__dot {
+      background: #1A5FA8;
+      animation: pulseBadge 1.6s ease infinite;
+    }
+  }
+
+  &--pending {
+    background: #FFF3E0;
+    color: #C45E00;
+    border: 1px solid #FFD09A;
+    .badge__dot {
+      background: #C45E00;
+      animation: pulseBadge 1.6s ease infinite;
+    }
+  }
+
+  &--active {
+    background: #E6F7F1;
+    color: #1A7A56;
+    border: 1px solid #A3DBBF;
+    .badge__dot {
+      background: #1A7A56;
+      animation: pulseBadge 1.2s ease infinite;
+    }
+  }
+
+  &--warning {
+    background: #FFFAEB;
+    color: #946900;
+    border: 1px solid #FFE68A;
+    .badge__dot { background: #946900; }
+  }
+
+  &--success {
+    background: #E8F5EE;
+    color: #1B6B3A;
+    border: 1px solid #8FD3A8;
+    .badge__dot { background: #1B6B3A; }
+  }
+
+  &--danger {
+    background: #FDECEA;
+    color: #B82020;
+    border: 1px solid #F4AEAD;
+    .badge__dot { background: #B82020; }
+  }
+
+  &--done {
+    background: #EEE9BF;
+    color: #78793F;
+    border: 1px solid #D4CC8A;
+    .badge__dot { background: #78793F; }
+  }
+
+  &__tooltip {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%) translateY(4px);
+    background: $black;
+    color: $white;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.45;
+    padding: 9px 13px;
+    border-radius: 10px;
+    width: 230px;
+    text-align: center;
+    z-index: 200;
+    pointer-events: none;
+    opacity: 0;
+    white-space: normal;
+    @include transition(opacity, 0.18s);
+    @include transition(transform, 0.18s);
+
+    strong { display: block; margin-bottom: 3px; font-size: 12.5px; }
+
+    &::after {
+      content: '';
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      border: 5px solid transparent;
+      border-top-color: $black;
+    }
+  }
+
+  &:hover .badge__tooltip {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+@keyframes pulseBadge {
+  0%, 100% { opacity: 1;   transform: scale(1); }
+  50%       { opacity: 0.4; transform: scale(0.7); }
+}

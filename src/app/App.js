@@ -52,6 +52,7 @@ import {
   Docente,
   AdminUsuarioFinal,
   AdminEmpresa,
+  Inspector
 } from '../pages';
 
 function App() {
@@ -126,6 +127,7 @@ function App() {
         <Route path="/admin-usfin" element={<AdminUsuarioFinal />} />
         <Route path="/admin-empresa" element={<AdminEmpresa />} />
 
+        <Route path="/inspector" element={<Inspector />} />
       </Routes>
     </div>
   );
