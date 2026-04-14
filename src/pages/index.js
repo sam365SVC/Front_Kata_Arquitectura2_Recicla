@@ -43,6 +43,8 @@ import Estudiante from './adminEstudiantes';
 import Docente from './adminDocentes';
 
 import AdminUsuarioFinal from './adminUsuarioFinal';
+import Despachador from './despachador';
+import Conductor from './conductor';
 
 export {
   Home,
@@ -88,5 +90,8 @@ export {
   Estudiante,
   Docente,
   AdminUsuarioFinal,
+  Despachador,
+  Conductor
+
 };
 

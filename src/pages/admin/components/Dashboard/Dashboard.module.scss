@@ -1,0 +1,141 @@
+@use '../../variables' as *;
+
+.wrap {
+  padding: 28px;
+  max-width: 1200px;
+  @include respond-to($bp-md) { padding: 16px; }
+}
+
+.header {
+  margin-bottom: 24px;
+  h1 {
+    font-size: 24px; font-weight: 900; color: $black;
+    margin: 0; font-family: $font-heading;
+  }
+  p { font-size: 13px; color: $text-muted; margin: 4px 0 0; }
+}
+
+// KPI grid 
+.kpiGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 28px;
+
+  @include respond-to($bp-xl)  { grid-template-columns: repeat(2, 1fr); }
+  @include respond-to($bp-sm)  { grid-template-columns: 1fr; }
+}
+
+.kpi {
+  @include card;
+  padding: 20px;
+  @include flex(flex-start, flex-start, 16px);
+  @include transition(box-shadow);
+  &:hover { box-shadow: $shadow-md; }
+
+  &__icon {
+    width: 48px; height: 48px; border-radius: $radius-md;
+    @include flex-center; flex-shrink: 0;
+  }
+
+  &__body { flex: 1; }
+
+  &__value {
+    font-size: 28px; font-weight: 900; color: $black;
+    margin: 0; font-family: $font-heading; line-height: 1;
+  }
+
+  &__label {
+    font-size: 12px; color: $text-muted; font-weight: 700;
+    margin: 5px 0 0; text-transform: uppercase; letter-spacing: 0.5px;
+  }
+
+  &__sub { font-size: 11px; color: $text-muted; margin: 3px 0 0; }
+
+  // Variantes de color
+  &--warning .kpi__icon { background: $status-warning-bg; color: $status-warning-text; }
+  &--active  .kpi__icon { background: $status-active-bg;  color: $status-active-text; }
+  &--info    .kpi__icon { background: $status-info-bg;    color: $status-info-text; }
+  &--success .kpi__icon { background: $status-success-bg; color: $status-success-text; }
+  &--main    .kpi__icon { background: $main-2;             color: $main-4; }
+}
+
+// Section 
+.section {
+  @include card;
+  padding: 20px;
+  margin-bottom: 20px;
+
+  &__title {
+    font-size: 15px; font-weight: 900; color: $black;
+    margin: 0 0 16px; font-family: $font-heading;
+  }
+}
+
+// Estado grid 
+.estadoGrid {
+  display: flex; flex-wrap: wrap; gap: 12px;
+}
+
+.estadoCard {
+  @include flex(center, flex-start, 10px);
+  background: $grey-2; border-radius: $radius-md;
+  padding: 10px 16px; border: 1px solid $grey-4;
+
+  &__count {
+    font-size: 20px; font-weight: 900; color: $black;
+    margin: 0; font-family: $font-heading;
+  }
+}
+
+// ─── Tabla ────────────────────────────────────────────────────────────────────
+.tableWrap { overflow-x: auto; @include scrollbar(4px); }
+
+.table {
+  width: 100%; border-collapse: collapse; font-size: 13px;
+
+  th {
+    text-align: left; padding: 10px 12px;
+    font-size: 11px; font-weight: 800; color: $text-muted;
+    text-transform: uppercase; letter-spacing: 0.5px;
+    border-bottom: 2px solid $grey-4;
+  }
+
+  td {
+    padding: 12px 12px; color: $text-body;
+    border-bottom: 1px solid $grey-4; vertical-align: middle;
+  }
+
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: $grey-2; }
+}
+
+.code {
+  font-family: $font-mono; font-size: 12px;
+  background: $grey-4; padding: 2px 8px;
+  border-radius: $radius-sm; color: $black;
+}
+
+.empty {
+  text-align: center; color: $text-muted;
+  padding: 32px 0; font-size: 14px;
+}
+
+.loading {
+  text-align: center; color: $text-muted;
+  padding: 24px 0; font-size: 14px;
+}
+
+// Badges 
+.badge {
+  @include status-badge(#F0F2F0, #4D5756, #D0D4D0);
+
+  &--neutral { @include status-badge($status-neutral-bg, $status-neutral-text, $status-neutral-border); }
+  &--info    { @include status-badge($status-info-bg,    $status-info-text,    $status-info-border); }
+  &--pending { @include status-badge($status-pending-bg, $status-pending-text, $status-pending-border); }
+  &--active  { @include status-badge($status-active-bg,  $status-active-text,  $status-active-border); }
+  &--warning { @include status-badge($status-warning-bg, $status-warning-text, $status-warning-border); }
+  &--success { @include status-badge($status-success-bg, $status-success-text, $status-success-border); }
+  &--danger  { @include status-badge($status-danger-bg,  $status-danger-text,  $status-danger-border); }
+  &--done    { @include status-badge($status-done-bg,    $status-done-text,    $status-done-border); }
+}
