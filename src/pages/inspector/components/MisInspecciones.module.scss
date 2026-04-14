@@ -1,5 +1,8 @@
 @use '../styles/variables' as *;
 
+// ─────────────────────────────────────────────
+//  Página
+// ─────────────────────────────────────────────
 .page {
   padding: 28px 32px;
   background: $grey-2;
@@ -10,13 +13,11 @@
   @include respond-to($bp-md) { padding: 16px 14px; }
 }
 
+// ─────────────────────────────────────────────
+//  Header
+// ─────────────────────────────────────────────
 .pageHeader {
-  @include flex-between;
   margin-bottom: 24px;
-  gap: 16px;
-  flex-wrap: wrap;
-
-  @include respond-to($bp-md) { flex-direction: column; align-items: flex-start; }
 }
 
 .pageHeading {
@@ -38,30 +39,9 @@
   }
 }
 
-.btnNew {
-  @include flex(center, center, 8px);
-  padding: 12px 22px;
-  background: $main-1;
-  color: $white;
-  border: none;
-  border-radius: 12px;
-  font-size: 14px;
-  font-weight: 800;
-  cursor: pointer;
-  font-family: $font-body;
-  white-space: nowrap;
-  @include transition;
-  box-shadow: 0 4px 16px rgba($main-1, 0.3);
-
-  &:hover {
-    background: $main-4;
-    box-shadow: 0 7px 22px rgba($main-1, 0.4);
-    transform: translateY(-2px);
-  }
-
-  &:active { transform: translateY(0); }
-}
-
+// ─────────────────────────────────────────────
+//  Stats
+// ─────────────────────────────────────────────
 .stats {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -108,23 +88,26 @@
     font-weight: 700;
   }
 
-  &--total   .statCard__icon { background: $main-1; }
-  &--activas .statCard__icon { background: $orange-2; }
-  &--aprobadas .statCard__icon { background: $theme-3; }
-  &--rechazadas .statCard__icon { background: $orange; }
+  &--total      .statCard__icon { background: $main-1; }
+  &--pendientes .statCard__icon { background: $orange-2; }
+  &--en-proceso .statCard__icon { background: $theme-3; }
+  &--completadas .statCard__icon { background: $orange; }
 
-  &--total    .statCard__num { color: $black; }
-  &--activas  .statCard__num { color: $orange-2; }
-  &--aprobadas .statCard__num { color: $theme-3; }
-  &--rechazadas .statCard__num { color: $orange; }
+  &--total       .statCard__num { color: $black; }
+  &--pendientes  .statCard__num { color: $orange-2; }
+  &--en-proceso  .statCard__num { color: $theme-3; }
+  &--completadas .statCard__num { color: $orange; }
 }
 
+// ─────────────────────────────────────────────
+//  Filtros
+// ─────────────────────────────────────────────
 .filters {
   @include card(14px);
   padding: 14px 18px;
   @include flex(center, flex-start, 12px);
   flex-wrap: wrap;
-  margin-bottom: 18px;
+  margin-bottom: 20px;
 
   @include respond-to($bp-md) { padding: 12px 14px; gap: 10px; }
 }
@@ -202,133 +185,179 @@
   &:hover { color: $orange; }
 }
 
-.tableWrap {
-  @include card(16px);
-  overflow: hidden;
+// ─────────────────────────────────────────────
+//  Grid de fichas
+// ─────────────────────────────────────────────
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+  margin-bottom: 14px;
+
+  @include respond-to($bp-md) { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+  @include respond-to($bp-xs) { grid-template-columns: 1fr; }
 }
 
-.table {
-  width: 100%;
-  border-collapse: collapse;
-
-  thead {
-    background: linear-gradient(135deg, rgba($main-1, 0.07) 0%, rgba($main-2, 0.22) 100%);
-
-    th {
-      padding: 12px 16px;
-      text-align: left;
-      font-size: 11px;
-      font-weight: 800;
-      color: $main-4;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      border-bottom: 1.5px solid rgba($main-3, 0.28);
-      white-space: nowrap;
-      font-family: $font-body;
-    }
-  }
-
-  tbody tr {
-    border-bottom: 1px solid $grey-2;
-    @include transition(background-color);
-    cursor: pointer;
-
-    &:last-child { border-bottom: none; }
-    &:hover      { background: rgba($main-2, 0.12); }
-  }
-
-  td {
-    padding: 13px 16px;
-    font-size: 13.5px;
-    color: $black;
-    vertical-align: middle;
-    font-family: $font-body;
-  }
-}
-
-.idCell {
-  font-size: 12px;
-  font-weight: 800;
-  color: $main-4;
-  font-family: 'Courier New', monospace;
-}
-
-.equipoCell {
-  &__marca  { font-weight: 800; }
-  &__modelo { font-size: 12px; color: $black-2; margin-top: 2px; }
-}
-
-.montoCell {
-  font-weight: 800;
-  color: $main-4;
-
-  &--null {
-    color: $black-2;
-    font-weight: 500;
-    font-style: italic;
-    font-size: 12px;
-  }
-}
-
-.dateCell {
-  font-size: 12.5px;
-  color: $black-2;
-  white-space: nowrap;
-}
-
-.btnOferta {
-  @include flex(center, center, 5px);
-  padding: 5px 12px;
-  border-radius: 8px;
-  font-size: 12px;
-  font-weight: 700;
+// ─────────────────────────────────────────────
+//  Card de inspección
+// ─────────────────────────────────────────────
+.card {
+  @include card(14px);
+  position: relative;
+  padding: 18px 18px 14px;
   cursor: pointer;
-  border: 1.5px solid;
-  font-family: $font-body;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border: 1.5px solid transparent;
   @include transition;
-  white-space: nowrap;
-  background: rgba($main-2, 0.5);
-  color: $main-4;
-  border-color: rgba($main-3, 0.5);
-  animation: pulseBtnOferta 2.2s ease infinite;
 
   &:hover {
-    background: $main-2;
-    border-color: $main-3;
-    transform: translateY(-1px);
-    animation: none;
+    @include card-hover;
+    border-color: rgba($main-3, 0.3);
+    transform: translateY(-3px);
+  }
+
+  // Barra de acento izquierda
+  &__accent {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    border-radius: 14px 0 0 14px;
+  }
+
+  &--pendiente  .card__accent { background: $orange-2; }
+  &--en_proceso .card__accent { background: $main-1; }
+  &--completada .card__accent { background: $theme-3; }
+  &--cancelada  .card__accent { background: $grey-4; }
+
+  // ── Header ──
+  &__header {
+    @include flex(flex-start, flex-start, 12px);
+    padding-left: 6px;
+  }
+
+  &__deviceIcon {
+    flex-shrink: 0;
+    width: 42px;
+    height: 42px;
+    border-radius: 11px;
+    @include flex-center;
+    background: rgba($main-2, 0.55);
+    border: 1px solid rgba($main-3, 0.22);
+
+    svg { color: $main-4; }
+  }
+
+  &__titleGroup {
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__deviceType {
+    display: block;
+    font-size: 13.5px;
+    font-weight: 800;
+    color: $black;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-family: $font-heading;
+  }
+
+  &__deviceModel {
+    display: block;
+    font-size: 12px;
+    color: $black-2;
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  // ── Body ──
+  &__body {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding-left: 6px;
+  }
+
+  &__meta {
+    @include flex(center, flex-start, 7px);
+    font-size: 13px;
+    color: $black-2;
+
+    svg { color: $main-3; flex-shrink: 0; }
+  }
+
+  // ── ID ──
+  &__id {
+    padding-left: 6px;
+    font-size: 11px;
+    font-weight: 800;
+    color: $main-4;
+    font-family: 'Courier New', monospace;
+    letter-spacing: 0.4px;
+  }
+
+  // ── Footer ──
+  &__footer {
+    @include flex(center, flex-start, 7px);
+    padding-top: 10px;
+    border-top: 1px solid $grey-2;
+  }
+
+  &__btn {
+    @include flex(center, center, 5px);
+    padding: 5px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: $font-body;
+    @include transition;
+    white-space: nowrap;
+    border: 1.5px solid;
+
+    &--primary {
+      background: rgba($main-2, 0.5);
+      color: $main-4;
+      border-color: rgba($main-3, 0.5);
+      animation: pulseBtnOferta 2.2s ease infinite;
+
+      &:hover {
+        background: $main-2;
+        border-color: $main-3;
+        transform: translateY(-1px);
+        animation: none;
+      }
+    }
+
+    &--ghost {
+      background: rgba($main-1, 0.1);
+      color: $main-4;
+      border-color: transparent;
+
+      &:hover {
+        background: rgba($main-1, 0.18);
+        transform: translateY(-1px);
+      }
+    }
   }
 }
 
 @keyframes pulseBtnOferta {
-  0%,100% { box-shadow: 0 0 0 0 rgba($main-1, 0); }
-  50%     { box-shadow: 0 0 0 4px rgba($main-1, 0.18); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba($main-1, 0); }
+  50%       { box-shadow: 0 0 0 4px rgba($main-1, 0.18); }
 }
 
-.actionsCell {
-  @include flex(center, flex-start, 6px);
-  flex-wrap: nowrap;
-}
-
-.btnView {
-  @include flex(center, center, 5px);
-  padding: 6px 12px;
-  border-radius: 8px;
-  font-size: 12px;
-  font-weight: 700;
-  cursor: pointer;
-  border: none;
-  font-family: $font-body;
-  background: rgba($main-1, 0.1);
-  color: $main-4;
-  @include transition;
-
-  &:hover {
-    background: rgba($main-1, 0.18);
-    transform: translateY(-1px);
-  }
-}
-
+// ─────────────────────────────────────────────
+//  Loading
+// ─────────────────────────────────────────────
 .loading {
   @include flex(center, center, 14px);
   flex-direction: column;
@@ -348,6 +377,9 @@
 
 @keyframes loadSpin { to { transform: rotate(360deg); } }
 
+// ─────────────────────────────────────────────
+//  Empty state
+// ─────────────────────────────────────────────
 .empty {
   text-align: center;
   padding: 60px 28px;
@@ -359,6 +391,7 @@
     background: rgba($main-2, 0.5);
     @include flex-center;
     margin: 0 auto 16px;
+
     svg { color: $main-3; }
   }
 
@@ -366,14 +399,20 @@
   p  { font-size: 13.5px; color: $black-2; max-width: 300px; margin: 0 auto; line-height: 1.5; }
 }
 
+// ─────────────────────────────────────────────
+//  Contador de resultados
+// ─────────────────────────────────────────────
 .resultCount {
-  text-align: center;
-  margin-top: 14px;
+  text-align: right;
   font-size: 12px;
   color: $black-2;
   font-weight: 600;
+  margin: 0;
 }
 
+// ─────────────────────────────────────────────
+//  Toast
+// ─────────────────────────────────────────────
 .toast {
   position: fixed;
   bottom: 28px;
@@ -393,25 +432,10 @@
   white-space: nowrap;
 
   &--success { background: darken($theme-3, 12%); }
-  &--info    { background: #1A5FA8; }
-  &--danger  { background: $orange; }
+  &--error   { background: $orange; }
 }
 
 @keyframes toastIn {
   from { opacity: 0; transform: translateX(-50%) translateY(20px); }
   to   { opacity: 1; transform: translateX(-50%) translateY(0); }
-}
-
-@include respond-to($bp-md) {
-  .table {
-    thead th:nth-child(3),
-    tbody td:nth-child(3) { display: none; }
-  }
-}
-
-@include respond-to($bp-sm) {
-  .table {
-    thead th:nth-child(4),
-    tbody td:nth-child(4) { display: none; }
-  }
 }

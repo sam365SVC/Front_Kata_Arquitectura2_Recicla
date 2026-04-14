@@ -10,6 +10,11 @@ import {
   FiAlertOctagon,
   FiAlertCircle,
   FiInbox,
+  FiMonitor,
+  FiSmartphone,
+  FiCpu,
+  FiUser,
+  FiCalendar,
 } from "react-icons/fi";
 import styles from "./MisInspecciones.module.scss";
 import StatusBadge from "./StatusBadge";
@@ -37,6 +42,16 @@ const ESTADOS_LISTA = Object.entries(ESTADOS_INSPECCION).map(([k, v]) => ({
   label: v.label,
 }));
 
+/* Elige un ícono según el nombre del tipo de dispositivo */
+const DeviceIcon = ({ nombre }) => {
+  const n = (nombre || "").toLowerCase();
+  if (n.includes("celular") || n.includes("phone") || n.includes("móvil"))
+    return <FiSmartphone size={22} />;
+  if (n.includes("laptop") || n.includes("notebook") || n.includes("pc") || n.includes("compu"))
+    return <FiMonitor size={22} />;
+  return <FiCpu size={22} />;
+};
+
 const Toast = ({ msg, tipo }) => (
   <div className={`${styles.toast} ${styles[`toast--${tipo}`]}`}>
     {tipo === "success" ? (
@@ -47,6 +62,78 @@ const Toast = ({ msg, tipo }) => (
     {msg}
   </div>
 );
+
+const InspeccionCard = ({ insp, onDetalle, onIniciar }) => {
+  const solicitud = insp.solicitudCotizacionId || {};
+  const datosEquipo = solicitud.datosEquipo || {};
+  const cliente = solicitud.cliente || {};
+  const tipoDispositivo = solicitud.tipoDispositivoId || {};
+
+  const puedeIniciar = insp.estado === "pendiente";
+  const enCurso = insp.estado === "en_proceso";
+
+  return (
+    <div
+      className={`${styles.card} ${styles[`card--${insp.estado}`]}`}
+      onClick={() => onDetalle(insp)}
+    >
+      <div className={styles.card__accent} />
+
+      <div className={styles.card__header}>
+        <div className={styles.card__deviceIcon}>
+          <DeviceIcon nombre={tipoDispositivo?.nombre} />
+        </div>
+        <div className={styles.card__titleGroup}>
+          <span className={styles.card__deviceType}>
+            {tipoDispositivo?.nombre || "Dispositivo"}
+          </span>
+          <span className={styles.card__deviceModel}>
+            {[datosEquipo?.marca, datosEquipo?.modelo].filter(Boolean).join(" ") || "—"}
+          </span>
+        </div>
+        <StatusBadge estado={insp.estado} />
+      </div>
+
+      <div className={styles.card__body}>
+        <div className={styles.card__meta}>
+          <FiUser size={13} />
+          <span>{cliente?.nombre || "—"}</span>
+        </div>
+        <div className={styles.card__meta}>
+          <FiCalendar size={13} />
+          <span>{fmtFecha(insp.createdAt)}</span>
+        </div>
+      </div>
+
+      <div className={styles.card__id}>{insp._id}</div>
+
+      <div className={styles.card__footer} onClick={(e) => e.stopPropagation()}>
+        {puedeIniciar && (
+          <button
+            className={`${styles.card__btn} ${styles["card__btn--primary"]}`}
+            onClick={() => onIniciar(insp)}
+          >
+            <FiTool size={13} /> Iniciar
+          </button>
+        )}
+        {enCurso && (
+          <button
+            className={`${styles.card__btn} ${styles["card__btn--primary"]}`}
+            onClick={() => onDetalle(insp)}
+          >
+            <FiTool size={13} /> Continuar
+          </button>
+        )}
+        <button
+          className={`${styles.card__btn} ${styles["card__btn--ghost"]}`}
+          onClick={() => onDetalle(insp)}
+        >
+          <FiEye size={13} /> Detalle
+        </button>
+      </div>
+    </div>
+  );
+};
 
 const MisInspecciones = () => {
   const dispatch = useDispatch();
@@ -85,7 +172,6 @@ const MisInspecciones = () => {
 
     if (busqueda.trim()) {
       const q = busqueda.toLowerCase();
-
       lista = lista.filter((insp) => {
         const solicitud = insp.solicitudCotizacionId || {};
         const datosEquipo = solicitud.datosEquipo || {};
@@ -108,27 +194,20 @@ const MisInspecciones = () => {
 
     if (filtroFecha) {
       const ahora = new Date();
-
       lista = lista.filter((insp) => {
         const d = new Date(insp.createdAt);
-
-        if (filtroFecha === "hoy") {
-          return d.toDateString() === ahora.toDateString();
-        }
-
+        if (filtroFecha === "hoy") return d.toDateString() === ahora.toDateString();
         if (filtroFecha === "semana") {
           const h = new Date();
           h.setDate(ahora.getDate() - 7);
           return d >= h;
         }
-
         if (filtroFecha === "mes") {
           return (
             d.getMonth() === ahora.getMonth() &&
             d.getFullYear() === ahora.getFullYear()
           );
         }
-
         return true;
       });
     }
@@ -168,6 +247,8 @@ const MisInspecciones = () => {
 
   return (
     <div className={styles.page}>
+
+      {/* ── Header ── */}
       <div className={styles.pageHeader}>
         <div className={styles.pageHeading}>
           <h1>Mis Inspecciones</h1>
@@ -175,50 +256,23 @@ const MisInspecciones = () => {
         </div>
       </div>
 
+      {/* ── Stats ── */}
       <div className={styles.stats}>
         {[
-          {
-            key: "total",
-            mod: "total",
-            label: "Total asignadas",
-            icon: FiClipboard,
-            num: stats.total,
-          },
-          {
-            key: "pendientes",
-            mod: "activas",
-            label: "Pendientes",
-            icon: FiClock,
-            num: stats.pendientes,
-          },
-          {
-            key: "enProceso",
-            mod: "aprobadas",
-            label: "En proceso",
-            icon: FiAlertCircle,
-            num: stats.enProceso,
-          },
-          {
-            key: "completadas",
-            mod: "rechazadas",
-            label: "Completadas",
-            icon: FiCheckSquare,
-            num: stats.completadas,
-          },
+          { key: "total",      mod: "total",      label: "Total asignadas", icon: FiClipboard,   num: stats.total      },
+          { key: "pendientes", mod: "pendientes",  label: "Pendientes",      icon: FiClock,       num: stats.pendientes },
+          { key: "enProceso",  mod: "en-proceso",  label: "En proceso",      icon: FiAlertCircle, num: stats.enProceso  },
+          { key: "completadas",mod: "completadas", label: "Completadas",     icon: FiCheckSquare, num: stats.completadas},
         ].map(({ key, mod, label, icon: Icon, num }) => (
-          <div
-            key={key}
-            className={`${styles.statCard} ${styles[`statCard--${mod}`]}`}
-          >
-            <div className={styles.statCard__icon}>
-              <Icon size={18} />
-            </div>
+          <div key={key} className={`${styles.statCard} ${styles[`statCard--${mod}`]}`}>
+            <div className={styles.statCard__icon}><Icon size={18} /></div>
             <div className={styles.statCard__num}>{num}</div>
             <div className={styles.statCard__label}>{label}</div>
           </div>
         ))}
       </div>
 
+      {/* ── Filtros ── */}
       <div className={styles.filters}>
         <div className={styles.searchWrap}>
           <FiSearch size={15} className={styles.searchWrap__icon} />
@@ -231,24 +285,16 @@ const MisInspecciones = () => {
         </div>
 
         <div className={styles.filterSelect}>
-          <select
-            value={filtroEstado}
-            onChange={(e) => setFiltroEstado(e.target.value)}
-          >
+          <select value={filtroEstado} onChange={(e) => setFiltroEstado(e.target.value)}>
             <option value="">Todos los estados</option>
             {ESTADOS_LISTA.map((e) => (
-              <option key={e.value} value={e.value}>
-                {e.label}
-              </option>
+              <option key={e.value} value={e.value}>{e.label}</option>
             ))}
           </select>
         </div>
 
         <div className={styles.filterSelect}>
-          <select
-            value={filtroFecha}
-            onChange={(e) => setFiltroFecha(e.target.value)}
-          >
+          <select value={filtroFecha} onChange={(e) => setFiltroFecha(e.target.value)}>
             <option value="">Cualquier fecha</option>
             <option value="hoy">Hoy</option>
             <option value="semana">Última semana</option>
@@ -263,124 +309,41 @@ const MisInspecciones = () => {
         )}
       </div>
 
-      <div className={styles.tableWrap}>
-        {loading ? (
-          <div className={styles.loading}>
-            <div className={styles.loading__spinner} />
-            <p>Cargando tus inspecciones...</p>
+      {/* ── Contenido ── */}
+      {loading ? (
+        <div className={styles.loading}>
+          <div className={styles.loading__spinner} />
+          <p>Cargando tus inspecciones...</p>
+        </div>
+      ) : filtradas.length === 0 ? (
+        <div className={styles.empty}>
+          <div className={styles.empty__icon}><FiInbox size={32} /></div>
+          <h3>{hayFiltros ? "Sin resultados" : "No tienes inspecciones asignadas"}</h3>
+          <p>
+            {hayFiltros
+              ? "Intenta ajustar los filtros o la búsqueda."
+              : "Cuando se te asigne una inspección, aparecerá aquí."}
+          </p>
+        </div>
+      ) : (
+        <>
+          <div className={styles.grid}>
+            {filtradas.map((insp) => (
+              <InspeccionCard
+                key={insp._id}
+                insp={insp}
+                onDetalle={setDetalle}
+                onIniciar={setInspeccionModal}
+              />
+            ))}
           </div>
-        ) : filtradas.length === 0 ? (
-          <div className={styles.empty}>
-            <div className={styles.empty__icon}>
-              <FiInbox size={28} />
-            </div>
-            <h3>{hayFiltros ? "Sin resultados" : "No tienes inspecciones asignadas"}</h3>
-            <p>
-              {hayFiltros
-                ? "Intenta ajustar los filtros o la búsqueda."
-                : "Cuando se te asigne una inspección, aparecerá aquí."}
-            </p>
-          </div>
-        ) : (
-          <table className={styles.table}>
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Dispositivo</th>
-                <th>Cliente</th>
-                <th>Fecha de inspección</th>
-                <th>Estado</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtradas.map((insp) => {
-                const solicitud = insp.solicitudCotizacionId || {};
-                const datosEquipo = solicitud.datosEquipo || {};
-                const cliente = solicitud.cliente || {};
-                const tipoDispositivo = solicitud.tipoDispositivoId || {};
-
-                const puedeIniciar = insp.estado === "pendiente";
-                const enCurso = insp.estado === "en_proceso";
-
-                return (
-                  <tr key={insp._id} onClick={() => setDetalle(insp)}>
-                    <td>
-                      <span className={styles.idCell}>{insp._id}</span>
-                    </td>
-
-                    <td>
-                      <div className={styles.equipoCell}>
-                        <div className={styles.equipoCell__marca}>
-                          {tipoDispositivo?.nombre || "—"}
-                        </div>
-                        <div className={styles.equipoCell__modelo}>
-                          {datosEquipo?.marca || "—"} {datosEquipo?.modelo || ""}
-                        </div>
-                      </div>
-                    </td>
-
-                    <td>
-                      <span className={styles.clienteCell}>
-                        {cliente?.nombre || "—"}
-                      </span>
-                    </td>
-
-                    <td>
-                      <span className={styles.dateCell}>
-                        {fmtFecha(insp.createdAt)}
-                      </span>
-                    </td>
-
-                    <td>
-                      <StatusBadge estado={insp.estado} />
-                    </td>
-
-                    <td onClick={(e) => e.stopPropagation()}>
-                      <div className={styles.actionsCell}>
-                        {puedeIniciar && (
-                          <button
-                            className={styles.btnOferta}
-                            onClick={() => setInspeccionModal(insp)}
-                            title="Iniciar inspección"
-                          >
-                            <FiTool size={13} /> Iniciar
-                          </button>
-                        )}
-
-                        {enCurso && (
-                          <button
-                            className={styles.btnOferta}
-                            onClick={() => setDetalle(insp)}
-                            title="Continuar inspección"
-                          >
-                            <FiTool size={13} /> Continuar
-                          </button>
-                        )}
-
-                        <button
-                          className={styles.btnView}
-                          onClick={() => setDetalle(insp)}
-                          title="Ver detalle"
-                        >
-                          <FiEye size={13} /> Detalle
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        )}
-      </div>
-
-      {!loading && filtradas.length > 0 && (
-        <p className={styles.resultCount}>
-          Mostrando {filtradas.length} de {inspecciones.length} inspecciones
-        </p>
+          <p className={styles.resultCount}>
+            Mostrando {filtradas.length} de {inspecciones.length} inspecciones
+          </p>
+        </>
       )}
 
+      {/* ── Modales ── */}
       {inspeccionModal && (
         <InspeccionModal
           inspeccion={inspeccionModal}
