@@ -1,0 +1,173 @@
+@use '../../variables' as *;
+
+.wrap { padding: 24px; @include respond-to($bp-md) { padding: 14px; } }
+
+.header {
+  @include flex(center, space-between, 12px);
+  margin-bottom: 20px;
+  @include respond-to($bp-sm) { flex-direction: column; align-items: flex-start; gap: 12px; }
+
+  h1 { font-size: 20px; font-weight: 900; color: $black; margin: 0; font-family: $font-heading; }
+  p  { font-size: 13px; color: $text-muted; margin: 4px 0 0; }
+}
+
+// Filtros 
+.filters {
+  @include flex(center, flex-start, 10px);
+  margin-bottom: 16px; flex-wrap: wrap;
+}
+
+.searchWrap {
+  position: relative; flex: 1; min-width: 200px;
+}
+
+.searchIcon {
+  position: absolute; left: 12px; top: 50%;
+  transform: translateY(-50%); color: $text-muted; pointer-events: none;
+}
+
+.searchInput {
+  width: 100%; padding: 9px 12px 9px 36px;
+  border: 1px solid $grey-4; border-radius: $radius-md;
+  font-size: 13px; font-family: $font-body; color: $text-body;
+  background: $white; @include transition(border-color, box-shadow);
+  &:focus { outline: none; border-color: $main-3; box-shadow: 0 0 0 3px rgba($main-3, 0.15); }
+}
+
+.select {
+  padding: 9px 12px; border: 1px solid $grey-4; border-radius: $radius-md;
+  font-size: 13px; font-family: $font-body; color: $text-body;
+  background: $white; cursor: pointer; @include transition(border-color);
+  &:focus { outline: none; border-color: $main-3; }
+}
+
+// Tabla 
+.tableCard { @include card; overflow: hidden; }
+
+.tableWrap { overflow-x: auto; @include scrollbar(4px); }
+
+.table {
+  width: 100%; border-collapse: collapse; font-size: 13px;
+
+  th {
+    text-align: left; padding: 12px 14px; white-space: nowrap;
+    font-size: 11px; font-weight: 800; color: $text-muted;
+    text-transform: uppercase; letter-spacing: 0.5px;
+    background: $grey-2; border-bottom: 2px solid $grey-4;
+  }
+
+  td {
+    padding: 13px 14px; color: $text-body;
+    border-bottom: 1px solid $grey-4; vertical-align: middle;
+  }
+
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: $grey-2; }
+}
+
+.tdMuted { color: $text-muted; font-size: 12px; }
+
+.code {
+  font-family: $font-mono; font-size: 11px;
+  background: $main-2; color: $main-4;
+  padding: 2px 7px; border-radius: $radius-sm;
+}
+
+.empty {
+  text-align: center; padding: 40px; color: $text-muted; font-size: 14px;
+}
+
+// Acciones
+.actions { @include flex(center, flex-start, 6px); }
+
+.btnAction {
+  padding: 5px 10px; border-radius: $radius-sm;
+  font-size: 12px; font-weight: 700;
+  border: 1px solid $grey-4; background: $white;
+  color: $black; cursor: pointer; @include transition;
+  &:hover { background: $main-2; border-color: $main-3; color: $main-4; }
+
+  &--danger {
+    color: $status-danger-text; border-color: $status-danger-border;
+    &:hover { background: $status-danger-bg; }
+  }
+}
+
+// Paginación
+.pagination {
+  @include flex(center, center, 12px);
+  padding: 14px;
+  border-top: 1px solid $grey-4;
+}
+
+.pageBtn {
+  width: 32px; height: 32px; border-radius: $radius-sm;
+  border: 1px solid $grey-4; background: $white;
+  @include flex-center; cursor: pointer; color: $black;
+  @include transition; &:hover:not(:disabled) { background: $main-2; border-color: $main-3; }
+  &:disabled { opacity: 0.4; cursor: not-allowed; }
+}
+
+.pageInfo { font-size: 13px; color: $text-muted; font-weight: 700; }
+
+// Botones
+.btnPrimary {
+  @include flex(center, center, 8px);
+  padding: 9px 18px; border-radius: $radius-md;
+  background: $main-1; color: $white; border: none;
+  font-size: 13px; font-weight: 800; cursor: pointer;
+  font-family: $font-body; @include transition(background, box-shadow);
+  box-shadow: $shadow-main;
+  &:hover { background: $main-4; }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+
+.btnSecondary {
+  padding: 9px 18px; border-radius: $radius-md;
+  background: $white; color: $black;
+  border: 1px solid $grey-4; font-size: 13px;
+  font-weight: 700; cursor: pointer; font-family: $font-body;
+  @include transition; &:hover { background: $grey-2; }
+}
+
+.btnIcon {
+  width: 38px; height: 38px; border-radius: $radius-md;
+  border: 1px solid $grey-4; background: $white;
+  @include flex-center; cursor: pointer; color: $black;
+  @include transition; &:hover { background: $main-2; border-color: $main-3; }
+}
+
+// Modal
+.modalOverlay {
+  position: fixed; inset: 0; z-index: $z-dropdown + 10;
+  background: rgba($black, 0.4);
+  @include flex-center;
+}
+
+.modal {
+  background: $white; border-radius: $radius-xl;
+  padding: 28px; width: 100%; max-width: 420px;
+  box-shadow: $shadow-xl;
+
+  h3 {
+    font-size: 18px; font-weight: 900; color: $black;
+    margin: 0 0 16px; font-family: $font-heading;
+  }
+
+  &__sub { font-size: 13px; color: $text-muted; margin: 0 0 12px; @include flex(center, flex-start, 8px); }
+
+  .select { width: 100%; margin-top: 4px; }
+
+  &__actions { @include flex(center, flex-end, 10px); margin-top: 20px; }
+}
+
+// Badges 
+.badge { @include status-badge($status-neutral-bg, $status-neutral-text, $status-neutral-border); }
+.badge--neutral { @include status-badge($status-neutral-bg, $status-neutral-text, $status-neutral-border); }
+.badge--info    { @include status-badge($status-info-bg,    $status-info-text,    $status-info-border); }
+.badge--pending { @include status-badge($status-pending-bg, $status-pending-text, $status-pending-border); }
+.badge--active  { @include status-badge($status-active-bg,  $status-active-text,  $status-active-border); }
+.badge--warning { @include status-badge($status-warning-bg, $status-warning-text, $status-warning-border); }
+.badge--success { @include status-badge($status-success-bg, $status-success-text, $status-success-border); }
+.badge--danger  { @include status-badge($status-danger-bg,  $status-danger-text,  $status-danger-border); }
+.badge--done    { @include status-badge($status-done-bg,    $status-done-text,    $status-done-border); }
