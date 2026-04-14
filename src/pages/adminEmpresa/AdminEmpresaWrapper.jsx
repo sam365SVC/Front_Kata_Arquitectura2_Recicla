@@ -6,12 +6,14 @@ import {
   FiLogOut,
   FiUsers,
   FiSettings,
+  FiCreditCard,
 } from "react-icons/fi";
 import { MdOutlineBusinessCenter } from "react-icons/md";
 
 import styles from "./AdminEmpresaWrapper.module.scss";
 import UsuariosEmpresa from "./components/UsuariosEmpresa";
 import TiposDispositivoEmpresa from "./components/TiposDispositivoEmpresa";
+import PlanEmpresa from "./components/PlanEmpresa";
 
 const NAV_ITEMS = [
   {
@@ -30,6 +32,14 @@ const NAV_ITEMS = [
     description:
       "Configura qué dispositivos se recepcionan y qué condiciones serán consideradas.",
   },
+  {
+    id: "miPlan",
+    label: "Mi plan",
+    icon: FiCreditCard,
+    title: "Plan y suscripción",
+    description:
+      "Revisa tu plan actual, sus beneficios, límites y las opciones de cambio disponibles.",
+  },
 ];
 
 const renderContent = (tab, props) => {
@@ -39,6 +49,9 @@ const renderContent = (tab, props) => {
 
     case "tiposDispositivo":
       return <TiposDispositivoEmpresa {...props} />;
+
+    case "miPlan":
+      return <PlanEmpresa {...props} />;
 
     default:
       return <UsuariosEmpresa {...props} />;
@@ -167,6 +180,7 @@ const AdminEmpresaWrapper = ({
                   onClick={() => handleNav(item.id)}
                   title={collapsed ? item.label : undefined}
                   aria-current={isActive ? "page" : undefined}
+                  type="button"
                 >
                   <span className={styles.sidebar__navIcon}>
                     <Icon size={18} />
@@ -200,6 +214,7 @@ const AdminEmpresaWrapper = ({
               tenantId,
               empresaNombre,
               adminNombre,
+              adminEmail,
             })}
           </div>
         </main>

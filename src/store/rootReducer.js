@@ -23,6 +23,7 @@ import perfilDocenteReducer from '../pages/adminDocentes/slicesPerfilDocente/Per
 import saldosMovimientosReducer from '../pages/adminEstudiantes/slicesSaldo/SaldosMovimientosSlice';
 import cursosDocenteReducer from '../pages/adminDocentes/slicesCursos/CursosSlices';
 import notasDocenteReducer from '../pages/adminDocentes/slicesNotas/NotasSlices';
+import planEmpresaReducer from '../pages/adminEmpresa/slicesPlanEmpresa/PlanEmpresaSlice';
 
 
 //para cotizaciones y tipo de dispositivos
@@ -69,6 +70,8 @@ export const rootReducer = combineReducers({
 
   //PARA EL INSPECTOR
   inspecciones: inspeccionesReducer,
+
+  planEmpresa: planEmpresaReducer,
 });
 
 export default rootReducer;
