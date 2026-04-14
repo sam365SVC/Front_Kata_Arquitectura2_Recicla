@@ -29,6 +29,8 @@ import notasDocenteReducer from '../pages/adminDocentes/slicesNotas/NotasSlices'
 // nivel inicial, posible actualizacion
 import cotizacionesReducer from '../pages/adminUsuarioFinal/slicesCotizaciones/CotizacionesSlice';
 import tiposDispositivoReducer from '../pages/adminUsuarioFinal/slicesTiposDispositivo/TiposDispositivoSlice';
+import usuariosEmpresaReducer from '../pages/adminEmpresa/slicesUsuariosEmpresa/UsuariosEmpresaSlice';
+import tiposDispositivoEmpresaReducer from '../pages/adminEmpresa/slicesTiposDispositivoEmpresa/TiposDispositivoEmpresaSlice';
 const loginPersistConfig = {
   key: 'login',
   storage,
@@ -60,6 +62,9 @@ export const rootReducer = combineReducers({
   //COTIZACIONES POR EL CLIENTE 
   cotizaciones: cotizacionesReducer,
   tiposDispositivo: tiposDispositivoReducer,
+    // admin empresa
+  usuariosEmpresa: usuariosEmpresaReducer,
+  tiposDispositivoEmpresa: tiposDispositivoEmpresaReducer,
 });
 
 export default rootReducer;
