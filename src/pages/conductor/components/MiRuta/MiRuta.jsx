@@ -43,7 +43,7 @@ const MiRuta = () => {
   )
 
   useEffect(() => {
-    dispatch(fetchOrdenes({ estado: 'en_ruta' }))
+    dispatch(fetchOrdenes({ estado: ['en_ruta', 'asignada'] }))
   }, [dispatch])
 
   // GPS del navegador \

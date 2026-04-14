@@ -102,7 +102,7 @@ const GestionConductores = () => {
                     onChange={(e) => setForm({ ...form, employeeId: e.target.value })} />
                 </label>
                 <label className={styles.label}>
-                  Nombre (caché)
+                  Nombre 
                   <input className={styles.input} value={form.nombreCache}
                     onChange={(e) => setForm({ ...form, nombreCache: e.target.value })} />
                 </label>
