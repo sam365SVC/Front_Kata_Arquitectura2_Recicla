@@ -1,0 +1,338 @@
+// planesPagos.scss
+@use '../../../assets/scss/utils/colors' as *;
+@use '../../../assets/scss/utils/typography' as *;
+
+// ─── Page wrapper ───────────────────────────────────────────────────────────
+.planes-pagos {
+  min-height: 100vh;
+  background-color: var(--it-grey-1);
+  font-family: var(--it-font-body);
+  padding: 0 0 80px;
+
+  // ─── Hero / header ────────────────────────────────────────────────────────
+  &__hero {
+    background-color: var(--it-black-3);
+    padding: 72px 24px 56px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+
+    &::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 60% 80% at 50% -10%, rgba(var(--it-main-3), .18) 0%, transparent 70%);
+      pointer-events: none;
+    }
+  }
+
+  &__eyebrow {
+    display: inline-block;
+    font-family: var(--it-font-body);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--it-main-3);
+    background-color: rgba(var(--it-main-3), .12);
+    border: 1px solid rgba(var(--it-main-3), .3);
+    border-radius: 100px;
+    padding: 4px 16px;
+    margin-bottom: 20px;
+  }
+
+  &__title {
+    font-family: var(--it-font-heading);
+    font-size: clamp(32px, 5vw, 52px);
+    font-weight: 700;
+    color: var(--it-white);
+    margin: 0 0 14px;
+
+    span {
+      color: var(--it-main-3);
+    }
+  }
+
+  &__subtitle {
+    font-size: 16px;
+    color: rgba(var(--it-white), .6);
+    max-width: 480px;
+    margin: 0 auto;
+  }
+
+  // ─── Cards grid ──────────────────────────────────────────────────────────
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
+    max-width: 860px;
+    margin: -40px auto 0;
+    padding: 0 24px;
+    position: relative;
+    z-index: 2;
+  }
+
+  // ─── Loading / error ─────────────────────────────────────────────────────
+  &__loading,
+  &__error {
+    text-align: center;
+    padding: 60px 24px;
+    color: var(--it-black-2);
+    font-size: 15px;
+  }
+
+  &__error {
+    color: #c0392b;
+  }
+
+  // ─── Footer note ──────────────────────────────────────────────────────────
+  &__footer-note {
+    text-align: center;
+    margin-top: 40px;
+    font-size: 13px;
+    color: var(--it-black-2);
+
+    a {
+      color: var(--it-main-1);
+      text-decoration: underline;
+      cursor: pointer;
+    }
+  }
+}
+
+// ─── Plan Card ──────────────────────────────────────────────────────────────
+.plan-card {
+  background-color: var(--it-white);
+  border: 1.5px solid var(--it-border-1);
+  border-radius: 20px;
+  padding: 32px 28px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  transition: box-shadow .2s ease, transform .2s ease;
+  position: relative;
+  overflow: hidden;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(var(--it-black-3), .10);
+  }
+
+  // Featured card
+  &--featured {
+    border-color: var(--it-main-1);
+    border-width: 2px;
+    background-color: var(--it-black-3);
+
+    .plan-card__nombre,
+    .plan-card__precio,
+    .plan-card__precio-moneda,
+    .plan-card__precio-periodo,
+    .plan-card__descripcion {
+      color: var(--it-white);
+    }
+
+    .plan-card__divider {
+      background-color: rgba(var(--it-white), .12);
+    }
+
+    .plan-card__feature-text {
+      color: rgba(var(--it-white), .8);
+    }
+
+    .plan-card__feature-icon {
+      color: var(--it-main-3);
+    }
+
+    .plan-card__section-label {
+      color: rgba(var(--it-white), .45);
+    }
+
+    .plan-card__cta {
+      background-color: var(--it-main-3);
+      color: var(--it-black-3);
+      border-color: var(--it-main-3);
+
+      &:hover {
+        background-color: var(--it-main-1);
+        border-color: var(--it-main-1);
+        color: var(--it-white);
+      }
+    }
+  }
+
+  // ── Badge ──────────────────────────────────────────────────────────────
+  &__badge {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--it-black-3);
+    background-color: var(--it-main-3);
+    border-radius: 100px;
+    padding: 3px 12px;
+  }
+
+  // ── Header ─────────────────────────────────────────────────────────────
+  &__header {
+    margin-bottom: 20px;
+  }
+
+  &__nombre {
+    font-family: var(--it-font-heading);
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--it-black);
+    margin: 0 0 6px;
+  }
+
+  &__descripcion {
+    font-size: 13.5px;
+    color: var(--it-black-2);
+    margin: 0;
+    line-height: 1.5;
+  }
+
+  // ── Precio ─────────────────────────────────────────────────────────────
+  &__precio-wrapper {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+    margin-bottom: 24px;
+  }
+
+  &__precio-moneda {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--it-black);
+    margin-top: 4px;
+  }
+
+  &__precio {
+    font-family: var(--it-font-heading);
+    font-size: 48px;
+    font-weight: 700;
+    color: var(--it-black);
+    line-height: 1;
+  }
+
+  &__precio-periodo {
+    font-size: 13px;
+    color: var(--it-black-2);
+    margin-left: 2px;
+  }
+
+  // ── CTA ────────────────────────────────────────────────────────────────
+  &__cta {
+    width: 100%;
+    padding: 13px 0;
+    border-radius: 100px;
+    border: 1.5px solid var(--it-main-1);
+    background-color: transparent;
+    color: var(--it-main-1);
+    font-family: var(--it-font-body);
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color .18s ease, color .18s ease;
+    margin-bottom: 24px;
+
+    &:hover {
+      background-color: var(--it-main-1);
+      color: var(--it-white);
+    }
+  }
+
+  // ── Divider ────────────────────────────────────────────────────────────
+  &__divider {
+    height: 1px;
+    background-color: var(--it-grey-4);
+    margin-bottom: 20px;
+  }
+
+  // ── Features ───────────────────────────────────────────────────────────
+  &__section-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--it-black-2);
+    margin: 0 0 14px;
+  }
+
+  &__features-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex: 1;
+  }
+
+  &__feature {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  &__feature-icon {
+    font-size: 15px;
+    color: var(--it-main-1);
+    margin-top: 1px;
+    flex-shrink: 0;
+  }
+
+  &__feature-icon--cross {
+    color: #b0b8a6;
+  }
+
+  &__feature-text {
+    font-size: 13.5px;
+    color: var(--it-text-body);
+    line-height: 1.45;
+  }
+
+  // ── Specs table ────────────────────────────────────────────────────────
+  &__specs {
+    margin-top: 20px;
+    border-top: 1px solid var(--it-grey-4);
+    padding-top: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  &__spec-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+  }
+
+  &__spec-label {
+    color: var(--it-black-2);
+  }
+
+  &__spec-value {
+    font-weight: 600;
+    color: var(--it-black);
+    background-color: var(--it-grey-2);
+    border-radius: 6px;
+    padding: 2px 10px;
+    font-size: 12px;
+  }
+
+  &--featured &__spec-value {
+    background-color: rgba(var(--it-main-3), .15);
+    color: var(--it-main-3);
+  }
+
+  &--featured &__spec-label {
+    color: rgba(var(--it-white), .55);
+  }
+}

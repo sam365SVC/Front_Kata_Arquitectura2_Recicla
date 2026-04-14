@@ -4,6 +4,12 @@ import storage from 'redux-persist/lib/storage';
 
 import loginReducer from '../pages/signin/slices/loginSlice';
 
+// logistica
+import conductoresReducer from './slices/conductoresSlice';
+import ubicacionesReducer from './slices/ubicacionesSlice';
+import despachoReducer from './slices/despachoSlice';
+import ordenesReducer from './slices/ordenesSlice';
+import { authReducer }    from './slices/authSlice'; 
 // admin
 import studentsReducer from '../pages/admin/slicesStudents/StudentsSlice';
 import docentesReducer from '../pages/admin/slicesDocentes/DocentesSlice';
@@ -41,25 +47,12 @@ const loginPersistConfig = {
 
 export const rootReducer = combineReducers({
   login: persistReducer(loginPersistConfig, loginReducer),
-
-  // admin
-  students: studentsReducer,
-  docentes: docentesReducer,
-  cursos: cursoReducer,
-  pagos: pagosReducer,
-
-  // admin estudiantes
-  perfil: perfilReducer,
-  carrito: carritoReducer,
-  ofertaAcademica: ofertaAcademicaReducer,
-  cursosEstudiante: cursosEstudianteReducer,
-  checkout: checkoutReducer,
-
-  // admin docentes
-  perfilDocente: perfilDocenteReducer,
-  saldosMovimientos: saldosMovimientosReducer,
-  cursosDocente: cursosDocenteReducer,
-  notasDocente: notasDocenteReducer,
+  //logistica
+  auth: authReducer,
+  conductores: conductoresReducer,
+  ubicaciones: ubicacionesReducer,
+  despacho: despachoReducer,
+  ordenes: ordenesReducer,
 
   //COTIZACIONES POR EL CLIENTE 
   cotizaciones: cotizacionesReducer,

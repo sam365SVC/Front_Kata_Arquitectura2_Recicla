@@ -1,0 +1,55 @@
+@use '../../variables' as *;
+
+.wrap {
+  display: flex; flex-direction: column;
+  height: 100%; padding: 20px;
+  gap: 14px;
+  @include respond-to($bp-md) { padding: 12px; gap: 10px; }
+}
+
+.header {
+  @include flex(center, space-between, 12px);
+  flex-shrink: 0;
+  @include respond-to($bp-sm) { flex-direction: column; align-items: flex-start; }
+
+  h1 { font-size: 20px; font-weight: 900; color: $black; margin: 0; font-family: $font-heading; }
+  p  { font-size: 13px; color: $text-muted; margin: 4px 0 0; }
+}
+
+.wsChip {
+  @include flex(center, flex-start, 6px);
+  padding: 6px 12px; border-radius: $radius-pill;
+  background: $status-danger-bg; color: $status-danger-text;
+  font-size: 12px; font-weight: 700; flex-shrink: 0;
+  border: 1px solid $status-danger-border;
+  @include transition(background, color, border-color);
+
+  &--on {
+    background: $status-success-bg; color: $status-success-text;
+    border-color: $status-success-border;
+  }
+}
+
+.wsDot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: currentColor; flex-shrink: 0;
+}
+
+.leyenda {
+  @include flex(center, flex-start, 16px);
+  flex-wrap: wrap; flex-shrink: 0;
+
+  &__item { @include flex(center, flex-start, 6px); font-size: 12px; color: $text-muted; }
+
+  &__dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    border: 2px solid $white; box-shadow: $shadow-sm; flex-shrink: 0;
+  }
+}
+
+.mapWrap {
+  flex: 1; min-height: 0;
+  border-radius: $radius-lg; overflow: hidden;
+  box-shadow: $shadow-md; border: 1px solid $grey-4;
+  min-height: 400px;
+}

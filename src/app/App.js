@@ -51,6 +51,10 @@ import {
   Estudiante,
   Docente,
   AdminUsuarioFinal,
+  Despachador,
+  Conductor,
+  PlanesPagos,
+  CheckoutPago,
   AdminEmpresa,
   Inspector
 } from '../pages';
@@ -125,6 +129,11 @@ function App() {
         <Route path="/admin-estudiante" element={<Estudiante />} />
         <Route path="/admin-docente" element={<Docente />} />
         <Route path="/admin-usfin" element={<AdminUsuarioFinal />} />
+        <Route path="/despachador" element={<Despachador />} />
+        <Route path="/conductor" element={<Conductor />} />
+        <Route path="/planes-pagos" element={<PlanesPagos />} />
+        <Route path="/checkout-pagos" element={<CheckoutPago />} />
+        
         <Route path="/admin-empresa" element={<AdminEmpresa />} />
 
         <Route path="/inspector" element={<Inspector />} />
