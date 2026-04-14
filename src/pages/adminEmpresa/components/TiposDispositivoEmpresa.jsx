@@ -487,7 +487,6 @@ const TiposDispositivoEmpresa = ({ tenantId = 1 }) => {
 
                     <td>
                       <div className={styles.priceCell}>
-                        <FiDollarSign size={14} />
                         <span>{formatMoney(tipo.precioBase)}</span>
                       </div>
                     </td>
