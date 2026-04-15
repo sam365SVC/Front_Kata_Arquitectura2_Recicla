@@ -93,8 +93,7 @@ export {
   Docente,
   AdminUsuarioFinal,
   Despachador,
-  Conductor
-
+  Conductor,
   PlanesPagos,
   CheckoutPago,
 };
