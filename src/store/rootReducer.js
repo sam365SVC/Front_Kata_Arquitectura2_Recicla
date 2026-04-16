@@ -11,17 +11,17 @@ import despachoReducer from './slices/despachoSlice';
 import ordenesReducer from './slices/ordenesSlice';
 import { authReducer }    from './slices/authSlice'; 
 // admin
-import studentsReducer from '../pages/admin/slicesStudents/StudentsSlice';
-import docentesReducer from '../pages/admin/slicesDocentes/DocentesSlice';
-import cursoReducer from '../pages/admin/slicesCursos/CursosSlice';
-import pagosReducer from '../pages/admin/slicesPagos/PagosSlice';
-
+//import studentsReducer from '../pages/admin/slicesStudents/StudentsSlice';
+//import docentesReducer from '../pages/admin/slicesDocentes/DocentesSlice';
+//import cursoReducer from '../pages/admin/slicesCursos/CursosSlice';
+import pagosReducer from '../pages/checkoutPago/slicesPagos/PagosSlice';
+import checkoutReducer from '../pages/checkoutPago/slicesCheckout/CheckoutSlice';
 // admin estudiantes
 import perfilReducer from '../pages/adminEstudiantes/slicesPerfil/PerfilSlice';
 import carritoReducer from '../pages/adminEstudiantes/slicesCarrito/CarritoSlice';
 import ofertaAcademicaReducer from '../pages/adminEstudiantes/slicesOfertaAcademica/OfertaAcademicaSlice';
 import cursosEstudianteReducer from '../pages/adminEstudiantes/slicesCursos/CursosSlice';
-import checkoutReducer from '../pages/adminEstudiantes/slicesCheckout/CheckoutSlice';
+//import checkoutReducer from '../pages/adminEstudiantes/slicesCheckout/CheckoutSlice';
 
 // admin docentes
 import perfilDocenteReducer from '../pages/adminDocentes/slicesPerfilDocente/PerfilDocenteSlice';
@@ -65,6 +65,7 @@ export const rootReducer = combineReducers({
   inspecciones: inspeccionesReducer,
 
   planEmpresa: planEmpresaReducer,
+  checkout: checkoutReducer,
 });
 
 export default rootReducer;

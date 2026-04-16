@@ -1,5 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { Link, useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+
 import {
   FiArrowLeft,
   FiCheckCircle,
@@ -28,6 +31,7 @@ import {
   pagarConSaldoThunk,
 } from "../slicesCheckout/CheckoutThunk";
 
+
 // ─── Swal tema con colores del proyecto ───────────────────────────────────────
 const swalTheme = {
   confirmButtonColor: "#79864B",
@@ -43,51 +47,36 @@ const swalTheme = {
 const formatMoney = (amount, currency = "BOB") =>
   `${currency === "BOB" ? "Bs." : currency} ${Number(amount || 0).toFixed(2)}`;
 
-const normalizeCompra = (compra) => {
-  if (!compra) return null;
-
-  const itemsRaw =
-    compra.compra_curso ||
-    compra.compraCurso ||
-    compra.items ||
-    compra.detalles ||
-    [];
-
-  const items = Array.isArray(itemsRaw)
-    ? itemsRaw.map((item, index) => ({
-        id: item.id_compra_curso || item.id || `item-${index}`,
-        nombre:
-          item?.materia?.nombre ||
-          item?.curso?.nombre ||
-          item?.nombre ||
-          item?.titulo ||
-          "Curso",
-        precio: Number(
-          item?.precio_item ??
-            item?.precio ??
-            item?.subtotal ??
-            item?.monto ??
-            0
-        ),
-      }))
-    : [];
+const normalizeSuscripcion = (suscripcion) => {
+  if (!suscripcion) return null;
 
   return {
-    idCompraTotal:
-      compra.id_compra_total ??
-      compra.idCompraTotal ??
-      compra.compra_total_id_compra_total ??
+    idSuscripcion:
+      suscripcion.id_suscripcion ??
+      suscripcion.id ??
       null,
-    total: Number(compra.total ?? 0),
-    subtotalCursos: Number(compra.subtotal_cursos ?? compra.total ?? 0),
-    saldoUsado: Number(compra.saldo_usado ?? 0),
-    totalPagadoExterno: Number(
-      compra.total_pagado_externo ?? compra.total ?? 0
+
+    total: Number(
+      suscripcion.monto ??
+      suscripcion.precio ??
+      0
     ),
-    saldoDisponible: Number(compra.saldo_disponible ?? 0),
-    moneda: compra.moneda || "BOB",
-    estado: compra.estado || "PENDIENTE",
-    items,
+
+    moneda: suscripcion.moneda || "BOB",
+    estado: suscripcion.estado || "PENDIENTE",
+
+    items: [
+      {
+        id: suscripcion.id_suscripcion ?? "plan",
+        nombre:
+          suscripcion.plan_nombre ||
+          suscripcion.nombre ||
+          "Suscripción",
+        precio: Number(suscripcion.monto ?? 0),
+      },
+    ],
+
+    saldoDisponible: Number(suscripcion.saldo_disponible ?? 0),
   };
 };
 
@@ -200,10 +189,13 @@ const BrandLogo = ({ brand }) => {
 
 // ─── Componente principal ─────────────────────────────────────────────────────
 const CheckoutPagos = ({ onBack, onSuccess }) => {
-  const dispatch = useDispatch();
 
+  const { id } = useParams();
+
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
   const {
-    compraActual,
+    suscripcionActual,
     metodoSeleccionado,
     tipoComprobante,
     razonSocial,
@@ -223,8 +215,7 @@ const CheckoutPagos = ({ onBack, onSuccess }) => {
   const perfilState = useSelector((state) => state.perfil);
   const loginState = useSelector((state) => state.login);
 
-  const compra = useMemo(() => normalizeCompra(compraActual), [compraActual]);
-
+  const compra = useMemo(() => normalizeSuscripcion(suscripcionActual),[suscripcionActual]);
   const qrAutoConfirmRef = useRef(false);
   const successTriggeredRef = useRef(false);
   const qrTimerRef = useRef(null);
@@ -253,14 +244,15 @@ const CheckoutPagos = ({ onBack, onSuccess }) => {
     usarSaldo && montoPendienteCalculado === 0 && saldoAplicadoCalculado > 0;
 
   // ─── Effects ────────────────────────────────────────────────────────────────
+  
   useEffect(() => {
     if (!compra) return;
     setUsarSaldo(Number(compra?.saldoDisponible || 0) > 0);
-  }, [compra?.idCompraTotal, compra?.saldoDisponible]);
+  }, [compra?.idSuscripcion, compra?.saldoDisponible]);
 
   useEffect(() => {
     successTriggeredRef.current = false;
-  }, [compra?.idCompraTotal]);
+  }, [compra?.idSuscripcion]);
 
   useEffect(() => {
     if (!razonSocial) {
@@ -284,7 +276,7 @@ const CheckoutPagos = ({ onBack, onSuccess }) => {
       metodoSeleccionado !== "QR" ||
       !qrData?.qr ||
       pagoConfirmado ||
-      !compra?.idCompraTotal
+      !compra?.idSuscripcion
     )
       return;
 
@@ -305,12 +297,12 @@ const CheckoutPagos = ({ onBack, onSuccess }) => {
         qrTimerRef.current = null;
       }
     };
-  }, [metodoSeleccionado, qrData?.qr, pagoConfirmado, compra?.idCompraTotal]);
+  }, [metodoSeleccionado, qrData?.qr, pagoConfirmado, compra?.idSuscripcion]);
 
   useEffect(() => {
     if (metodoSeleccionado !== "QR") return;
     if (!qrData?.qr) return;
-    if (!compra?.idCompraTotal) return;
+    if (!compra?.idSuscripcion) return;
     if (pagoConfirmado) return;
     if (qrAutoConfirmRef.current) return;
     if (qrSecondsLeft > 0) return;
@@ -318,7 +310,7 @@ const CheckoutPagos = ({ onBack, onSuccess }) => {
     qrAutoConfirmRef.current = true;
     dispatch(
       confirmarPagoThunk({
-        idCompraTotal: compra.idCompraTotal,
+        idSuscripcion: compra.idSuscripcion,
         tipo: tipoComprobante,
         razonSocial,
         nitCi,
@@ -330,7 +322,7 @@ const CheckoutPagos = ({ onBack, onSuccess }) => {
     qrData?.qr,
     qrSecondsLeft,
     pagoConfirmado,
-    compra?.idCompraTotal,
+    compra?.idSuscripcion,
     tipoComprobante,
     razonSocial,
     nitCi,
@@ -369,7 +361,7 @@ const CheckoutPagos = ({ onBack, onSuccess }) => {
 
   // ─── Validaciones ────────────────────────────────────────────────────────────
   const validateBilling = () => {
-    if (!compra?.idCompraTotal) return "No se encontró una compra válida.";
+    if (!compra?.idSuscripcion) return "No se encontró una compra válida.";
     if (!tipoComprobante) return "Selecciona el tipo de comprobante.";
     if (!razonSocial.trim()) return "Ingresa el nombre o razón social.";
     if (!nitCi.trim()) return "Ingresa el CI o NIT.";
@@ -414,11 +406,11 @@ const CheckoutPagos = ({ onBack, onSuccess }) => {
     try {
       await dispatch(
         iniciarPagoQrThunk({
-          idCompraTotal: compra.idCompraTotal,
+          idSuscripcion: compra.idSuscripcion,
           total: montoPendienteCalculado,
           moneda: compra.moneda,
-          gloss: "Pago de inscripción",
-          additionalData: `Compra ${compra.idCompraTotal}`,
+          gloss: "Pago de suscripción",
+          additionalData: `Compra ${compra.idSuscripcion}`,
         })
       ).unwrap();
     } catch (err) {
@@ -452,7 +444,7 @@ const CheckoutPagos = ({ onBack, onSuccess }) => {
     try {
       await dispatch(
         simularPagoTarjetaThunk({
-          idCompraTotal: compra.idCompraTotal,
+          idSuscripcion: compra.idSuscripcion,
           total: montoPendienteCalculado,
           tipo: tipoComprobante,
           razonSocial,
@@ -485,7 +477,7 @@ const CheckoutPagos = ({ onBack, onSuccess }) => {
     try {
       await dispatch(
         simularPagoTransferenciaThunk({
-          idCompraTotal: compra.idCompraTotal,
+          idSuscripcion: compra.idSuscripcion,
           total: montoPendienteCalculado,
           tipo: tipoComprobante,
           razonSocial,
@@ -518,7 +510,7 @@ const CheckoutPagos = ({ onBack, onSuccess }) => {
     try {
       await dispatch(
         pagarConSaldoThunk({
-          idCompraTotal: compra.idCompraTotal,
+          idSuscripcion: compra.idSuscripcion,
           tipo: tipoComprobante,
           razonSocial,
           nitCi,
@@ -545,7 +537,7 @@ const CheckoutPagos = ({ onBack, onSuccess }) => {
           </div>
           <h3>No hay una compra activa</h3>
           <p>Selecciona un plan para continuar con el proceso de pago.</p>
-          <button className="ckx-back-btn" onClick={onBack}>
+          <button className="ckx-back-btn"  onClick={() => navigate('/planes-pagos')}>
             <FiArrowLeft />
             <span>Volver</span>
           </button>

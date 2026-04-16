@@ -2,25 +2,14 @@ import React, { useEffect, useState } from "react";
 import PlanCard from "./PlanCard";
 import "./planesPagos.scss";
 
-// ─── Origen de datos ──────────────────────────────────────────────────────────
-// En desarrollo se usa el mock; en producción apunta al endpoint real.
-// Para cambiar al endpoint real, sustituye la importación por:
-//   import { fetchPlanes } from "../../../services/planesService";
-// y elimina la de abajo.
 import { fetchPlanes } from "../mock/data";
 
-// Cuando el backend esté listo, usar algo como:
-// async function fetchPlanes() {
-//   const res = await fetch("/api/planes");
-//   if (!res.ok) throw new Error("Error al obtener los planes");
-//   return res.json();
-// }
 
 function PlanesPagos() {
   const [planes, setPlanes] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState(null);
-
+  
   useEffect(() => {
     let cancelado = false;
 

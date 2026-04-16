@@ -2,21 +2,19 @@ import axios from 'axios';
 import { store } from '../store/index';
 
 const apiPagos = axios.create({
-  baseURL: 'http://localhost:3001/api/',
+  baseURL: 'http://localhost:3001/api',
 });
 
 const METODO_TRANSFERENCIA = 'TRANSFERENCIA';
 
 const normalizarMetodoPago = (metodo) => {
   const valor = String(metodo || '').trim().toUpperCase();
-
   if (valor === 'TRANSFERENCIA') return METODO_TRANSFERENCIA;
-
   return valor;
 };
 
-// request interceptor
-api.interceptors.request.use((config) => {
+// REQUEST INTERCEPTOR
+apiPagos.interceptors.request.use((config) => {
   const state = store.getState();
   const user = state?.login?.user;
 
@@ -35,8 +33,8 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// response interceptor
-api.interceptors.response.use(
+// RESPONSE INTERCEPTOR
+apiPagos.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response) {
@@ -75,36 +73,38 @@ const handleError = (error) => {
 };
 
 export const pagoApi = {
+
   fetchPagos: () =>
-    api.get('/pago').then((res) => res.data).catch(handleError),
+    apiPagos.get('/pagos').then(res => res.data).catch(handleError),
 
   fetchPagoById: (id) =>
-    api.get(`/pago/${id}`).then((res) => res.data).catch(handleError),
+    apiPagos.get(`/pagos/${id}`).then(res => res.data).catch(handleError),
 
   createPago: (data) =>
-    api
-      .post('/pago/new', {
+    apiPagos
+      .post('/pagos', {
         ...data,
         metodo: normalizarMetodoPago(data?.metodo),
-      })
-      .then((res) => res.data)
+      }).then(res => res.data)
       .catch(handleError),
 
-  confirmarPagoPorCompraTotal: (idCompraTotal, data) =>
-    api
-      .put(`/pago/confirmar/compra-total/${idCompraTotal}`, data)
-      .then((res) => res.data)
-      .catch(handleError),
+      
+  confirmarPagoSuscripcion: (idSuscripcion, data) =>
+    apiPagos
+      .put(`/suscripcion-pagos/${idSuscripcion}`, data)
+        .then(res => res.data)
+        .catch(handleError),
 };
 
 export const qrApi = {
   generarQR: (data) =>
-    api.post('/qr/generar', data).then((res) => res.data).catch(handleError),
+    apiPagos.post('/qr/generar', data).then(res => res.data).catch(handleError),
 
   verificarPagoQR: (data) =>
-    api.post('/qr/verificar', data).then((res) => res.data).catch(handleError),
+    apiPagos.post('/qr/verificar', data).then(res => res.data).catch(handleError),
 };
-
+/*
+//FALTAAN USUARIOS PARA ESTO
 export const comprobantesApi = {
   enviarComprobantePorPago: (idPago) =>
     api
@@ -122,5 +122,5 @@ export const comprobantesApi = {
 export const saldosMovimientosApi = {
   fetchSaldosByEstudianteId: (estudianteId) =>
     api.get(`/saldo-movimientos/${estudianteId}`).then((res) => res.data).catch(handleError),
-};
+};*/
 export default apiPagos;

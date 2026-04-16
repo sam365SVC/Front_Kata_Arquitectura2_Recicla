@@ -9,7 +9,7 @@ import {
 } from "./CheckoutThunk";
 
 const initialState = {
-  compraActual: null,
+  suscripcionActual: null,
 
   metodoSeleccionado: "QR",
   tipoComprobante: "RECIBO",
@@ -48,15 +48,14 @@ const limpiarEstadoTemporalPago = (state) => {
   state.successMessage = null;
 };
 
-const actualizarCompraSiExiste = (state, action) => {
-  const compraActualizada =
-    action.payload?.compra ||
-    action.payload?.compra_total ||
-    action.payload?.carrito ||
+const actualizarSuscripcionSiExiste = (state, action) => {
+  const suscripcion =
+    action.payload?.suscripcion ||
+    action.payload?.data ||
     null;
 
-  if (compraActualizada) {
-    state.compraActual = compraActualizada;
+  if (suscripcion) {
+    state.suscripcionActual = suscripcion;
   }
 };
 
@@ -64,8 +63,8 @@ const checkoutSlice = createSlice({
   name: "checkout",
   initialState,
   reducers: {
-    setCompraActual: (state, action) => {
-      state.compraActual = action.payload || null;
+    setsuscripcionActual: (state, action) => {
+      state.suscripcionActual = action.payload || null;
       limpiarEstadoTemporalPago(state);
     },
 
@@ -235,7 +234,7 @@ const checkoutSlice = createSlice({
 });
 
 export const {
-  setCompraActual,
+  setsuscripcionActual,
   clearCheckout,
   setMetodoSeleccionado,
   setTipoComprobante,
@@ -246,8 +245,8 @@ export const {
   resetCheckoutFlow,
 } = checkoutSlice.actions;
 
-export const selectCheckoutCompraActual = (state) =>
-  state?.checkout?.compraActual ?? null;
+export const selectCheckoutsuscripcionActual = (state) =>
+  state?.checkout?.suscripcionActual ?? null;
 
 export const selectCheckoutMetodoSeleccionado = (state) =>
   state?.checkout?.metodoSeleccionado ?? "QR";

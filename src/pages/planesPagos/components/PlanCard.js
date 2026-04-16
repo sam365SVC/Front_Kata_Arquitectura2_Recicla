@@ -1,13 +1,13 @@
 import React from "react";
 
-/**
- * PlanCard
- * Recibe un objeto `plan` con la estructura de la tabla Plan (BD).
- * Props adicionales de UI (destacado, etiqueta, descripcion, caracteristicas_extra)
- * se esperan dentro del mismo objeto (pueden venir del backend o enriquecerse
- * en el mock/transformador antes de renderizar).
- */
+import { useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from 'react-redux';
+
+
 function PlanCard({ plan }) {
+
+  const navigate = useNavigate();
+  
   const {
     nombre,
     precio_mes,
@@ -35,7 +35,9 @@ function PlanCard({ plan }) {
     { label: "Reportes",           value: tipo_reportes },
     { label: "Exportación",        value: puede_exportar ? "Sí" : "No" },
   ];
-
+  const handleClick = () => {
+    navigate(`/checkout-pagos/${plan.id_plan}`);
+  };
   return (
     <article className={`plan-card${destacado ? " plan-card--featured" : ""}`}>
       {etiqueta && <span className="plan-card__badge">{etiqueta}</span>}
@@ -58,7 +60,7 @@ function PlanCard({ plan }) {
       </div>
 
       {/* CTA */}
-      <button className="plan-card__cta">
+      <button className="plan-card__cta" onClick={handleClick}>
         {esGratis ? "Comenzar gratis" : `Obtener ${nombre}`}
       </button>
 
