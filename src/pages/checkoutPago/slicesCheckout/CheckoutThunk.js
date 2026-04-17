@@ -23,7 +23,7 @@ const createOrReusePago = async ({ idSuscripcion, metodo, monto }) => {
       monto,
     });
   } catch (error) {
-    console.log("Problemas creando Pago");
+    
     const message = extractErrorMessage(error).toLowerCase();
 
     if (
@@ -45,14 +45,12 @@ export const iniciarPagoQrThunk = createAsyncThunk(
   ) => {
     try {
       
-      console.log("Creando Pago");
       await createOrReusePago({
         idSuscripcion,
         metodo: "QR",
         monto: total,
       });
 
-      console.log("Pago creado correctamente :D");
       const response = await qrApi.generarQR({
         suscripcion_id: idSuscripcion,
         currency: moneda,
