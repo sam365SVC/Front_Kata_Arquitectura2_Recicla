@@ -7,8 +7,8 @@ const apiPagos = axios.create({
 
 const METODO_TRANSFERENCIA = 'TRANSFERENCIA';
 
-const normalizarMetodoPago = (metodo) => {
-  const valor = String(metodo || '').trim().toUpperCase();
+const normalizarMonedaPago = (moneda) => {
+  const valor = String(moneda || '').trim().toUpperCase();
   if (valor === 'TRANSFERENCIA') return METODO_TRANSFERENCIA;
   return valor;
 };
@@ -88,12 +88,31 @@ export const pagoApi = {
       }).then(res => res.data)
       .catch(handleError),
 
-      
+  // SUSCRIPCIONES    
   confirmarPagoSuscripcion: (idSuscripcion, data) =>
     apiPagos
       .put(`/suscripcion-pagos/${idSuscripcion}`, data)
         .then(res => res.data)
         .catch(handleError),
+
+        
+  createSuscripcion: (data) =>
+    apiPagos
+      .post('/suscripcion-pagos/new', {
+        user_id: data.user_id,
+        servicio_id: data.servicio_id,
+        meses: data.meses,
+        precio_unitario: data.precio_unitario,
+        moneda: data.moneda,
+      })
+      .then(res => res.data)
+      .catch(handleError),
+
+  confirmarPagoSuscripcion: (idSuscripcion, data) =>
+    apiPagos
+      .put(`/suscripcion-pagos/${idSuscripcion}`, data)
+      .then(res => res.data)
+      .catch(handleError),
 };
 
 export const qrApi = {

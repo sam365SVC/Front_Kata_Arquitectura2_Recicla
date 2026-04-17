@@ -36,7 +36,7 @@ function PlanCard({ plan }) {
     { label: "Exportación",        value: puede_exportar ? "Sí" : "No" },
   ];
   const handleClick = () => {
-    navigate(`/checkout-pagos/${plan.id_plan}`);
+    navigate(`/crear-suscripcion/${plan.id_plan}`);
   };
   return (
     <article className={`plan-card${destacado ? " plan-card--featured" : ""}`}>

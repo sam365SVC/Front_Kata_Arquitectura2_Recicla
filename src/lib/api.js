@@ -285,6 +285,25 @@ export const pagoApi = {
       })
       .then((res) => res.data)
       .catch(handleError),
+  
+    // SUSCRIPCIONES    
+  confirmarPagoSuscripcion: (idSuscripcion, data) =>
+    apiPagos
+      .put(`/suscripcion-pagos/${idSuscripcion}`, data)
+        .then(res => res.data)
+        .catch(handleError),
+    
+  createSuscripcion: (data) =>
+    apiPagos
+      .post('/suscripcion-pagos/new', {
+        user_id: data.user_id,
+        servicio_id: data.servicio_id,
+        meses: data.meses,
+        precio_unitario: data.precio_unitario,
+        moneda: data.moneda,
+      })
+      .then(res => res.data)
+      .catch(handleError),
 
   confirmarPagoPorCompraTotal: (idCompraTotal, data) =>
     api

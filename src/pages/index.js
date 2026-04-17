@@ -52,6 +52,7 @@ import AdminEmpresa from './adminEmpresa';
 
 //nuevo
 import Inspector from './inspector';
+import CrearSuscripcion from './crearSuscripcion.js';
 
 export {
   Home,
@@ -103,5 +104,6 @@ export {
   CheckoutPago,
   AdminEmpresa,
   Inspector,
+  CrearSuscripcion,
 };
 
