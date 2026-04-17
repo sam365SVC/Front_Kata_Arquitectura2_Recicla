@@ -39,6 +39,7 @@ api.interceptors.request.use((config) => {
   return config;
 });
 */
+//TRAMPEADA TEMPORAL
 api.interceptors.request.use((config) => {
   const state = store.getState();
 
@@ -280,14 +281,14 @@ export const perfilApi = {
 
 export const pagoApi = {
   fetchPagos: () =>
-    api.get('/pago').then((res) => res.data).catch(handleError),
+    api.get('/pagos').then((res) => res.data).catch(handleError),
 
   fetchPagoById: (id) =>
-    api.get(`/pago/${id}`).then((res) => res.data).catch(handleError),
+    api.get(`/pagos/${id}`).then((res) => res.data).catch(handleError),
 
   createPago: (data) =>
     api
-      .post('/pago/new', {
+      .post('/pagos/new', {
         ...data,
         metodo: normalizarMetodoPago(data?.metodo),
       })
@@ -318,12 +319,12 @@ export const pagoApi = {
       })
       .then(res => res.data)
       .catch(handleError),
-  
+  /*
   confirmarPagoPorCompraTotal: (idCompraTotal, data) =>
     api
       .put(`/pago/confirmar/compra-total/${idCompraTotal}`, data)
       .then((res) => res.data)
-      .catch(handleError),
+      .catch(handleError),*/
 };
 
 export const qrApi = {

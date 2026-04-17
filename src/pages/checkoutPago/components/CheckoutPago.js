@@ -256,7 +256,7 @@ const CheckoutPagos = ({ onBack, onSuccess }) => {
     if (!id) return;
     dispatch(confirmarSuscripcionThunk(id));
   }, [id, dispatch]);
-  
+
   useEffect(() => {
     if (!compra || !compra.idSuscripcion) return;
     setUsarSaldo(Number(compra?.saldoDisponible || 0) > 0);
@@ -571,9 +571,9 @@ const CheckoutPagos = ({ onBack, onSuccess }) => {
             <div className="ckx-topbar__left">
               <div className="ckx-topbar__accent" />
               <div>
-                <h2 className="ckx-topbar__title">Finalizar inscripción</h2>
+                <h2 className="ckx-topbar__title">Finalizar suscripción</h2>
                 <p className="ckx-topbar__sub">
-                  Completa tus datos, elige el método de pago y confirma tu inscripción.
+                  Completa tus datos, elige el método de pago y confirma tu suscripción.
                 </p>
               </div>
             </div>
@@ -787,7 +787,7 @@ const CheckoutPagos = ({ onBack, onSuccess }) => {
                             <p className="ckx-note-success">Procesando pago...</p>
                           )}
                           {!pagoConfirmado && qrSecondsLeft === 0 && (
-                            <p className="ckx-note-success">Confirmando inscripción...</p>
+                            <p className="ckx-note-success">Confirmando suscripción...</p>
                           )}
                         </div>
                       )}
@@ -1014,7 +1014,7 @@ const CheckoutPagos = ({ onBack, onSuccess }) => {
 
                 <div className="ckx-summary-totals">
                   <div>
-                    <span>Subtotal cursos</span>
+                    <span>Plan suscripcion</span>
                     <strong>{formatMoney(subtotalCursos, compra.moneda)}</strong>
                   </div>
                   <div>
