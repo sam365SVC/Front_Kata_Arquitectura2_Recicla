@@ -255,15 +255,8 @@ const CheckoutPagos = ({ onBack, onSuccess }) => {
   useEffect(() => {
     if (!id) return;
     dispatch(confirmarSuscripcionThunk(id));
-    
-    console.log("!id:", id);
-    console.log("confirmarSuscripcionThunk(id):", confirmarSuscripcionThunk(id));
-    console.log("suscripcion:", suscripcion);
-    console.log("compra:", compra);
   }, [id, dispatch]);
-  useEffect(() => {
-    console.log("🟢 suscripcionActual actualizada:", suscripcion);
-  }, [suscripcion]);
+  
   useEffect(() => {
     if (!compra || !compra.idSuscripcion) return;
     setUsarSaldo(Number(compra?.saldoDisponible || 0) > 0);
