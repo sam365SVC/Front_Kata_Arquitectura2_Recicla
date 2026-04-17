@@ -21,6 +21,7 @@ import {
   setNitCi,
   setRazonSocial,
   setTipoComprobante,
+  
 } from "../slicesCheckout/CheckoutSlice";
 
 import {
@@ -29,6 +30,7 @@ import {
   simularPagoTarjetaThunk,
   simularPagoTransferenciaThunk,
   pagarConSaldoThunk,
+  confirmarSuscripcionThunk,
 } from "../slicesCheckout/CheckoutThunk";
 
 
@@ -52,11 +54,13 @@ const normalizeSuscripcion = (suscripcion) => {
 
   return {
     idSuscripcion:
+      suscripcion.id_suscripcion_pago ??
       suscripcion.id_suscripcion ??
       suscripcion.id ??
       null,
 
     total: Number(
+      suscripcion.total ??
       suscripcion.monto ??
       suscripcion.precio ??
       0
@@ -67,12 +71,16 @@ const normalizeSuscripcion = (suscripcion) => {
 
     items: [
       {
-        id: suscripcion.id_suscripcion ?? "plan",
+        id: suscripcion.id_suscripcion_pago ?? "plan",
         nombre:
           suscripcion.plan_nombre ||
           suscripcion.nombre ||
           "Suscripción",
-        precio: Number(suscripcion.monto ?? 0),
+        precio: Number(
+          suscripcion.total ??
+          suscripcion.monto ??
+          0
+        ),
       },
     ],
 
@@ -195,7 +203,6 @@ const CheckoutPagos = ({ onBack, onSuccess }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const {
-    suscripcionActual,
     metodoSeleccionado,
     tipoComprobante,
     razonSocial,
@@ -211,11 +218,12 @@ const CheckoutPagos = ({ onBack, onSuccess }) => {
     error,
     successMessage,
   } = useSelector((state) => state.checkout);
+  const { suscripcion } = useSelector((state) => state.checkout);
 
   const perfilState = useSelector((state) => state.perfil);
   const loginState = useSelector((state) => state.login);
 
-  const compra = useMemo(() => normalizeSuscripcion(suscripcionActual),[suscripcionActual]);
+  const compra = useMemo(() => normalizeSuscripcion(suscripcion), [suscripcion]);
   const qrAutoConfirmRef = useRef(false);
   const successTriggeredRef = useRef(false);
   const qrTimerRef = useRef(null);
@@ -244,9 +252,20 @@ const CheckoutPagos = ({ onBack, onSuccess }) => {
     usarSaldo && montoPendienteCalculado === 0 && saldoAplicadoCalculado > 0;
 
   // ─── Effects ────────────────────────────────────────────────────────────────
-  
   useEffect(() => {
-    if (!compra) return;
+    if (!id) return;
+    dispatch(confirmarSuscripcionThunk(id));
+    
+    console.log("!id:", id);
+    console.log("confirmarSuscripcionThunk(id):", confirmarSuscripcionThunk(id));
+    console.log("suscripcion:", suscripcion);
+    console.log("compra:", compra);
+  }, [id, dispatch]);
+  useEffect(() => {
+    console.log("🟢 suscripcionActual actualizada:", suscripcion);
+  }, [suscripcion]);
+  useEffect(() => {
+    if (!compra || !compra.idSuscripcion) return;
     setUsarSaldo(Number(compra?.saldoDisponible || 0) > 0);
   }, [compra?.idSuscripcion, compra?.saldoDisponible]);
 

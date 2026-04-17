@@ -171,3 +171,16 @@ export const pagarConSaldoThunk = createAsyncThunk(
     }
   }
 );
+
+export const confirmarSuscripcionThunk = createAsyncThunk(
+  "suscripcion/confirmarPorId",
+  async (idSuscripcion, { rejectWithValue }) => {
+    try {
+      const response = await pagoApi.confirmarSuscripcionId(idSuscripcion);
+      return response;
+
+    } catch (error) {
+      return rejectWithValue(extractErrorMessage(error));
+    }
+  }
+);

@@ -6,7 +6,6 @@ import { store } from '../store/index';
 //NOTA: CAMBIAR CON LA INTEGRACION DE LOS DEMAS
 const api = axios.create({
   baseURL: 'http://localhost:3001/api/',
-  baseURL: 'http://localhost:3000',
 });
 
 const METODO_TRANSFERENCIA = 'TRANSFERENCIA';
@@ -20,6 +19,7 @@ const normalizarMetodoPago = (metodo) => {
 };
 
 // request interceptor
+/*
 api.interceptors.request.use((config) => {
   const state = store.getState();
   const user = state?.login?.user;
@@ -36,6 +36,14 @@ api.interceptors.request.use((config) => {
     config.headers['x-token'] = user.token;
   }
 
+  return config;
+});
+*/
+api.interceptors.request.use((config) => {
+  const state = store.getState();
+
+  config.headers['x-token'] = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjozLCJhY2NvdW50IjoiQURNSU4iLCJlbWFpbCI6Iml2b25uZS5jb2xxdWVAdWNiLmVkdS5ibyIsInRlbmFudF9pZCI6OCwidGVuYW50X25hbWUiOiJHYXRvYnl0ZSAiLCJkZXBhcnRtZW50IjoiRmluYW56YXMiLCJwb3NpdGlvbiI6ImJvc3MiLCJpc3MiOiJzMS10ZW5hbnQiLCJleHAiOjE3NzY0NzE5MjgsImlhdCI6MTc3NjM4NTUyOH0.fptiYyLo3I54bfkDKTBlo0_LSOgZ9RT9992NGN2MdVo";
+  
   return config;
 });
 
@@ -287,14 +295,20 @@ export const pagoApi = {
       .catch(handleError),
   
     // SUSCRIPCIONES    
+  confirmarSuscripcionId: (idSuscripcion) =>
+    api
+      .get(`/suscripcion-pagos/${idSuscripcion}`)
+      .then(res => res.data)
+      .catch(handleError),
+    
   confirmarPagoSuscripcion: (idSuscripcion, data) =>
-    apiPagos
+    api
       .put(`/suscripcion-pagos/${idSuscripcion}`, data)
         .then(res => res.data)
         .catch(handleError),
     
   createSuscripcion: (data) =>
-    apiPagos
+    api
       .post('/suscripcion-pagos/new', {
         user_id: data.user_id,
         servicio_id: data.servicio_id,
@@ -304,7 +318,7 @@ export const pagoApi = {
       })
       .then(res => res.data)
       .catch(handleError),
-
+  
   confirmarPagoPorCompraTotal: (idCompraTotal, data) =>
     api
       .put(`/pago/confirmar/compra-total/${idCompraTotal}`, data)

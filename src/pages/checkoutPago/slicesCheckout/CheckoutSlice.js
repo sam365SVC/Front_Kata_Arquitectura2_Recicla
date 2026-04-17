@@ -5,6 +5,8 @@ import {
   confirmarPagoThunk,
   simularPagoTarjetaThunk,
   simularPagoTransferenciaThunk,
+  confirmarSuscripcionThunk,
+
 } from "./CheckoutThunk";
 
 const initialState = {
@@ -206,7 +208,23 @@ const checkoutSlice = createSlice({
         state.loading = false;
         state.procesandoTransferencia = false;
         state.error = action.payload || "No se pudo procesar la transferencia";
+      })
+
+      //suscripciones
+      .addCase(confirmarSuscripcionThunk.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(confirmarSuscripcionThunk.fulfilled, (state, action) => {
+        state.loading = false;
+        console.log("🔥 LLEGÓ DATA:", action.payload.suscripcion);
+        console.log("Payload:", action.payload);
+        state.suscripcion = action.payload.suscripcion;
+      })
+      .addCase(confirmarSuscripcionThunk.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
       });
+      
   },
 });
 

@@ -33,7 +33,13 @@ const CrearSuscripcion = () => {
 
       const resp = await axios.post(
         "http://localhost:3001/api/suscripcion-pagos/new",
-        form
+        form,
+        //comentar en el momento que ya haya auth
+        {
+          headers: {
+            "x-token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjozLCJhY2NvdW50IjoiQURNSU4iLCJlbWFpbCI6Iml2b25uZS5jb2xxdWVAdWNiLmVkdS5ibyIsInRlbmFudF9pZCI6OCwidGVuYW50X25hbWUiOiJHYXRvYnl0ZSAiLCJkZXBhcnRtZW50IjoiRmluYW56YXMiLCJwb3NpdGlvbiI6ImJvc3MiLCJpc3MiOiJzMS10ZW5hbnQiLCJleHAiOjE3NzY0NzE5MjgsImlhdCI6MTc3NjM4NTUyOH0.fptiYyLo3I54bfkDKTBlo0_LSOgZ9RT9992NGN2MdVo", 
+          },
+        }
       );
 
       const suscripcion = resp.data?.suscripcion;
@@ -90,7 +96,7 @@ const CrearSuscripcion = () => {
                 onChange={(e) =>
                   handleChange("precio_unitario", e.target.value)
                 }
-                readonly="readonly"
+                readOnly="readOnly"
               />
             </div>
 
