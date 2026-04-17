@@ -312,6 +312,23 @@ const CheckoutPagos = ({ onBack, onSuccess }) => {
   }, [metodoSeleccionado, qrData?.qr, pagoConfirmado, compra?.idSuscripcion]);
 
   useEffect(() => {
+    if (!pagoConfirmado || successTriggeredRef.current) return;
+    successTriggeredRef.current = true;
+
+    const comprobanteEnviado =
+      pago?.comprobante_enviado ?? pago?.comprobanteEnviado ?? true;
+
+    Swal.fire({
+      icon: comprobanteEnviado ? "success" : "warning",
+      title: comprobanteEnviado ? "¡Pago completado!" : "Pago confirmado",
+      text: comprobanteEnviado
+        ? "El pago fue completado correctamente."
+        : "El pago se realizó, pero no se pudo enviar el comprobante.",
+      ...swalTheme,
+    });
+  }, [pagoConfirmado, onSuccess, factura, compra, pago]);
+
+  useEffect(() => {
     if (metodoSeleccionado !== "QR") return;
     if (!qrData?.qr) return;
     if (!compra?.idSuscripcion) return;
@@ -577,7 +594,7 @@ const CheckoutPagos = ({ onBack, onSuccess }) => {
                 </p>
               </div>
             </div>
-            <button className="ckx-back-btn" onClick={onBack}>
+            <button className="ckx-back-btn" onClick={() => navigate('/planes-pagos')}>
               <FiArrowLeft />
               <span>Volver</span>
             </button>

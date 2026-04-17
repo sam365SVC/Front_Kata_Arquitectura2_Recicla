@@ -23,7 +23,7 @@ const createOrReusePago = async ({ idSuscripcion, metodo, monto }) => {
       monto,
     });
   } catch (error) {
-    
+
     const message = extractErrorMessage(error).toLowerCase();
 
     if (
@@ -52,7 +52,7 @@ export const iniciarPagoQrThunk = createAsyncThunk(
       });
 
       const response = await qrApi.generarQR({
-        suscripcion_id: idSuscripcion,
+        suscripcion_pago_id: idSuscripcion,
         currency: moneda,
         gloss: gloss || "Pago de suscripción",
         amount: Number(total),
