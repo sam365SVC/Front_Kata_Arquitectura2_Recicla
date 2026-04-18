@@ -6,7 +6,7 @@ import {
   simularPagoTarjetaThunk,
   simularPagoTransferenciaThunk,
   confirmarSuscripcionThunk,
-
+  intentarEnviarComprobante,
 } from "./CheckoutThunk";
 
 const initialState = {

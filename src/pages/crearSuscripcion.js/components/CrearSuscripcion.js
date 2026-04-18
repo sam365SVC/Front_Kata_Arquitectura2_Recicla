@@ -4,8 +4,18 @@ import axios from "axios";
 import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
 import { Link, useParams } from 'react-router-dom';
+import { useDispatch } from "react-redux";
+
+import {
+  crearSuscripcionThunk,  
+} from "../slicesSuscripcion/SuscripcionThunk";
+
+import {
+  suscripcionSlice,
+} from "../slicesSuscripcion/SuscripcionSlice";
 
 const CrearSuscripcion = () => {
+  const dispatch = useDispatch();
   const navigate = useNavigate();
   const { id } = useParams();
   
@@ -31,18 +41,24 @@ const CrearSuscripcion = () => {
     try {
       setLoading(true);
 
-      const resp = await axios.post(
-        "http://localhost:3001/api/suscripcion-pagos/new",
-        form,
-        //comentar en el momento que ya haya auth
-        {
-          headers: {
-            "x-token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjozLCJhY2NvdW50IjoiQURNSU4iLCJlbWFpbCI6Iml2b25uZS5jb2xxdWVAdWNiLmVkdS5ibyIsInRlbmFudF9pZCI6OCwidGVuYW50X25hbWUiOiJHYXRvYnl0ZSAiLCJkZXBhcnRtZW50IjoiRmluYW56YXMiLCJwb3NpdGlvbiI6ImJvc3MiLCJpc3MiOiJzMS10ZW5hbnQiLCJleHAiOjE3NzY0NzE5MjgsImlhdCI6MTc3NjM4NTUyOH0.fptiYyLo3I54bfkDKTBlo0_LSOgZ9RT9992NGN2MdVo", 
-          },
-        }
+      const resultAction = await dispatch(
+        crearSuscripcionThunk({
+          user_id: form.user_id,
+          servicio_id: form.servicio_id,
+          meses: form.meses,
+          precio_unitario: form.precio_unitario,
+          moneda: form.moneda,
+        })
       );
-
-      const suscripcion = resp.data?.suscripcion;
+      const suscripcion = await dispatch(
+        crearSuscripcionThunk({
+          user_id: form.user_id,
+          servicio_id: form.servicio_id,
+          meses: form.meses,
+          precio_unitario: form.precio_unitario,
+          moneda: form.moneda,
+        })
+      ).unwrap();
 
       Swal.fire({
         icon: "success",
@@ -56,9 +72,7 @@ const CrearSuscripcion = () => {
       Swal.fire({
         icon: "error",
         title: "Error",
-        text:
-          error?.response?.data?.msg ||
-          "No se pudo crear la suscripción",
+        text: error || "No se pudo crear la suscripción",
       });
     } finally {
       setLoading(false);

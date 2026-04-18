@@ -1,5 +1,5 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import { pagoApi, qrApi } from "../../../lib/api";
+import { pagoApi, qrApi, comprobantesApi } from "../../../lib/api";
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -186,3 +186,34 @@ export const confirmarSuscripcionThunk = createAsyncThunk(
     }
   }
 );
+
+export const intentarEnviarComprobante = async ({
+  idPago,
+  datosFactura, 
+}) => {
+  try {
+    let factura = null;
+
+    // Crear factura 
+    if (idPago && datosFactura) {
+      factura = await pagoApi.createFacturaRecibo({
+        pago_id_pago: idPago,
+        tipo: datosFactura.tipo,
+        numero: datosFactura.numero,
+        razon_social: datosFactura.razon_social,
+        nit_ci: datosFactura.nit_ci,
+      });
+    }
+
+    if (idPago) {
+      return await comprobantesApi.enviarComprobantePorPago(idPago);
+    }
+
+    return null;
+  } catch (error) {
+    return {
+      ok: false,
+      message: extractErrorMessage(error),
+    };
+  }
+};

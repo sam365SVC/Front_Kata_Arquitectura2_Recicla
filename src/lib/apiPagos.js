@@ -122,8 +122,7 @@ export const qrApi = {
   verificarPagoQR: (data) =>
     apiPagos.post('/qr/verificar', data).then(res => res.data).catch(handleError),
 };
-/*
-//FALTAAN USUARIOS PARA ESTO
+
 export const comprobantesApi = {
   enviarComprobantePorPago: (idPago) =>
     api
@@ -131,15 +130,9 @@ export const comprobantesApi = {
       .then((res) => res.data)
       .catch(handleError),
 
-  enviarComprobantePorCompraTotal: (idCompraTotal) =>
-    api
-      .post('/comprobantes/enviar', { id_compra_total: idCompraTotal })
-      .then((res) => res.data)
-      .catch(handleError),
 };
-//para ver el historial de movimientos de un estudiante
+/*
 export const saldosMovimientosApi = {
   fetchSaldosByEstudianteId: (estudianteId) =>
     api.get(`/saldo-movimientos/${estudianteId}`).then((res) => res.data).catch(handleError),
 };*/
-export default apiPagos;
