@@ -87,7 +87,7 @@ export const confirmarPagoThunk = createAsyncThunk(
     { rejectWithValue }
   ) => {
     try {
-      return await pagoApi.confirmarPagoSuscripcion(idSuscripcion, {
+      return await pagoApi.confirmarPagoPorSuscripcion(idSuscripcion, {
         tipo,
         razon_social: razonSocial,
         nit_ci: nitCi,

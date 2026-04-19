@@ -40,16 +40,6 @@ const CrearSuscripcion = () => {
   const handleCrear = async () => {
     try {
       setLoading(true);
-
-      const resultAction = await dispatch(
-        crearSuscripcionThunk({
-          user_id: form.user_id,
-          servicio_id: form.servicio_id,
-          meses: form.meses,
-          precio_unitario: form.precio_unitario,
-          moneda: form.moneda,
-        })
-      );
       const suscripcion = await dispatch(
         crearSuscripcionThunk({
           user_id: form.user_id,

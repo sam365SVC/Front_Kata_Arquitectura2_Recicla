@@ -43,7 +43,7 @@ api.interceptors.request.use((config) => {
 api.interceptors.request.use((config) => {
   const state = store.getState();
 
-  config.headers['x-token'] = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjozLCJhY2NvdW50IjoiQURNSU4iLCJlbWFpbCI6Iml2b25uZS5jb2xxdWVAdWNiLmVkdS5ibyIsInRlbmFudF9pZCI6OCwidGVuYW50X25hbWUiOiJHYXRvYnl0ZSAiLCJkZXBhcnRtZW50IjoiRmluYW56YXMiLCJwb3NpdGlvbiI6ImJvc3MiLCJpc3MiOiJzMS10ZW5hbnQiLCJleHAiOjE3NzY1ODc1MTYsImlhdCI6MTc3NjUwMTExNn0.DZS9qzRXajXG6SwBht-wab_x7byHmYIu6lSi78d-rfU";
+  config.headers['x-token'] = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjozLCJhY2NvdW50IjoiQURNSU4iLCJlbWFpbCI6Iml2b25uZS5jb2xxdWVAdWNiLmVkdS5ibyIsInRlbmFudF9pZCI6OCwidGVuYW50X25hbWUiOiJHYXRvYnl0ZSAiLCJkZXBhcnRtZW50IjoiRmluYW56YXMiLCJwb3NpdGlvbiI6ImJvc3MiLCJpc3MiOiJzMS10ZW5hbnQiLCJleHAiOjE3NzY2Nzk4NDksImlhdCI6MTc3NjU5MzQ0OX0.pOWxkmHRuA_oSQVA0WJ23AtBIckPlDkHkBSih_fINhs";
   
   return config;
 });
@@ -331,6 +331,17 @@ export const pagoApi = {
       })
       .then(res => res.data)
       .catch(handleError),
+
+  confirmarPagoPorSuscripcion: (idSuscripcion, data) =>
+  api
+    .put(`/pagos/confirmar/suscripcion/${idSuscripcion}`, {
+      tipo: data.tipo,
+      razon_social: data.razon_social,
+      nit_ci: data.nit_ci,
+    })
+    .then(res => res.data)
+    .catch(handleError),
+    
   /*
   confirmarPagoPorCompraTotal: (idCompraTotal, data) =>
     api
