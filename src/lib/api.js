@@ -5,8 +5,7 @@ import { store } from '../store/index';
 // por ahora con la api del microservicio del core
 //NOTA: CAMBIAR CON LA INTEGRACION DE LOS DEMAS
 const api = axios.create({
-  baseURL: 'http://localhost:3001/api/',
-  baseURL: 'http://localhost:3000',
+  baseURL: 'http://localhost:3000/api/',
 });
 
 const METODO_TRANSFERENCIA = 'TRANSFERENCIA';

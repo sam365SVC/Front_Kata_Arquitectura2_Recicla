@@ -5,7 +5,7 @@ import { updateGPSConductor, setConductorOffline } from '../store/slices/conduct
 import { updateWaypoint } from '../store/slices/ordenesSlice'
 
 // DEV_MODE: sin token en el handshake — el servidor acepta sin auth
-const SOCKET_URL = 'http://localhost:3001'
+const SOCKET_URL = 'http://localhost:3000/'
 
 const SocketContext = createContext(null)
 
@@ -16,6 +16,7 @@ export function SocketProvider({ children }) {
   useEffect(() => {
     const socket = io(SOCKET_URL, {
       transports: ['websocket', 'polling'],
+      path: '/socket.io',
       //[AUTH REAL] Descomentar
       // auth: { token: store.getState().auth.token },
       reconnectionAttempts: 5,
