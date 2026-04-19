@@ -187,33 +187,22 @@ export const confirmarSuscripcionThunk = createAsyncThunk(
   }
 );
 
-export const intentarEnviarComprobante = async ({
-  idPago,
-  datosFactura, 
-}) => {
-  try {
-    let factura = null;
+export const intentarEnviarComprobante = createAsyncThunk(
+  "checkout/intentarEnviarComprobante",
+  async ({ idPago, email }, { rejectWithValue }) => {
+    try {
+      if (idPago) {
+        const resp = await comprobantesApi.enviarComprobantePorPago({
+          idPago,
+          email,
+        });
 
-    // Crear factura 
-    if (idPago && datosFactura) {
-      factura = await pagoApi.createFacturaRecibo({
-        pago_id_pago: idPago,
-        tipo: datosFactura.tipo,
-        numero: datosFactura.numero,
-        razon_social: datosFactura.razon_social,
-        nit_ci: datosFactura.nit_ci,
-      });
+        return resp;
+      }
+
+      return null;
+    } catch (error) {
+      return rejectWithValue(extractErrorMessage(error));
     }
-
-    if (idPago) {
-      return await comprobantesApi.enviarComprobantePorPago(idPago);
-    }
-
-    return null;
-  } catch (error) {
-    return {
-      ok: false,
-      message: extractErrorMessage(error),
-    };
   }
-};
+);

@@ -367,9 +367,12 @@ export const certificadosApi = {
 };
 
 export const comprobantesApi = {
-  enviarComprobantePorPago: (idPago) =>
+  enviarComprobantePorPago: ({ idPago, email }) =>
     api
-      .post('/comprobantes/enviar', { id_pago: idPago })
+      .post('/comprobantes/enviar', { 
+        id_suscripcion_pago: idPago,
+        user_email: email, 
+      })
       .then((res) => res.data)
       .catch(handleError),
 

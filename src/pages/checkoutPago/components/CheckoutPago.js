@@ -31,6 +31,7 @@ import {
   simularPagoTransferenciaThunk,
   pagarConSaldoThunk,
   confirmarSuscripcionThunk,
+  intentarEnviarComprobante,
 } from "../slicesCheckout/CheckoutThunk";
 
 
@@ -234,6 +235,7 @@ const CheckoutPagos = ({ onBack, onSuccess }) => {
   const [cardExpiry, setCardExpiry] = useState("");
   const [cardCvv, setCardCvv] = useState("");
   const [usarSaldo, setUsarSaldo] = useState(true);
+  const [emailEnvio, setEmailEnvio] = useState("");
 
   const cardBrand = detectCardBrand(cardNumber);
   const cardValid = luhnCheck(cardNumber);
@@ -315,6 +317,13 @@ const CheckoutPagos = ({ onBack, onSuccess }) => {
     if (!pagoConfirmado || successTriggeredRef.current) return;
     successTriggeredRef.current = true;
 
+    if (!pagoConfirmado || !emailEnvio) return;
+
+    dispatch(intentarEnviarComprobante({
+      idPago: id,
+      email: emailEnvio,
+    }));
+
     const comprobanteEnviado =
       pago?.comprobante_enviado ?? pago?.comprobanteEnviado ?? true;
 
@@ -358,8 +367,10 @@ const CheckoutPagos = ({ onBack, onSuccess }) => {
   ]);
 
   useEffect(() => {
+    console.log("Enviando comprobante");
     if (!pagoConfirmado || successTriggeredRef.current) return;
     successTriggeredRef.current = true;
+
     const comprobanteEnviado =
       pago?.comprobante_enviado ?? pago?.comprobanteEnviado ?? true;
     if (typeof onSuccess === "function") {
@@ -374,6 +385,14 @@ const CheckoutPagos = ({ onBack, onSuccess }) => {
       });
     }
   }, [pagoConfirmado, onSuccess, factura, compra, pago]);
+  useEffect(() => {
+    if (!pagoConfirmado || !emailEnvio) return;
+
+    dispatch(intentarEnviarComprobante({
+      idPago: id,
+      email: emailEnvio,
+    }));
+  }, [pagoConfirmado, emailEnvio, dispatch, id]);
 
   useEffect(() => {
     if (!error) return;
@@ -394,6 +413,7 @@ const CheckoutPagos = ({ onBack, onSuccess }) => {
     if (!tipoComprobante) return "Selecciona el tipo de comprobante.";
     if (!razonSocial.trim()) return "Ingresa el nombre o razón social.";
     if (!nitCi.trim()) return "Ingresa el CI o NIT.";
+    if (!emailEnvio.trim()) return "Ingresa un correo electrónico.";
     return null;
   };
 
@@ -666,6 +686,17 @@ const CheckoutPagos = ({ onBack, onSuccess }) => {
                       value={nitCi}
                       onChange={(e) => dispatch(setNitCi(e.target.value))}
                       placeholder="Ingresa el dato de identificación"
+                      disabled={loading || pagoConfirmado}
+                    />
+                  </div>
+
+                  <div className="ckx-field">
+                    <label>Correo electrónico</label>
+                    <input
+                      type="email"
+                      value={emailEnvio}
+                      onChange={(e) => setEmailEnvio(e.target.value)}
+                      placeholder="Ingresa tu correo electrónico"
                       disabled={loading || pagoConfirmado}
                     />
                   </div>
