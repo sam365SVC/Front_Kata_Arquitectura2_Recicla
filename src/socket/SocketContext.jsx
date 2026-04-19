@@ -5,7 +5,7 @@ import { updateGPSConductor, setConductorOffline } from '../store/slices/conduct
 import { updateWaypoint } from '../store/slices/ordenesSlice'
 
 // DEV_MODE: sin token en el handshake — el servidor acepta sin auth
-const SOCKET_URL = 'http://localhost:3001'
+const SOCKET_URL = 'http://localhost:3000'
 
 const SocketContext = createContext(null)
 
