@@ -14,7 +14,6 @@ import { authReducer }    from './slices/authSlice';
 //import studentsReducer from '../pages/admin/slicesStudents/StudentsSlice';
 //import docentesReducer from '../pages/admin/slicesDocentes/DocentesSlice';
 //import cursoReducer from '../pages/admin/slicesCursos/CursosSlice';
-import pagosReducer from '../pages/checkoutPago/slicesPagos/PagosSlice';
 import checkoutReducer from '../pages/checkoutPago/slicesCheckout/CheckoutSlice';
 // admin estudiantes
 import perfilReducer from '../pages/adminEstudiantes/slicesPerfil/PerfilSlice';

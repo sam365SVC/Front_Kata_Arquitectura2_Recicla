@@ -367,7 +367,6 @@ const CheckoutPagos = ({ onBack, onSuccess }) => {
   ]);
 
   useEffect(() => {
-    console.log("Enviando comprobante");
     if (!pagoConfirmado || successTriggeredRef.current) return;
     successTriggeredRef.current = true;
 
