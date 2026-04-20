@@ -27,10 +27,10 @@
 
 .modal {
   width: 100%;
-  max-width: 920px;
+  max-width: 700px;
   max-height: 92vh;
   background: $white;
-  border-radius: 30px;
+  border-radius: 28px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -40,7 +40,7 @@
   @include respond-to($bp-md) {
     max-width: 100%;
     max-height: 96vh;
-    border-radius: 28px 28px 0 0;
+    border-radius: 24px 24px 0 0;
   }
 }
 
@@ -57,22 +57,22 @@
 
 .header {
   position: relative;
-  padding: 28px 32px 20px;
-  border-bottom: 1px solid rgba($main-3, 0.28);
+  padding: 24px 28px 18px;
+  border-bottom: 1px solid rgba($main-3, 0.2);
   background: linear-gradient(
     135deg,
-    rgba($main-2, 0.4) 0%,
-    rgba($white, 1) 48%,
-    rgba($main-2, 0.22) 100%
+    rgba($main-2, 0.35) 0%,
+    rgba($white, 1) 52%,
+    rgba($main-2, 0.18) 100%
   );
 
   @include respond-to($bp-md) {
-    padding: 22px 18px 18px;
+    padding: 20px 18px 16px;
   }
 
   &__title {
     margin: 0 0 8px;
-    font-size: 28px;
+    font-size: 25px;
     font-weight: 900;
     color: $black;
     font-family: $font-heading;
@@ -82,15 +82,11 @@
       color: $main-1;
       flex-shrink: 0;
     }
-
-    @include respond-to($bp-md) {
-      font-size: 24px;
-    }
   }
 
   &__sub {
     margin: 0;
-    max-width: 640px;
+    max-width: 560px;
     color: $black-2;
     font-size: 14px;
     line-height: 1.55;
@@ -99,10 +95,10 @@
 
   &__close {
     position: absolute;
-    top: 18px;
-    right: 18px;
-    width: 42px;
-    height: 42px;
+    top: 16px;
+    right: 16px;
+    width: 40px;
+    height: 40px;
     border: none;
     border-radius: 50%;
     background: rgba($grey-4, 0.78);
@@ -120,9 +116,13 @@
 }
 
 .body {
-  padding: 24px 32px 30px;
+  padding: 22px 28px 26px;
   overflow-y: auto;
-  background: linear-gradient(180deg, rgba($white, 1) 0%, rgba($grey-1, 0.7) 100%);
+  background: linear-gradient(
+    180deg,
+    rgba($white, 1) 0%,
+    rgba($grey-1, 0.72) 100%
+  );
 
   @include respond-to($bp-md) {
     padding: 18px;
@@ -140,12 +140,8 @@
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 18px;
-
-  @include respond-to($bp-lg) {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
 
   @include respond-to($bp-md) {
     grid-template-columns: 1fr;
@@ -169,17 +165,16 @@
 
   input {
     width: 100%;
-    height: 54px;
-    border-radius: 16px;
-    border: 1.5px solid rgba($main-3, 0.34);
+    height: 52px;
+    border-radius: 14px;
+    border: 1.5px solid rgba($main-3, 0.3);
     background: $white;
-    padding: 0 16px;
-    font-size: 15px;
+    padding: 0 15px;
+    font-size: 14px;
     color: $black;
     outline: none;
     font-family: $font-body;
     box-sizing: border-box;
-    box-shadow: inset 0 1px 0 rgba($white, 0.7);
     @include transition;
 
     &:focus {
@@ -187,8 +182,14 @@
       box-shadow: 0 0 0 4px rgba($main-1, 0.1);
     }
 
+    &:disabled {
+      background: rgba($grey-5, 0.8);
+      color: rgba($black-2, 0.85);
+      cursor: not-allowed;
+    }
+
     &::placeholder {
-      color: rgba($black-2, 0.65);
+      color: rgba($black-2, 0.62);
       font-weight: 700;
     }
   }
@@ -216,171 +217,166 @@
 .sectionDivider {
   width: 100%;
   height: 1px;
-  margin: 20px 0;
+  margin: 18px 0;
   background: linear-gradient(
     90deg,
     rgba($main-3, 0) 0%,
-    rgba($main-3, 0.42) 20%,
-    rgba($main-3, 0.42) 80%,
+    rgba($main-3, 0.38) 20%,
+    rgba($main-3, 0.38) 80%,
     rgba($main-3, 0) 100%
   );
 }
 
-.pillsGrid {
+.roleGrid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
-
-  @include respond-to($bp-md) {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
 
   @include respond-to($bp-sm) {
     grid-template-columns: 1fr;
   }
-
-  &--2 {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-
-    @include respond-to($bp-sm) {
-      grid-template-columns: 1fr;
-    }
-  }
-
-  &--4 {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-
-    @include respond-to($bp-lg) {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    @include respond-to($bp-sm) {
-      grid-template-columns: 1fr;
-    }
-  }
 }
 
-.pillButton {
-  min-height: 52px;
+.roleCard {
+  min-height: 72px;
   border-radius: 16px;
-  border: 1.5px solid rgba($main-3, 0.34);
+  border: 1.5px solid rgba($main-3, 0.22);
   background: $white;
-  color: $main-5;
-  padding: 12px 14px;
-  font-size: 14px;
-  font-weight: 800;
-  font-family: $font-body;
+  padding: 12px;
   cursor: pointer;
-  text-align: center;
-  line-height: 1.35;
+  text-align: left;
+  @include flex(center, flex-start, 10px);
   @include transition;
 
-  &:hover {
+  &:hover:not(:disabled) {
     transform: translateY(-1px);
-    border-color: rgba($main-1, 0.46);
-    background: rgba($main-2, 0.28);
+    border-color: rgba($main-1, 0.4);
+    background: rgba($main-2, 0.16);
+  }
+
+  &:disabled {
+    cursor: not-allowed;
   }
 
   &--active {
-    background: linear-gradient(135deg, rgba($main-2, 0.78), rgba($main-2, 0.44));
     border-color: rgba($main-1, 0.58);
-    color: $black;
-    box-shadow: 0 8px 18px rgba($main-1, 0.12);
+    background: linear-gradient(
+      135deg,
+      rgba($main-2, 0.5),
+      rgba($main-2, 0.22)
+    );
+    box-shadow: 0 8px 18px rgba($main-1, 0.1);
   }
-}
 
-.passwordToggle {
-  margin-top: 22px;
-  padding: 16px 18px;
-  border-radius: 18px;
-  border: 1px solid rgba($main-3, 0.3);
-  background: linear-gradient(135deg, rgba($main-2, 0.22), rgba($white, 1));
-}
+  &--disabled {
+    background: rgba($grey-5, 0.7);
+    border-color: rgba($black, 0.08);
 
-.checkboxRow {
-  @include flex(center, flex-start, 10px);
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 800;
-  color: $black;
+    &:hover {
+      transform: none;
+      background: rgba($grey-5, 0.7);
+      border-color: rgba($black, 0.08);
+    }
+  }
 
-  input {
-    width: 18px;
-    height: 18px;
-    accent-color: $main-1;
-    cursor: pointer;
+  &__icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 12px;
+    background: rgba($main-2, 0.45);
+    color: $main-5;
+    @include flex-center;
     flex-shrink: 0;
   }
 
-  span {
-    line-height: 1.4;
-  }
-}
+  &__text {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
 
-.passwordBox {
-  margin-top: 18px;
-  padding: 20px;
-  border-radius: 22px;
-  border: 1px solid rgba($main-3, 0.36);
-  background: linear-gradient(180deg, rgba($main-2, 0.22), rgba($white, 1));
-  box-shadow: inset 0 1px 0 rgba($white, 0.7);
-}
+    strong {
+      color: $black;
+      font-size: 13px;
+      font-weight: 900;
+      line-height: 1.2;
+    }
 
-.passwordChecks {
-  margin-top: 16px;
-
-  &__title {
-    margin: 0 0 12px;
-    font-size: 13px;
-    font-weight: 900;
-    color: $black;
-  }
-
-  &__list {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 10px;
-    padding: 0;
-    margin: 0;
-    list-style: none;
-
-    @include respond-to($bp-sm) {
-      grid-template-columns: 1fr;
+    small {
+      color: $black-2;
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 1.35;
     }
   }
+}
 
-  &__list li {
-    min-height: 44px;
-    border-radius: 14px;
-    padding: 10px 12px;
-    border: 1px solid rgba($main-3, 0.28);
-    background: $white;
+.readOnlyInfo {
+  margin-top: 16px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  border: 1px solid rgba($main-3, 0.24);
+  background: linear-gradient(135deg, rgba($main-2, 0.15), rgba($white, 1));
+
+  p {
+    margin: 0;
     color: $black-2;
     font-size: 13px;
-    font-weight: 800;
-    @include flex(center, flex-start, 8px);
-
-    svg {
-      color: rgba($black-2, 0.5);
-      flex-shrink: 0;
-    }
+    line-height: 1.55;
+    font-weight: 700;
   }
 
-  &__item--ok {
-    border-color: rgba($main-1, 0.32) !important;
-    background: rgba($main-2, 0.42) !important;
-    color: $main-4 !important;
+  span {
+    display: inline-flex;
+    margin-top: 10px;
+    padding: 6px 11px;
+    border-radius: 999px;
+    background: rgba($main-2, 0.4);
+    color: $main-5;
+    font-size: 12px;
+    font-weight: 900;
+    border: 1px solid rgba($main-3, 0.35);
+  }
+}
 
-    svg {
-      color: $main-1 !important;
-    }
+.rolePreview {
+  margin-top: 16px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: rgba($main-2, 0.18);
+  border: 1px solid rgba($main-3, 0.22);
+
+  &__label {
+    display: block;
+    font-size: 11px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: $main-5;
+    margin-bottom: 5px;
+  }
+
+  strong {
+    display: block;
+    color: $black;
+    font-size: 15px;
+    font-weight: 900;
+    margin-bottom: 4px;
+  }
+
+  p {
+    margin: 0;
+    color: $black-2;
+    font-size: 13px;
+    line-height: 1.45;
+    font-weight: 700;
   }
 }
 
 .footer {
-  margin-top: 28px;
-  padding-top: 22px;
-  border-top: 1px solid rgba($main-3, 0.28);
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid rgba($main-3, 0.22);
   @include flex(center, space-between, 14px);
 
   @include respond-to($bp-sm) {
@@ -391,11 +387,11 @@
 
 .primaryButton,
 .secondaryButton {
-  min-width: 170px;
-  height: 54px;
-  border-radius: 16px;
-  padding: 0 22px;
-  font-size: 15px;
+  min-width: 165px;
+  height: 52px;
+  border-radius: 14px;
+  padding: 0 20px;
+  font-size: 14px;
   font-weight: 900;
   border: none;
   cursor: pointer;
@@ -423,7 +419,7 @@
 .secondaryButton {
   background: $grey-5;
   color: $main-5;
-  border: 1px solid rgba($main-3, 0.36);
+  border: 1px solid rgba($main-3, 0.3);
 
   &:hover {
     background: $grey-2;

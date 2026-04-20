@@ -1,549 +1,524 @@
-import axios from 'axios';
-import { store } from '../store/index';
+import axios from "axios";
+import { store } from "../store/index";
 
+const API_BASE = "http://localhost:3000/api";
 
-// por ahora con la api del microservicio del core
-//NOTA: CAMBIAR CON LA INTEGRACION DE LOS DEMAS
-const api = axios.create({
-  baseURL: 'http://localhost:3001/api/',
-});
-const apiFlags = axios.create({
-  baseURL: 'http://localhost:3004',
-});
-const METODO_TRANSFERENCIA = 'TRANSFERENCIA';
+// =========================
+// FACTORY
+// =========================
+const createApi = (basePath) => {
+  const instance = axios.create({
+    baseURL: `${API_BASE}${basePath}`,
+  });
 
-const normalizarMetodoPago = (metodo) => {
-  const valor = String(metodo || '').trim().toUpperCase();
+  instance.interceptors.request.use((config) => {
+    const state = store.getState();
 
-  if (valor === 'TRANSFERENCIA') return METODO_TRANSFERENCIA;
+    const token =
+      state?.auth?.token ||
+      state?.login?.token ||
+      state?.login?.user?.token ||
+      null;
 
-  return valor;
-};
-
-// request interceptor
-/*
-api.interceptors.request.use((config) => {
-  const state = store.getState();
-  const user = state?.login?.user;
-
-  if (user?.token) {
-    if (user.expiresAt && Date.now() > user.expiresAt) {
-      store.dispatch({ type: 'login/logout' });
-      return Promise.reject({
-        message: 'Sesión expirada',
-        status: 401,
-      });
+    if (token) {
+      config.headers["x-token"] = token;
     }
 
-    config.headers['x-token'] = user.token;
-  }
+    config.headers["Content-Type"] =
+      config.headers["Content-Type"] || "application/json";
 
-  return config;
-});
-*/
-//TRAMPEADA TEMPORAL
-api.interceptors.request.use((config) => {
-  const state = store.getState();
+    return config;
+  });
 
-  config.headers['x-token'] = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjozLCJhY2NvdW50IjoiQURNSU4iLCJlbWFpbCI6Iml2b25uZS5jb2xxdWVAdWNiLmVkdS5ibyIsInRlbmFudF9pZCI6OCwidGVuYW50X25hbWUiOiJHYXRvYnl0ZSAiLCJkZXBhcnRtZW50IjoiRmluYW56YXMiLCJwb3NpdGlvbiI6ImJvc3MiLCJpc3MiOiJzMS10ZW5hbnQiLCJleHAiOjE3NzY2Nzk4NDksImlhdCI6MTc3NjU5MzQ0OX0.pOWxkmHRuA_oSQVA0WJ23AtBIckPlDkHkBSih_fINhs";
-  
-  return config;
-});
+  instance.interceptors.response.use(
+    (response) => response,
+    (error) => {
+      if (error.response) {
+        const errorData = {
+          message:
+            error.response.data?.msg ||
+            error.response.data?.message ||
+            "Error en la petición",
+          status: error.response.status,
+          data: error.response.data,
+        };
 
-// response interceptor
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response) {
-      const errorData = {
-        message:
-          error.response.data?.msg ||
-          error.response.data?.message ||
-          'Error en la petición',
-        status: error.response.status,
-        data: error.response.data,
-      };
+        if (error.response.status === 401) {
+          try {
+            store.dispatch({ type: "auth/logout" });
+          } catch (_) {}
 
-      if (error.response.status === 401) {
-        store.dispatch({ type: 'login/logout' });
+          try {
+            store.dispatch({ type: "login/logout" });
+          } catch (_) {}
+        }
+
+        return Promise.reject(errorData);
       }
 
-      return Promise.reject(errorData);
-    }
+      if (error.request) {
+        return Promise.reject({
+          message: "No se pudo conectar con el servidor",
+          status: 0,
+        });
+      }
 
-    if (error.request) {
       return Promise.reject({
-        message: 'No se pudo conectar con el servidor',
+        message: error.message || "Error desconocido",
         status: 0,
       });
     }
+  );
 
-    return Promise.reject({
-      message: error.message || 'Error desconocido',
-      status: 0,
-    });
-  }
-);
+  return instance;
+};
 
 const handleError = (error) => {
-  throw error?.data || error || { message: 'Error desconocido' };
+  throw error?.data || error || { message: "Error desconocido" };
 };
 
-export const loginApi = {
-  login: (credentials) =>
-    api.post('/usuarios/', credentials).then((res) => res.data).catch(handleError),
-};
+// =========================
+// CLIENTES
+// =========================
+export const apiAuth = createApi("/auth");
+export const apiCore = createApi("/core");
+export const apiLogistics = createApi("/logistics");
+export const apiFlags = createApi("/flags");
+export const apiOrchestration = createApi("/orchestration");
+export const apiAdmin = createApi("/admin");
 
-export const estudiantesApi = {
-  fetchEstudiantes: (params = {}) =>
-    api.get('/estudiantes/', { params }).then((res) => res.data).catch(handleError),
+// default temporal para thunks viejos de logistics
+const api = apiLogistics;
+export default api;
 
-  fetchAllEstudiantes: () =>
-    api.get('/estudiantes/').then((res) => res.data).catch(handleError),
+// =========================
+// AUTH
+// =========================
+export const authApi = {
+  login: (data) =>
+    apiAuth.post("/login", data).then((res) => res.data).catch(handleError),
 
-  fetchEstudianteById: (id) =>
-    api.get(`/estudiantes/${id}`).then((res) => res.data).catch(handleError),
+  renew: () =>
+    apiAuth.get("/renew").then((res) => res.data).catch(handleError),
 
-  createEstudiante: (data) =>
-    api.post('/cuenta-estudiante', data).then((res) => res.data).catch(handleError),
-
-  updateEstudiante: (id, data) =>
-    api.put(`/estudiantes/${id}`, data).then((res) => res.data).catch(handleError),
-
-  deleteEstudiante: (id) =>
-    api.patch(`/estudiantes/${id}`).then((res) => res.data).catch(handleError),
-
-  busquedaEstudiantes: (params = {}) =>
-    api.get('/busqueda/estudiantes', { params }).then((res) => res.data).catch(handleError),
-};
-
-export const DocentesApi = {
-  fetchDocentes: (params = {}) =>
-    api.get('/docentes/', { params }).then((res) => res.data).catch(handleError),
-
-  fetchAllDocentes: () =>
-    api.get('/docentes/').then((res) => res.data).catch(handleError),
-
-  fetchDocenteById: (id) =>
-    api.get(`/docentes/${id}`).then((res) => res.data).catch(handleError),
-
-  createDocente: (data) =>
-    api.post('/cuenta-docente', data).then((res) => res.data).catch(handleError),
-
-  updateDocente: (id, data) =>
-    api.put(`/docentes/${id}`, data).then((res) => res.data).catch(handleError),
-
-  deleteDocente: (id) =>
-    api.patch(`/docentes/${id}`).then((res) => res.data).catch(handleError),
-
-  busquedaDocentes: (params = {}) =>
-    api.get('/busqueda/docentes', { params }).then((res) => res.data).catch(handleError),
-};
-
-export const passwordApi = {
-  solicitar: (email) =>
-    api.post('/password/solicitar', { email }).then((res) => res.data).catch(handleError),
-
-  validar: (token) =>
-    api.get('/password/validar', { params: { token } }).then((res) => res.data).catch(handleError),
-
-  cambiar: (token, newPassword) =>
-    api.post('/password/cambiar', { token, newPassword }).then((res) => res.data).catch(handleError),
-};
-
-export const cursosApi = {
-  fetchCursos: (params = {}) =>
-    api.get('/curso', { params }).then((res) => res.data).catch(handleError),
-
-  fetchAllCursos: (params = {}) =>
-    api.get('/curso/all', { params }).then((res) => res.data).catch(handleError),
-
-  fetchCursoById: (id) =>
-    api.get(`/curso/${id}`).then((res) => res.data).catch(handleError),
-
-  createCurso: (data) =>
-    api.post('/curso/new', data).then((res) => res.data).catch(handleError),
-
-  updateCurso: (id, data) =>
-    api.put(`/curso/${id}`, data).then((res) => res.data).catch(handleError),
-
-  deleteCurso: (id) =>
-    api.patch(`/curso/${id}`).then((res) => res.data).catch(handleError),
-
-  buscarCursos: (params = {}) =>
-    api.get('/busqueda/cursos', { params }).then((res) => res.data).catch(handleError),
-
-  fetchCursosByDocenteId: (docenteId, params = {}) =>
-    api.get(`/curso/docente/${docenteId}`, { params }).then((res) => res.data).catch(handleError),
-
-  fetchAllCursosByDocenteId: (docenteId) =>
-    api.get(`/curso/docente/${docenteId}?all=1`).then((res) => res.data).catch(handleError),
-
-  fetchCursosWithInscritosByDocenteId: (docenteId) =>
-    api.get(`/curso/docente/${docenteId}/inscritos`).then((res) => res.data).catch(handleError),
-
-  finalizarCurso: (idCurso) =>
-    api.patch(`/curso/finalizar/${idCurso}`).then((res) => res.data).catch(handleError),
-
-  cancelarCurso: (idCurso) =>
-    api.patch(`/curso/cancelar/${idCurso}`).then((res) => res.data).catch(handleError),
-};
-
-export const materiasApi = {
-  fetchMaterias: (params = {}) =>
-    api.get('/materia', { params }).then((res) => res.data).catch(handleError),
-
-  fetchAllMaterias: () =>
-    api.get('/materia/all').then((res) => res.data).catch(handleError),
-
-  fetchMateriaById: (id) =>
-    api.get(`/materia/${id}`).then((res) => res.data).catch(handleError),
-
-  createMateria: (data) =>
-    api.post('/materia/new', data).then((res) => res.data).catch(handleError),
-
-  updateMateria: (id, data) =>
-    api.put(`/materia/${id}`, data).then((res) => res.data).catch(handleError),
-
-  deleteMateria: (id) =>
-    api.patch(`/materia/${id}`).then((res) => res.data).catch(handleError),
-
-  buscarMaterias: (params = {}) =>
-    api.get('/busqueda/materias', { params }).then((res) => res.data).catch(handleError),
-};
-
-export const prerequisitosApi = {
-  fetchPrerequisitoById: (id) =>
-    api.get(`/materia-prereq/${id}`).then((res) => res.data).catch(handleError),
-
-  fetchPrerequisitoDetalle: (id) =>
-    api.get(`/materia-prereq/detalle/${id}`).then((res) => res.data).catch(handleError),
-
-  createPrerequisito: (data) =>
-    api.post('/materia-prereq/new', data).then((res) => res.data).catch(handleError),
-
-  deletePrerequisito: (id) =>
-    api.delete(`/materia-prereq/${id}`).then((res) => res.data).catch(handleError),
-};
-
-export const inscritosEstudianteApi = {
-  fetchInscripcionesByEstudianteId: (estudianteId, params = {}) =>
-    api
-      .get(`/inscritos/estudiante/${estudianteId}`, { params })
+  registrarTenantConPlan: (data) =>
+    apiAuth
+      .post("/register-tenant-with-plan", data)
       .then((res) => res.data)
       .catch(handleError),
 
-  fetchInscritoByMatriculaId: (matriculaId) =>
-    api.get(`/inscritos/matricula/${matriculaId}`).then((res) => res.data).catch(handleError),
-
-  fetchInscritosByCursoId: (cursoId, params = {}) =>
-    api.get(`/inscritos/curso/${cursoId}`, { params }).then((res) => res.data).catch(handleError),
-
-  fetchCursosInscritosByUsuarioId: (userId) =>
-    api.get(`/inscritos/usuario/${userId}/cursos`).then((res) => res.data).catch(handleError),
-
-  desinscribirseMismoDia: (idMatricula) =>
-    api.delete(`/inscritos/desinscribirse/${idMatricula}`).then((res) => res.data).catch(handleError),
-};
-
-export const notasDocenteApi = {
-  fetchNotasByCursoId: (cursoId) =>
-    api.get(`/materia-notas/docente/curso/${cursoId}`).then((res) => res.data).catch(handleError),
-
-  registrarNota: (cursoId, data) =>
-    api.post(`/materia-notas/docente/curso/${cursoId}/registrar`, data).then((res) => res.data).catch(handleError),
-
-  actualizarNotasDeUnCurso: (cursoId, data) =>
-    api.put(`/materia-notas/docente/curso/${cursoId}/actualizar`, data).then((res) => res.data).catch(handleError),
-};
-
-export const carritoApi = {
-  fetchCarritoByUsuarioId: (userId) =>
-    api.get(`/carrito/usuario/${userId}`).then((res) => res.data).catch(handleError),
-
-  addItemCarrito: (data) =>
-    api.post('/carrito/add', data).then((res) => res.data).catch(handleError),
-
-  removeItemCarrito: (idCompraCurso) =>
-    api.delete(`/carrito/item/${idCompraCurso}`).then((res) => res.data).catch(handleError),
-
-  cancelarCarrito: (idCompraTotal) =>
-    api.patch(`/carrito/cancelar/${idCompraTotal}`).then((res) => res.data).catch(handleError),
-};
-
-export const ofertaAcademicaApi = {
-  fetchOfertaAcademicaByUsuarioId: (userId) =>
-    api.get(`/oferta-academica/usuario/${userId}`).then((res) => res.data).catch(handleError),
-};
-
-export const perfilApi = {
-  fetchPerfilByUserId: (userId) =>
-    api.get(`/usuarios/perfil/${userId}`).then((res) => res.data).catch(handleError),
-};
-
-export const pagoApi = {
-  fetchPagos: () =>
-    api.get('/pagos').then((res) => res.data).catch(handleError),
-
-  fetchPagoById: (id) =>
-    api.get(`/pagos/${id}`).then((res) => res.data).catch(handleError),
-
-  createPago: (data) =>
-    api
-      .post('/pagos/new', {
-        ...data,
-        metodo: normalizarMetodoPago(data?.metodo),
-      })
+  registrarTenant: (data) =>
+    apiAuth
+      .post("/registro/tenant", data)
       .then((res) => res.data)
       .catch(handleError),
-  
-    // SUSCRIPCIONES    
-  confirmarSuscripcionId: (idSuscripcion) =>
-    api
-      .get(`/suscripcion-pagos/${idSuscripcion}`)
-      .then(res => res.data)
-      .catch(handleError),
-    
-  confirmarPagoSuscripcion: (idSuscripcion, data) =>
-    api
-      .put(`/suscripcion-pagos/${idSuscripcion}`, data)
-        .then(res => res.data)
-        .catch(handleError),
-    
-  createSuscripcion: (data) =>
-    api
-      .post('/suscripcion-pagos/new', {
-        user_id: data.user_id,
-        servicio_id: data.servicio_id,
-        meses: data.meses,
-        precio_unitario: data.precio_unitario,
-        moneda: data.moneda,
-      })
-      .then(res => res.data)
+
+  registrarCliente: (data) =>
+    apiAuth
+      .post("/registro/cliente", data)
+      .then((res) => res.data)
       .catch(handleError),
 
-  createFacturaRecibo: (data) =>
-    api
-      .post('/factura-recibo/new', {
-        pago_id_pago: data.pago_id_pago,
-        tipo: data.tipo,
-        numero: data.numero,
-        razon_social: data.razon_social,
-        nit_ci: data.nit_ci,
-      })
-      .then(res => res.data)
-      .catch(handleError),
-
-  confirmarPagoPorSuscripcion: (idSuscripcion, data) =>
-  api
-    .put(`/pagos/confirmar/suscripcion/${idSuscripcion}`, {
-      tipo: data.tipo,
-      razon_social: data.razon_social,
-      nit_ci: data.nit_ci,
-    })
-    .then(res => res.data)
-    .catch(handleError),
-    
-};
-
-export const qrApi = {
-  generarQR: (data) =>
-    api.post('/qr/generar', data).then((res) => res.data).catch(handleError),
-
-  verificarPagoQR: (data) =>
-    api.post('/qr/verificar', data).then((res) => res.data).catch(handleError),
-};
-
-export const certificadosApi = {
-  enviarCertificadoPorMatricula: (idMatricula) =>
-    api
-      .post('/certificados/enviar', { id_matricula: idMatricula })
+  actualizarPlanTenant: (id, data) =>
+    apiAuth
+      .put(`/${id}/plan`, data)
       .then((res) => res.data)
       .catch(handleError),
 };
 
-export const comprobantesApi = {
-  enviarComprobantePorPago: ({ idPago, email }) =>
-    api
-      .post('/comprobantes/enviar', { 
-        id_suscripcion_pago: idPago,
-        user_email: email, 
-      })
+// alias viejo
+export const loginApi = authApi;
+
+// =========================
+// LOGISTICS
+// =========================
+export const ordenesApi = {
+  fetchOrdenes: (params = {}) =>
+    apiLogistics
+      .get("/ordenes", { params })
       .then((res) => res.data)
       .catch(handleError),
 
-};
-export const perfilDocenteApi = {
-  fetchPerfilDocenteByUserId: (userId) =>
-    api.get(`/usuarios/perfil/${userId}`).then((res) => res.data).catch(handleError),
-
-  changePasswordDocente: (userId, data) =>
-    api.put(`/usuarios/${userId}/password`, data)
+  fetchOrdenById: (id) =>
+    apiLogistics
+      .get(`/ordenes/${id}`)
       .then((res) => res.data)
       .catch(handleError),
-};
-export const perfilEstudianteApi = {
-  fetchPerfilEstudianteByUserId: (userId) =>
-    api.get(`/usuarios/perfil/${userId}`).then((res) => res.data).catch(handleError),
 
-  changePasswordEstudiante: (userId, data) =>
-    api.put(`/usuarios/${userId}/password`, data)
+  createOrden: (data) =>
+    apiLogistics
+      .post("/ordenes", data)
       .then((res) => res.data)
       .catch(handleError),
-};
 
-//para ver el historial de movimientos de un estudiante
-export const saldosMovimientosApi = {
-  fetchSaldosByEstudianteId: (estudianteId) =>
-    api.get(`/saldo-movimientos/${estudianteId}`).then((res) => res.data).catch(handleError),
-};
+  updateOrden: (id, data) =>
+    apiLogistics
+      .put(`/ordenes/${id}`, data)
+      .then((res) => res.data)
+      .catch(handleError),
 
-// para cotizaciones
+  patchOrden: (id, data) =>
+    apiLogistics
+      .patch(`/ordenes/${id}`, data)
+      .then((res) => res.data)
+      .catch(handleError),
 
-// primero tipo de dispositivo por id de la empresa
-export const tipoDispositivoApi = {
-  fetchTiposByTenantId: (tenantId) =>
-    api
-      .get(`/core/tipos-dispositivo?tenantId=${tenantId}&activo=true`)
+  changeEstado: (id, data) =>
+    apiLogistics
+      .patch(`/ordenes/${id}/estado`, data)
       .then((res) => res.data)
       .catch(handleError),
 };
 
-// luego cotizaciones por id de cliente y tipo de dispositivo
+export const conductoresApi = {
+  fetchConductores: (params = {}) =>
+    apiLogistics
+      .get("/conductores", { params })
+      .then((res) => res.data)
+      .catch(handleError),
+
+  fetchConductorById: (id) =>
+    apiLogistics
+      .get(`/conductores/${id}`)
+      .then((res) => res.data)
+      .catch(handleError),
+
+  createConductor: (data) =>
+    apiLogistics
+      .post("/conductores", data)
+      .then((res) => res.data)
+      .catch(handleError),
+
+  updateConductor: (id, data) =>
+    apiLogistics
+      .put(`/conductores/${id}`, data)
+      .then((res) => res.data)
+      .catch(handleError),
+
+  patchConductor: (id, data) =>
+    apiLogistics
+      .patch(`/conductores/${id}`, data)
+      .then((res) => res.data)
+      .catch(handleError),
+
+  deleteConductor: (id) =>
+    apiLogistics
+      .delete(`/conductores/${id}`)
+      .then((res) => res.data)
+      .catch(handleError),
+};
+
+export const despachoApi = {
+  asignarConductor: (idOrden, data) =>
+    apiLogistics
+      .patch(`/despacho/ordenes/${idOrden}/asignar`, data)
+      .then((res) => res.data)
+      .catch(handleError),
+
+  recalcularRuta: (idOrden) =>
+    apiLogistics
+      .post(`/despacho/ordenes/${idOrden}/recalcular-ruta`)
+      .then((res) => res.data)
+      .catch(handleError),
+};
+
+export const ubicacionesApi = {
+  fetchUbicaciones: (idOrden) =>
+    apiLogistics
+      .get(`/ubicaciones/orden/${idOrden}`)
+      .then((res) => res.data)
+      .catch(handleError),
+
+  fetchByOrdenId: (idOrden) =>
+    apiLogistics
+      .get(`/ubicaciones/orden/${idOrden}`)
+      .then((res) => res.data)
+      .catch(handleError),
+};
+
+// =========================
+// CORE
+// =========================
 export const cotizacionesApi = {
+  fetchCotizaciones: (params = {}) =>
+    apiCore
+      .get("/solicitudes-cotizacion", { params })
+      .then((res) => res.data)
+      .catch(handleError),
+
   fetchCotizacionesByClienteId: (tenantId, clienteId) =>
-    api.get(`/core/solicitudes-cotizacion?tenantId=${tenantId}&clienteId=${clienteId}`).then((res) => res.data).catch(handleError),
+    apiCore
+      .get("/solicitudes-cotizacion", { params: { tenantId, clienteId } })
+      .then((res) => res.data)
+      .catch(handleError),
+
+  fetchById: (id) =>
+    apiCore
+      .get(`/solicitudes-cotizacion/${id}`)
+      .then((res) => res.data)
+      .catch(handleError),
+
   fetchCotizacionById: (id) =>
-    api.get(`/core/solicitudes-cotizacion/${id}`).then((res) => res.data).catch(handleError),
+    apiCore
+      .get(`/solicitudes-cotizacion/${id}`)
+      .then((res) => res.data)
+      .catch(handleError),
+
+  crearSolicitud: (data) =>
+    apiCore
+      .post("/solicitudes-cotizacion", data)
+      .then((res) => res.data)
+      .catch(handleError),
+
   crearSolicitudCotizacion: (data) =>
-    api.post('/core/solicitudes-cotizacion', data).then((res) => res.data).catch(handleError),
+    apiCore
+      .post("/solicitudes-cotizacion", data)
+      .then((res) => res.data)
+      .catch(handleError),
+
+  aceptar: (id, data) =>
+    apiCore
+      .patch(`/solicitudes-cotizacion/${id}/aceptar`, data)
+      .then((res) => res.data)
+      .catch(handleError),
+
   aceptarCotizacionInicial: (idSolicitud, usuario) =>
-    api.patch(`/core/solicitudes-cotizacion/${idSolicitud}/aceptar`, { usuario }).then((res) => res.data).catch(handleError),
+    apiCore
+      .patch(`/solicitudes-cotizacion/${idSolicitud}/aceptar`, { usuario })
+      .then((res) => res.data)
+      .catch(handleError),
+
   rechazarCotizacionInicial: (idSolicitud, estado) =>
-    api.patch(`/core/solicitudes-cotizacion/${idSolicitud}/estado`, { estado }).then((res) => res.data).catch(handleError),
+    apiCore
+      .patch(`/solicitudes-cotizacion/${idSolicitud}/estado`, { estado })
+      .then((res) => res.data)
+      .catch(handleError),
 };
+
+export const inspeccionesApi = {
+  fetchInspecciones: (params = {}) =>
+    apiCore
+      .get("/inspecciones", { params })
+      .then((res) => res.data)
+      .catch(handleError),
+
+  fetchInspeccionesByInspectorId: (tenantId, inspectorId) =>
+    apiCore
+      .get("/inspecciones", { params: { tenantId, inspectorId } })
+      .then((res) => res.data)
+      .catch(handleError),
+
+  fetchInspeccionById: (id) =>
+    apiCore
+      .get(`/inspecciones/${id}`)
+      .then((res) => res.data)
+      .catch(handleError),
+
+  iniciar: (data) =>
+    apiCore
+      .post("/inspecciones", data)
+      .then((res) => res.data)
+      .catch(handleError),
+
+  iniciarInspeccion: (data) =>
+    apiCore
+      .post("/inspecciones", data)
+      .then((res) => res.data)
+      .catch(handleError),
+
+  completar: (id, data) =>
+    apiCore
+      .put(`/inspecciones/${id}`, data)
+      .then((res) => res.data)
+      .catch(handleError),
+
+  completarInspeccion: (id, data) =>
+    apiCore
+      .put(`/inspecciones/${id}`, data)
+      .then((res) => res.data)
+      .catch(handleError),
+
+  observarInspeccion: (id, data) =>
+    apiCore
+      .post(`/inspecciones/observar/${id}`, data)
+      .then((res) => res.data)
+      .catch(handleError),
+};
+
 export const empresasApi = {
-  fetchUsuariosEmpresaByTenantId: (tenantId) =>
-    api
-      .get(`/core/empresas/${tenantId}/usuarios`)
+  fetchUsuarios: (params = {}) =>
+    apiAuth
+      .get("/usuarios", { params })
+      .then((res) => res.data)
+      .catch(handleError),
+
+  fetchUsuariosEmpresaByTenantId: () =>
+    apiAuth
+      .get("/usuarios")
+      .then((res) => res.data)
+      .catch(handleError),
+
+  createUsuario: (data) =>
+    apiAuth
+      .post("/empleados/invitar", data)
       .then((res) => res.data)
       .catch(handleError),
 
   createUsuarioEmpresa: (data) =>
-    api
-      .post(`/core/empresas/usuarios`, data)
+    apiAuth
+      .post("/empleados/invitar", data)
       .then((res) => res.data)
       .catch(handleError),
 
   updateUsuarioEmpresa: (id, data) =>
-    api
-      .put(`/core/empresas/usuarios/${id}`, data)
+    apiAuth
+      .put(`/usuarios/${id}`, data)
       .then((res) => res.data)
       .catch(handleError),
 
-  changeEstadoUsuarioEmpresa: (id, data) =>
-    api
-      .patch(`/core/empresas/usuarios/${id}/estado`, data)
+  changeEstadoUsuarioEmpresa: (id) =>
+    apiAuth
+      .patch(`/usuarios/${id}`)
+      .then((res) => res.data)
+      .catch(handleError),
+};
+
+export const tipoDispositivoApi = {
+  fetchTiposByTenantId: (tenantId) =>
+    apiCore
+      .get("/tipos-dispositivo", { params: { tenantId, activo: true } })
       .then((res) => res.data)
       .catch(handleError),
 
   fetchTiposDispositivoEmpresaByTenantId: (tenantId, params = {}) =>
-    api
-      .get(`/core/tipos-dispositivo`, {
-        params: {
-          tenantId,
-          ...params,
-        },
-      })
+    apiCore
+      .get("/tipos-dispositivo", { params: { tenantId, ...params } })
       .then((res) => res.data)
       .catch(handleError),
 
   fetchTipoDispositivoEmpresaById: (id) =>
-    api
-      .get(`/core/tipos-dispositivo/${id}`)
+    apiCore
+      .get(`/tipos-dispositivo/${id}`)
       .then((res) => res.data)
       .catch(handleError),
 
   createTipoDispositivoEmpresa: (data) =>
-    api
-      .post(`/core/tipos-dispositivo`, data)
+    apiCore
+      .post("/tipos-dispositivo", data)
       .then((res) => res.data)
       .catch(handleError),
 
   updateTipoDispositivoEmpresa: (id, data) =>
-    api
-      .put(`/core/tipos-dispositivo/${id}`, data)
+    apiCore
+      .put(`/tipos-dispositivo/${id}`, data)
       .then((res) => res.data)
       .catch(handleError),
 
   changeEstadoTipoDispositivoEmpresa: (id, data) =>
-    api
-      .patch(`/core/tipos-dispositivo/${id}/estado`, data)
+    apiCore
+      .patch(`/tipos-dispositivo/${id}/estado`, data)
       .then((res) => res.data)
       .catch(handleError),
 };
-// para inspecciones
-export const inspeccionesApi = {
-  fetchInspeccionesByInspectorId: (tenantId, inspectorId) =>
-    api.get(`/core/inspecciones?tenantId=${tenantId}&inspectorId=${inspectorId}`).then((res) => res.data).catch(handleError),
-  fetchInspeccionById: (id) =>
-    api.get(`/core/inspecciones/${id}`).then((res) => res.data).catch(handleError),
-  iniciarInspeccion: (data) =>
-    api.post(`/core/inspecciones`, data).then((res) => res.data).catch(handleError),
-  completarInspeccion: (idInspeccion, data) =>
-    api.put(`/core/inspecciones/${idInspeccion}`, data).then((res) => res.data).catch(handleError),
-  observarInspeccion: (idInspeccion, data) =>
-    api.post(`/core/inspecciones/observar/${idInspeccion}`, data).then((res) => res.data).catch(handleError),
-};
 
+// alias por si prefieres plural en otros lados
+export const tiposDispositivoApi = tipoDispositivoApi;
+
+// =========================
+// FLAGS
+// =========================
 export const flagsApi = {
   fetchFlags: (planId) =>
     apiFlags
-      .get(`/flags/${planId}`)
+      .get(`/${planId}`)
       .then((res) => res.data)
       .catch(handleError),
 
-  // Verificar permiso según acción
   verificarPermiso: (tenantId, accion) =>
     apiFlags
-      .post(`/flags/${tenantId}/verificar`, { accion })
+      .post(`/${tenantId}/verificar`, { accion })
       .then((res) => res.data)
       .catch(handleError),
 
-  // Invalidar caché del tenant
   invalidarCache: (tenantId) =>
     apiFlags
-      .delete(`/flags/${tenantId}/cache`)
+      .delete(`/${tenantId}/cache`)
       .then((res) => res.data)
       .catch(handleError),
 
-  // Cambiar plan del tenant
   cambiarPlan: (tenantId, data) =>
     apiFlags
-      .put(`/flags/${tenantId}/plan`, {
-        nuevo_plan: data.nuevo_plan,
-        ciclo_inicio: data.ciclo_inicio,
-        ciclo_fin: data.ciclo_fin,
-      })
+      .put(`/${tenantId}/plan`, data)
       .then((res) => res.data)
       .catch(handleError),
 
-  // Actualizar uso del tenant
   actualizarUso: (tenantId, data) =>
     apiFlags
-      .post(`/flags/${tenantId}/uso`, {
-        campo: data.campo,
-        cantidad: data.cantidad,
-      })
+      .post(`/${tenantId}/uso`, data)
       .then((res) => res.data)
       .catch(handleError),
 
   obtenerPlanes: () =>
     apiFlags
-      .get(`/planes`)
+      .get("/planes")
       .then((res) => res.data)
       .catch(handleError),
 };
 
-  
-export default api;
+// =========================
+// ORCHESTRATION
+// =========================
+export const orchestrationApi = {
+  aceptarYCrearLogistica: (idSolicitud, data = {}) =>
+    apiOrchestration
+      .patch(`/solicitudes-cotizacion/${idSolicitud}/aceptar-y-crear-logistica`, data)
+      .then((res) => res.data)
+      .catch(handleError),
+};
+
+// =========================
+// ADMIN
+// =========================
+export const adminApi = {
+  cambiarPlanTenant: (tenantId, data) =>
+    apiAdmin
+      .put(`/tenants/${tenantId}/plan`, data)
+      .then((res) => res.data)
+      .catch(handleError),
+};
+
+// =========================
+// TEMPORALES PARA NO ROMPER
+// =========================
+export const pagoApi = {
+  fetchPagos: () =>
+    Promise.reject({ message: "pagoApi aún no migrada al gateway" }),
+  fetchPagoById: () =>
+    Promise.reject({ message: "pagoApi aún no migrada al gateway" }),
+  createPago: () =>
+    Promise.reject({ message: "pagoApi aún no migrada al gateway" }),
+  confirmarSuscripcionId: () =>
+    Promise.reject({ message: "pagoApi aún no migrada al gateway" }),
+  confirmarPagoSuscripcion: () =>
+    Promise.reject({ message: "pagoApi aún no migrada al gateway" }),
+  createSuscripcion: () =>
+    Promise.reject({ message: "pagoApi aún no migrada al gateway" }),
+  createFacturaRecibo: () =>
+    Promise.reject({ message: "pagoApi aún no migrada al gateway" }),
+  confirmarPagoPorSuscripcion: () =>
+    Promise.reject({ message: "pagoApi aún no migrada al gateway" }),
+};
+
+export const qrApi = {
+  generarQR: () =>
+    Promise.reject({ message: "qrApi aún no migrada al gateway" }),
+  verificarPagoQR: () =>
+    Promise.reject({ message: "qrApi aún no migrada al gateway" }),
+};
+
+export const comprobantesApi = {
+  enviarComprobantePorPago: () =>
+    Promise.reject({ message: "comprobantesApi aún no migrada al gateway" }),
+};
+
+//

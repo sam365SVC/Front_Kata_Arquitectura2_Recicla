@@ -9,11 +9,21 @@ import {
   FiCreditCard,
 } from "react-icons/fi";
 import { MdOutlineBusinessCenter } from "react-icons/md";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 
 import styles from "./AdminEmpresaWrapper.module.scss";
 import UsuariosEmpresa from "./components/UsuariosEmpresa";
 import TiposDispositivoEmpresa from "./components/TiposDispositivoEmpresa";
 import PlanEmpresa from "./components/PlanEmpresa";
+
+import { logout } from "../signin/slices/loginSlice";
+import {
+  selectTenantId,
+  selectTenantName,
+  selectUser,
+} from "../signin/slices/loginSelectors";
 
 const NAV_ITEMS = [
   {
@@ -22,7 +32,7 @@ const NAV_ITEMS = [
     icon: FiUsers,
     title: "Gestión de usuarios",
     description:
-      "Administra empleados, accesos, roles y usuarios asociados a la empresa.",
+      "Administra empleados, accesos y usuarios asociados a la empresa.",
   },
   {
     id: "tiposDispositivo",
@@ -38,7 +48,7 @@ const NAV_ITEMS = [
     icon: FiCreditCard,
     title: "Plan y suscripción",
     description:
-      "Revisa tu plan actual, sus beneficios, límites y las opciones de cambio disponibles.",
+      "Revisa tu plan actual, sus beneficios, límites y opciones disponibles.",
   },
 ];
 
@@ -58,27 +68,72 @@ const renderContent = (tab, props) => {
   }
 };
 
+const getInitials = (name = "") => {
+  if (!name.trim()) return "AE";
+
+  return name
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase();
+};
+
+const getDisplayNameFromEmail = (email = "") => {
+  if (!email || !email.includes("@")) return "Administrador";
+
+  const localPart = email.split("@")[0];
+
+  return localPart
+    .split(/[._-]/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+};
+
 const AdminEmpresaWrapper = ({
-  empresaNombre = "Recicla Tech S.R.L.",
-  adminNombre = "Carlos Mendoza",
-  adminEmail = "admin@recicla.com",
-  tenantId = "1",
+  empresaNombre: empresaNombreProp,
+  adminNombre: adminNombreProp,
+  adminEmail: adminEmailProp,
+  tenantId: tenantIdProp,
 }) => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  const user = useSelector(selectUser);
+  const tenantIdState = useSelector(selectTenantId);
+  const tenantNameState = useSelector(selectTenantName);
+
   const [activeTab, setActiveTab] = useState("usuariosEmpresa");
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  const userEmail =
+    adminEmailProp || user?.mail || user?.email || "sin-correo@empresa.com";
+
+  const userName =
+    adminNombreProp ||
+    user?.nombres ||
+    [user?.nombre, user?.apellido].filter(Boolean).join(" ") ||
+    getDisplayNameFromEmail(userEmail);
+
+  const empresaNombre =
+    empresaNombreProp ||
+    tenantNameState ||
+    user?.tenantNombre ||
+    "Mi empresa";
+
+  const adminNombre = userName;
+  const adminEmail = userEmail;
+  const tenantId = tenantIdProp || tenantIdState || user?.tenantId || "";
 
   const activeItem = useMemo(
     () => NAV_ITEMS.find((item) => item.id === activeTab) || NAV_ITEMS[0],
     [activeTab]
   );
 
-  const iniciales = adminNombre
-    .split(" ")
-    .slice(0, 2)
-    .map((p) => p[0])
-    .join("")
-    .toUpperCase();
+  const iniciales = useMemo(() => getInitials(adminNombre), [adminNombre]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -96,6 +151,38 @@ const AdminEmpresaWrapper = ({
     setMobileOpen(false);
   };
 
+  const handleLogout = async () => {
+    const result = await Swal.fire({
+      title: "¿Cerrar sesión?",
+      text: "Tendrás que volver a iniciar sesión para acceder al panel.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Sí, salir",
+      cancelButtonText: "Cancelar",
+      confirmButtonColor: "#78793F",
+      cancelButtonColor: "#B0B0B0",
+      background: "#fffef8",
+      color: "#2f2f2f",
+      reverseButtons: true,
+    });
+
+    if (!result.isConfirmed) return;
+
+    dispatch(logout());
+
+    await Swal.fire({
+      title: "Sesión cerrada",
+      text: "Has salido correctamente.",
+      icon: "success",
+      timer: 1200,
+      showConfirmButton: false,
+      background: "#fffef8",
+      color: "#2f2f2f",
+    });
+
+    navigate("/signin", { replace: true });
+  };
+
   const sidebarClass = [
     styles.sidebar,
     collapsed ? styles["sidebar--collapsed"] : "",
@@ -111,6 +198,7 @@ const AdminEmpresaWrapper = ({
           className={styles.mobileBar__toggle}
           onClick={() => setMobileOpen(true)}
           aria-label="Abrir menú"
+          type="button"
         >
           <FiMenu size={18} />
         </button>
@@ -146,7 +234,10 @@ const AdminEmpresaWrapper = ({
           <button
             className={styles.sidebar__toggleBtn}
             onClick={() => setCollapsed((prev) => !prev)}
-            aria-label={collapsed ? "Expandir" : "Colapsar"}
+            aria-label={
+              collapsed ? "Expandir menú lateral" : "Colapsar menú lateral"
+            }
+            type="button"
           >
             {collapsed ? (
               <FiChevronRight size={13} />
@@ -196,14 +287,20 @@ const AdminEmpresaWrapper = ({
               <div className={styles.sidebar__footerAvatar}>{iniciales}</div>
 
               <div className={styles.sidebar__footerInfo}>
-                <p>{adminNombre}</p>
-                <span>{empresaNombre}</span>
-                <small>{adminEmail}</small>
+                <p title={adminNombre}>{adminNombre}</p>
+                <span title={empresaNombre}>{empresaNombre}</span>
+                <small title={adminEmail}>{adminEmail}</small>
               </div>
 
-              <div className={styles.sidebar__footerAction}>
+              <button
+                type="button"
+                className={styles.sidebar__footerAction}
+                onClick={handleLogout}
+                aria-label="Cerrar sesión"
+                title="Cerrar sesión"
+              >
                 <FiLogOut size={15} />
-              </div>
+              </button>
             </div>
           </div>
         </aside>
