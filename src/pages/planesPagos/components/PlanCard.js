@@ -50,7 +50,7 @@ function PlanCard({ plan }) {
 
       {/* Precio */}
       <div className="plan-card__precio-wrapper">
-        {!esGratis && <span className="plan-card__precio-moneda">USD</span>}
+        {!esGratis && <span className="plan-card__precio-moneda">BOB</span>}
         <span className="plan-card__precio">
           {esGratis ? "Gratis" : precio}
         </span>

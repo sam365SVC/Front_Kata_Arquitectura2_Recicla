@@ -45,7 +45,7 @@ api.interceptors.request.use((config) => {
 api.interceptors.request.use((config) => {
   const state = store.getState();
 
-  config.headers['x-token'] = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjozLCJhY2NvdW50IjoiQURNSU4iLCJlbWFpbCI6Iml2b25uZS5jb2xxdWVAdWNiLmVkdS5ibyIsInRlbmFudF9pZCI6OCwidGVuYW50X25hbWUiOiJHYXRvYnl0ZSAiLCJkZXBhcnRtZW50IjoiRmluYW56YXMiLCJwb3NpdGlvbiI6ImJvc3MiLCJpc3MiOiJzMS10ZW5hbnQiLCJleHAiOjE3NzY2Nzk4NDksImlhdCI6MTc3NjU5MzQ0OX0.pOWxkmHRuA_oSQVA0WJ23AtBIckPlDkHkBSih_fINhs";
+  config.headers['x-token'] = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjozLCJhY2NvdW50IjoiQURNSU4iLCJlbWFpbCI6Iml2b25uZS5jb2xxdWVAdWNiLmVkdS5ibyIsInRlbmFudF9pZCI6OCwidGVuYW50X25hbWUiOiJHYXRvYnl0ZSAiLCJkZXBhcnRtZW50IjoiRmluYW56YXMiLCJwb3NpdGlvbiI6ImJvc3MiLCJpc3MiOiJzMS10ZW5hbnQiLCJleHAiOjE3NzY3ODQ4NjYsImlhdCI6MTc3NjY5ODQ2Nn0.6Z8txHWxLw8ywYQg-fldrOUo0tYtqhVPlF8mMc2yPSw";
   
   return config;
 });
@@ -318,6 +318,7 @@ export const pagoApi = {
         meses: data.meses,
         precio_unitario: data.precio_unitario,
         moneda: data.moneda,
+        nombre_plan: data.nombre_plan,
       })
       .then(res => res.data)
       .catch(handleError),
