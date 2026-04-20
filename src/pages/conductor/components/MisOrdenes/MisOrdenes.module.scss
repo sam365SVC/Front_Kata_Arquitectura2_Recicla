@@ -1,0 +1,93 @@
+@use '../../../admin/variables' as *;
+
+.wrap { padding: 16px; display: flex; flex-direction: column; gap: 0; }
+
+.header {
+  margin-bottom: 20px;
+  h1 { font-size: 20px; font-weight: 900; color: $black; margin: 0; font-family: $font-heading; }
+  p  { font-size: 13px; color: $text-muted; margin: 4px 0 0; }
+}
+
+// Grupos 
+.group { margin-bottom: 24px; }
+
+.group__title {
+  font-size: 13px; font-weight: 900; color: $black; margin: 0 0 10px;
+  font-family: $font-heading; display: 
+  flex; align-items: center; gap: 8px;
+}
+
+.group__cnt {
+  font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: $radius-pill;
+  background: $main-2; color: $main-4; border: 1px solid $main-3;
+}
+
+// Card orden
+.card {
+  @include card; padding: 16px; margin-bottom: 10px;
+  display: flex; flex-direction: column; gap: 8px;
+  @include transition(box-shadow);
+  &:hover { box-shadow: $shadow-md; }
+
+  &__top { @include flex(center, space-between, 8px); }
+
+  &__clienteRow {
+    @include flex(flex-start, flex-start, 6px); color: $text-muted;
+  }
+
+  &__cliente { font-size: 14px; font-weight: 800; color: $black; }
+  &__tel     { font-size: 12px; color: $text-muted; }
+
+  &__origenRow {
+    @include flex(flex-start, flex-start, 6px);
+    color: $text-muted; font-size: 12px;
+  }
+
+  &__dir { font-size: 13px; color: $text-body; margin: 0; line-height: 1.4; }
+  &__ref { font-size: 11px; color: $main-4; margin: 2px 0 0; font-style: italic; }
+
+  &__equipos { @include flex(flex-start, flex-start, 6px); color: $text-muted; }
+
+  &__equiposList { display: flex; flex-direction: column; gap: 6px; flex: 1; }
+
+  &__ruta {
+    font-size: 12px; color: $main-4; font-weight: 700; margin: 0;
+    background: $main-2; padding: 4px 10px; border-radius: $radius-md; display: inline-block;
+  }
+
+  &__fecha { font-size: 11px; color: $text-muted; margin: 0; }
+}
+
+//Equipo dentro de la card
+.equipo {
+  background: $grey-2; border: 1px solid $grey-4; border-radius: $radius-md;
+  padding: 8px 10px; display: flex; flex-direction: column; gap: 4px;
+
+  &__nombre { font-size: 13px; font-weight: 800; color: $black; @include flex(center, space-between, 8px); }
+  &__desc    { font-size: 11px; color: $text-muted; margin: 0; line-height: 1.4; }
+}
+
+.condTag { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: $radius-pill; }
+.condTag--success { @include status-badge($status-success-bg, $status-success-text, $status-success-border); }
+.condTag--active  { @include status-badge($status-active-bg,  $status-active-text,  $status-active-border); }
+.condTag--warning { @include status-badge($status-warning-bg, $status-warning-text, $status-warning-border); }
+.condTag--danger  { @include status-badge($status-danger-bg,  $status-danger-text,  $status-danger-border); }
+.condTag--neutral { @include status-badge($status-neutral-bg, $status-neutral-text, $status-neutral-border); }
+
+.code {
+  font-family: $font-mono; font-size: 11px; background: $main-2;
+  color: $main-4; padding: 2px 7px; border-radius: $radius-sm;
+}
+
+// Badges
+.badge { @include status-badge($status-neutral-bg, $status-neutral-text, $status-neutral-border); }
+.badge--neutral { @include status-badge($status-neutral-bg, $status-neutral-text, $status-neutral-border); }
+.badge--info    { @include status-badge($status-info-bg,    $status-info-text,    $status-info-border); }
+.badge--pending { @include status-badge($status-pending-bg, $status-pending-text, $status-pending-border); }
+.badge--active  { @include status-badge($status-active-bg,  $status-active-text,  $status-active-border); }
+.badge--warning { @include status-badge($status-warning-bg, $status-warning-text, $status-warning-border); }
+.badge--success { @include status-badge($status-success-bg, $status-success-text, $status-success-border); }
+.badge--danger  { @include status-badge($status-danger-bg,  $status-danger-text,  $status-danger-border); }
+.badge--done    { @include status-badge($status-done-bg,    $status-done-text,    $status-done-border); }
+
+.empty, .loading { font-size: 13px; color: $text-muted; padding: 16px 0; }

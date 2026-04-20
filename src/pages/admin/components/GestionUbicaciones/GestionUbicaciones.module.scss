@@ -1,0 +1,253 @@
+@use '../../variables' as *;
+
+.wrap { padding: 24px; @include respond-to($bp-md) { padding: 14px; } }
+
+.header {
+  @include flex(center, space-between, 12px);
+  margin-bottom: 20px;
+  @include respond-to($bp-sm) { flex-direction: column; align-items: flex-start; gap: 12px; }
+
+  h1 { font-size: 20px; font-weight: 900; color: $black; margin: 0; font-family: $font-heading; }
+  p  { font-size: 13px; color: $text-muted; margin: 4px 0 0; }
+}
+
+.headerActions { @include flex(center, flex-end, 10px); flex-wrap: wrap; }
+
+// Grid
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+// Card 
+.card {
+  @include card;
+  padding: 18px;
+  display: flex; flex-direction: column; gap: 10px;
+  @include transition(box-shadow);
+  &:hover { box-shadow: $shadow-md; }
+  &--inactivo { opacity: 0.55; }
+
+  &__top { @include flex(flex-start, flex-start, 12px); }
+
+  &__typeIcon {
+    width: 40px; height: 40px; border-radius: $radius-md;
+    background: $main-2; color: $main-4;
+    @include flex-center; flex-shrink: 0;
+
+    &--almacen { background: rgba($black, 0.08); color: $black; }
+  }
+
+  &__meta { flex: 1; overflow: hidden; }
+
+  &__nombre {
+    font-size: 14px; font-weight: 900; color: $black;
+    margin: 0 0 4px; @include truncate; font-family: $font-heading;
+  }
+
+  &__dir {
+    font-size: 12px; color: $text-muted; margin: 0;
+    line-height: 1.4;
+  }
+
+  &__coords {
+    font-size: 11px; color: $main-4; font-family: $font-mono;
+    background: $main-2; padding: 4px 10px; border-radius: $radius-md;
+    margin: 0;
+  }
+
+  &__cap { display: flex; flex-direction: column; gap: 6px; }
+
+  &__capRow { @include flex(center, space-between, 0); }
+
+  &__capLabel { font-size: 12px; color: $text-muted; font-weight: 700; }
+
+  &__capNums  { font-size: 12px; color: $black; font-weight: 900; }
+
+  &__contacto {
+    font-size: 12px; color: $text-muted; margin: 0;
+    border-top: 1px solid $grey-4; padding-top: 8px;
+  }
+}
+
+// Tipo badge 
+.tipeBadge {
+  @include status-badge($main-2, $main-4, $main-3);
+  font-size: 10px;
+  &--almacen { @include status-badge(rgba($black, 0.06), $black, rgba($black, 0.15)); }
+}
+
+.inactivoBadge {
+  @include status-badge($status-neutral-bg, $status-neutral-text, $status-neutral-border);
+  font-size: 10px; margin-left: auto;
+}
+
+// Barra de ocupación 
+.ocupacion {
+  @include flex(center, flex-start, 8px);
+
+  &__bar {
+    flex: 1; height: 6px; background: $grey-4;
+    border-radius: $radius-pill; overflow: hidden;
+  }
+
+  &__fill {
+    height: 100%; border-radius: $radius-pill;
+    transition: width $transition-slow;
+
+    &--success { background: $status-success-text; }
+    &--warning { background: $status-warning-text; }
+    &--danger  { background: $status-danger-text; }
+  }
+
+  &__pct {
+    font-size: 12px; font-weight: 800; min-width: 36px; text-align: right;
+    &--success { color: $status-success-text; }
+    &--warning { color: $status-warning-text; }
+    &--danger  { color: $status-danger-text; }
+  }
+}
+
+// Botón capacidad 
+.btnCapacidad {
+  @include flex(center, center, 6px);
+  width: 100%; border: 1px dashed $main-3;
+  background: $main-2; color: $main-4;
+  border-radius: $radius-md; padding: 8px;
+  font-size: 12px; font-weight: 800; cursor: pointer;
+  font-family: $font-body; @include transition;
+  &:hover { background: darken($main-2, 5%); }
+}
+
+// Botones globales 
+.btnPrimary {
+  @include flex(center, center, 8px);
+  padding: 9px 18px; border-radius: $radius-md;
+  background: $main-1; color: $white; border: none;
+  font-size: 13px; font-weight: 800; cursor: pointer;
+  font-family: $font-body; @include transition(background, box-shadow);
+  box-shadow: $shadow-main;
+  &:hover { background: $main-4; }
+}
+
+.btnSecondary {
+  padding: 9px 18px; border-radius: $radius-md;
+  background: $white; color: $black; border: 1px solid $grey-4;
+  font-size: 13px; font-weight: 700; cursor: pointer;
+  font-family: $font-body; @include transition;
+  &:hover { background: $grey-2; }
+}
+
+.select {
+  padding: 9px 12px; border: 1px solid $grey-4; border-radius: $radius-md;
+  font-size: 13px; font-family: $font-body; color: $text-body;
+  background: $white; cursor: pointer;
+  &:focus { outline: none; border-color: $main-3; }
+}
+
+// Estado vacío 
+.empty, .loading {
+  text-align: center; color: $text-muted; font-size: 14px; padding: 40px 0;
+}
+
+// Modal
+.modalOverlay {
+  position: fixed; inset: 0; z-index: $z-dropdown + 10;
+  background: rgba($black, 0.4); @include flex-center;
+}
+
+.modal {
+  background: $white; border-radius: $radius-xl;
+  padding: 28px; width: 100%; max-width: 520px;
+  box-shadow: $shadow-xl; max-height: 90vh;
+  overflow-y: auto; @include scrollbar;
+
+  h3 {
+    font-size: 18px; font-weight: 900; color: $black;
+    margin: 0 0 20px; font-family: $font-heading;
+  }
+
+  &__actions { @include flex(center, flex-end, 10px); margin-top: 20px; }
+}
+
+.formGrid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
+  @include respond-to($bp-sm) { grid-template-columns: 1fr; }
+}
+
+.label {
+  display: flex; flex-direction: column; gap: 5px;
+  font-size: 12px; font-weight: 800; color: $black-2;
+  text-transform: uppercase; letter-spacing: 0.4px;
+
+  &--full { grid-column: 1 / -1; }
+}
+
+.input {
+  padding: 9px 12px; border: 1px solid $grey-4;
+  border-radius: $radius-md; font-size: 13px;
+  font-family: $font-body; color: $text-body; background: $white;
+  @include transition(border-color, box-shadow);
+  &:focus { outline: none; border-color: $main-3; box-shadow: 0 0 0 3px rgba($main-3, 0.15); }
+}
+
+// Extras mapa interactivo y edición 
+.card__editBtn {
+  width: 28px; height: 28px; border-radius: 8px; border: 1px solid #E8E8F4;
+  background: transparent; display: flex; align-items: center; justify-content: center;
+  cursor: pointer; color: #4D5756; transition: all 0.2s ease; flex-shrink: 0;
+  &:hover { background: #EEE9BF; color: #78793F; border-color: #BDB77C; }
+}
+
+.card__ref {
+  font-size: 12px; color: #79864B; margin: 0; font-style: italic;
+}
+
+.card__horario {
+  font-size: 11px; color: #6b7280; margin: 0;
+}
+
+.modal__head {
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;
+  h3 { font-size: 18px; font-weight: 900; color: #0e3b46; margin: 0; }
+}
+
+.modal__close {
+  width: 32px; height: 32px; border-radius: 8px; border: none; background: #F3F5F5;
+  color: #4D5756; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: background 0.2s; &:hover { background: #E8E8F4; }
+}
+
+.formSection {
+  font-size: 11px; font-weight: 900; color: #79864B; text-transform: uppercase;
+  letter-spacing: 0.8px; margin: 16px 0 10px; padding-bottom: 6px;
+  border-bottom: 1px solid #EEE9BF;
+  display: flex; align-items: center; gap: 6px;
+
+  &__hint {
+    font-size: 11px; font-weight: 400; color: #6b7280;
+    text-transform: none; letter-spacing: 0; margin-left: auto;
+  }
+}
+
+.label--full { grid-column: 1 / -1; }
+
+.mapPickerWrap {
+  height: 240px; border-radius: 10px; overflow: hidden;
+  border: 2px solid #EEE9BF; margin-bottom: 8px; cursor: crosshair;
+}
+
+.coordsDisplay {
+  display: flex; gap: 16px; font-size: 12px; color: #6b7280; margin-bottom: 4px;
+  strong { color: #78793F; }
+}
+
+.diasWrap { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+
+.diaPill {
+  padding: 4px 10px; border-radius: 100px; border: 1px solid #E8E8F4;
+  background: #F3F5F5; color: #4D5756; cursor: pointer; font-size: 12px; font-weight: 700;
+  transition: all 0.15s;
+  &--on { background: #EEE9BF; color: #78793F; border-color: #BDB77C; }
+}

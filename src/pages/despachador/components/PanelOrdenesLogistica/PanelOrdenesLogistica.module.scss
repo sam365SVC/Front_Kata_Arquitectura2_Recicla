@@ -1,0 +1,136 @@
+@use '../../../admin/variables' as *;
+
+.wrap { padding: 24px; @include respond-to($bp-md) { padding: 14px; } }
+
+.header {
+  @include flex(center, space-between, 12px); margin-bottom: 20px;
+  h1 { font-size: 20px; font-weight: 900; color: $black; margin: 0; font-family: $font-heading; }
+  p  { font-size: 13px; color: $text-muted; margin: 4px 0 0; }
+}
+
+.btnIcon {
+  width: 38px; height: 38px; border-radius: $radius-md; border: 1px solid $grey-4;
+  background: $white; @include flex-center; cursor: pointer; color: $black; @include transition;
+  &:hover { background: $grey-2; }
+}
+
+.filters {
+  @include flex(center, flex-start, 10px); margin-bottom: 16px; flex-wrap: wrap;
+}
+
+.searchWrap { position: relative; flex: 1; min-width: 200px; }
+
+.searchIcon {
+  position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+  color: $text-muted; pointer-events: none;
+}
+
+.searchInput {
+  width: 100%; padding: 9px 12px 9px 36px; border: 1px solid $grey-4;
+  border-radius: $radius-md; font-size: 13px; font-family: $font-body; color: $text-body;
+  background: $white; @include transition(border-color, box-shadow);
+  &:focus { outline: none; border-color: $main-3; box-shadow: 0 0 0 3px rgba($main-3, 0.15); }
+}
+
+.select {
+  padding: 9px 12px; border: 1px solid $grey-4; border-radius: $radius-md;
+  font-size: 13px; font-family: $font-body; color: $text-body;
+  background: $white; cursor: pointer;
+  &:focus { outline: none; border-color: $main-3; }
+}
+
+.tableCard { @include card; overflow: hidden; }
+
+.tableWrap { overflow-x: auto; @include scrollbar(4px); }
+
+.table {
+  width: 100%; border-collapse: collapse; font-size: 13px;
+  th {
+    text-align: left; padding: 11px 12px; white-space: nowrap;
+    font-size: 11px; font-weight: 800; color: $text-muted;
+    text-transform: uppercase; letter-spacing: 0.5px;
+    background: $grey-2; border-bottom: 2px solid $grey-4;
+  }
+  td { padding: 12px 12px; color: $text-body; border-bottom: 1px solid $grey-4; vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: $grey-2; }
+}
+
+.clienteNombre { font-size: 13px; font-weight: 800; color: $black; margin: 0; }
+.clienteTel    { font-size: 11px; color: $text-muted; margin: 2px 0 0; }
+
+.equipos { display: flex; flex-direction: column; gap: 4px; }
+
+.equipo {
+  font-size: 11px; color: $text-muted; background: $grey-2;
+  border: 1px solid $grey-4; padding: 3px 8px; border-radius: $radius-pill;
+  white-space: nowrap;
+}
+
+.dirLine { font-size: 13px; color: $text-body; margin: 0; }
+.refLine { font-size: 11px; color: $main-4; margin: 2px 0 0; font-style: italic; }
+
+.tdMuted { color: $text-muted; font-size: 12px; vertical-align: middle !important; }
+
+.code {
+  font-family: $font-mono; font-size: 11px; background: $main-2;
+  color: $main-4; padding: 2px 7px; border-radius: $radius-sm;
+}
+
+.empty { text-align: center; padding: 40px; color: $text-muted; font-size: 14px; }
+
+// Botón recibir
+.btnRecibir {
+  @include flex(center, center, 6px);
+  padding: 6px 12px; border-radius: $radius-md;
+  background: $status-success-bg; color: $status-success-text;
+  border: 1px solid $status-success-border;
+  font-size: 12px; font-weight: 800; cursor: pointer;
+  font-family: $font-body; @include transition; white-space: nowrap;
+  &:hover { background: darken($status-success-bg, 4%); }
+}
+
+// Paginación
+.pagination { @include flex(center, center, 12px); padding: 14px; border-top: 1px solid $grey-4; }
+.pageBtn {
+  width: 32px; height: 32px; border-radius: $radius-sm; border: 1px solid $grey-4;
+  background: $white; @include flex-center; cursor: pointer; color: $black; @include transition;
+  &:hover:not(:disabled) { background: $main-2; border-color: $main-3; }
+  &:disabled { opacity: 0.4; cursor: not-allowed; }
+}
+.pageInfo { font-size: 13px; color: $text-muted; font-weight: 700; }
+
+// Botones globales
+.btnPrimary {
+  @include flex(center, center, 8px); padding: 9px 18px; border-radius: $radius-md;
+  background: $main-1; color: $white; border: none; font-size: 13px; font-weight: 800;
+  cursor: pointer; font-family: $font-body; @include transition(background, box-shadow); box-shadow: $shadow-main;
+  &:hover { background: $main-4; }
+}
+.btnSecondary {
+  padding: 9px 18px; border-radius: $radius-md; background: $white; color: $black;
+  border: 1px solid $grey-4; font-size: 13px; font-weight: 700; cursor: pointer;
+  font-family: $font-body; @include transition; &:hover { background: $grey-2; }
+}
+
+// Modal
+.modalOverlay { position: fixed; inset: 0; z-index: $z-dropdown + 10; background: rgba($black, 0.4); @include flex-center; }
+.modal {
+  background: $white; border-radius: $radius-xl; padding: 28px; width: 100%; max-width: 440px; box-shadow: $shadow-xl;
+  h3 { font-size: 18px; font-weight: 900; color: $black; margin: 0 0 16px; font-family: $font-heading; }
+  &__info { display: flex; flex-direction: column; gap: 8px; background: $grey-2; border-radius: $radius-lg; padding: 14px; margin-bottom: 14px; }
+  &__equipo { @include flex(flex-start, flex-start, 8px); font-size: 13px; color: $text-muted; }
+  &__warn { font-size: 12px; color: $status-warning-text; background: $status-warning-bg; border: 1px solid $status-warning-border; padding: 10px 14px; border-radius: $radius-md; margin-bottom: 16px; }
+  &__actions { @include flex(center, flex-end, 10px); }
+}
+
+// Badges
+.badge { @include status-badge($status-neutral-bg, $status-neutral-text, $status-neutral-border); }
+.badge--neutral { @include status-badge($status-neutral-bg, $status-neutral-text, $status-neutral-border); }
+.badge--info    { @include status-badge($status-info-bg,    $status-info-text,    $status-info-border); }
+.badge--pending { @include status-badge($status-pending-bg, $status-pending-text, $status-pending-border); }
+.badge--active  { @include status-badge($status-active-bg,  $status-active-text,  $status-active-border); }
+.badge--warning { @include status-badge($status-warning-bg, $status-warning-text, $status-warning-border); }
+.badge--success { @include status-badge($status-success-bg, $status-success-text, $status-success-border); }
+.badge--danger  { @include status-badge($status-danger-bg,  $status-danger-text,  $status-danger-border); }
+.badge--done    { @include status-badge($status-done-bg,    $status-done-text,    $status-done-border); }
