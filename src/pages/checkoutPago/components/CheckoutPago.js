@@ -353,7 +353,21 @@ const CheckoutPagos = ({ onBack, onSuccess }) => {
         razonSocial,
         nitCi,
       })
-    );
+    ).unwrap()
+  .then((res) => {
+    Swal.fire({
+      icon: "success",
+      title: "Pago confirmado",
+      text: res.message || "Operación exitosa",
+    });
+  })
+  .catch((error) => {
+    Swal.fire({
+      icon: "error",
+      title: "Error",
+      text: error || "Ocurrió un problema",
+    });
+  });
   }, [
     dispatch,
     metodoSeleccionado,
