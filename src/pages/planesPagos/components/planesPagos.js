@@ -5,27 +5,19 @@ import "./planesPagos.scss";
 import { fetchPlanes } from "../mock/data";
 
 
+import { useDispatch, useSelector } from "react-redux";
+import { planesSlice } from "../slicesPlanes/PlanSlice";
+import { obtenerPlanesThunk } from "../slicesPlanes/PlanThunk";
+
 function PlanesPagos() {
-  const [planes, setPlanes] = useState([]);
-  const [cargando, setCargando] = useState(true);
-  const [error, setError] = useState(null);
+  const dispatch = useDispatch();
+
+  const { planes, cargando, error } = useSelector((state) => state.planes);
   
   useEffect(() => {
-    let cancelado = false;
+    dispatch(obtenerPlanesThunk());
+  }, [dispatch]);
 
-    (async () => {
-      try {
-        const data = await fetchPlanes();
-        if (!cancelado) setPlanes(data);
-      } catch (err) {
-        if (!cancelado) setError(err.message || "Error desconocido");
-      } finally {
-        if (!cancelado) setCargando(false);
-      }
-    })();
-
-    return () => { cancelado = true; };
-  }, []);
 
   return (
     <main className="planes-pagos">

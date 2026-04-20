@@ -38,6 +38,7 @@ import tiposDispositivoReducer from '../pages/adminUsuarioFinal/slicesTiposDispo
 import usuariosEmpresaReducer from '../pages/adminEmpresa/slicesUsuariosEmpresa/UsuariosEmpresaSlice';
 import tiposDispositivoEmpresaReducer from '../pages/adminEmpresa/slicesTiposDispositivoEmpresa/TiposDispositivoEmpresaSlice';
 import inspeccionesReducer from '../pages/inspector/slicesInspecciones/InspeccionesSlice';
+import planesReducer from '../pages/planesPagos/slicesPlanes/PlanSlice';
 const loginPersistConfig = {
   key: 'login',
   storage,
@@ -63,6 +64,7 @@ export const rootReducer = combineReducers({
   //PARA EL INSPECTOR
   inspecciones: inspeccionesReducer,
 
+  planes :planesReducer,
   planEmpresa: planEmpresaReducer,
   checkout: checkoutReducer,
 });

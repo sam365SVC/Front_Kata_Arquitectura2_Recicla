@@ -7,7 +7,9 @@ import { store } from '../store/index';
 const api = axios.create({
   baseURL: 'http://localhost:3001/api/',
 });
-
+const apiFlags = axios.create({
+  baseURL: 'http://localhost:3004',
+});
 const METODO_TRANSFERENCIA = 'TRANSFERENCIA';
 
 const normalizarMetodoPago = (metodo) => {
@@ -342,12 +344,6 @@ export const pagoApi = {
     .then(res => res.data)
     .catch(handleError),
     
-  /*
-  confirmarPagoPorCompraTotal: (idCompraTotal, data) =>
-    api
-      .put(`/pago/confirmar/compra-total/${idCompraTotal}`, data)
-      .then((res) => res.data)
-      .catch(handleError),*/
 };
 
 export const qrApi = {
@@ -498,6 +494,55 @@ export const inspeccionesApi = {
     api.put(`/api/core/inspecciones/${idInspeccion}`, data).then((res) => res.data).catch(handleError),
   observarInspeccion: (idInspeccion, data) =>
     api.post(`/api/core/inspecciones/observar/${idInspeccion}`, data).then((res) => res.data).catch(handleError),
+};
+
+export const flagsApi = {
+  fetchFlags: (planId) =>
+    apiFlags
+      .get(`/flags/${planId}`)
+      .then((res) => res.data)
+      .catch(handleError),
+
+  // Verificar permiso según acción
+  verificarPermiso: (tenantId, accion) =>
+    apiFlags
+      .post(`/flags/${tenantId}/verificar`, { accion })
+      .then((res) => res.data)
+      .catch(handleError),
+
+  // Invalidar caché del tenant
+  invalidarCache: (tenantId) =>
+    apiFlags
+      .delete(`/flags/${tenantId}/cache`)
+      .then((res) => res.data)
+      .catch(handleError),
+
+  // Cambiar plan del tenant
+  cambiarPlan: (tenantId, data) =>
+    apiFlags
+      .put(`/flags/${tenantId}/plan`, {
+        nuevo_plan: data.nuevo_plan,
+        ciclo_inicio: data.ciclo_inicio,
+        ciclo_fin: data.ciclo_fin,
+      })
+      .then((res) => res.data)
+      .catch(handleError),
+
+  // Actualizar uso del tenant
+  actualizarUso: (tenantId, data) =>
+    apiFlags
+      .post(`/flags/${tenantId}/uso`, {
+        campo: data.campo,
+        cantidad: data.cantidad,
+      })
+      .then((res) => res.data)
+      .catch(handleError),
+
+  obtenerPlanes: () =>
+    apiFlags
+      .get(`/planes`)
+      .then((res) => res.data)
+      .catch(handleError),
 };
 
   
