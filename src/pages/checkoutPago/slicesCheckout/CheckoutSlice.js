@@ -5,11 +5,12 @@ import {
   confirmarPagoThunk,
   simularPagoTarjetaThunk,
   simularPagoTransferenciaThunk,
-  pagarConSaldoThunk,
+  confirmarSuscripcionThunk,
+  intentarEnviarComprobante,
 } from "./CheckoutThunk";
 
 const initialState = {
-  compraActual: null,
+  suscripcionActual: null,
 
   metodoSeleccionado: "QR",
   tipoComprobante: "RECIBO",
@@ -48,15 +49,14 @@ const limpiarEstadoTemporalPago = (state) => {
   state.successMessage = null;
 };
 
-const actualizarCompraSiExiste = (state, action) => {
-  const compraActualizada =
-    action.payload?.compra ||
-    action.payload?.compra_total ||
-    action.payload?.carrito ||
+const actualizarSuscripcionSiExiste = (state, action) => {
+  const suscripcion =
+    action.payload?.suscripcion ||
+    action.payload?.data ||
     null;
 
-  if (compraActualizada) {
-    state.compraActual = compraActualizada;
+  if (suscripcion) {
+    state.suscripcionActual = suscripcion;
   }
 };
 
@@ -64,8 +64,8 @@ const checkoutSlice = createSlice({
   name: "checkout",
   initialState,
   reducers: {
-    setCompraActual: (state, action) => {
-      state.compraActual = action.payload || null;
+    setsuscripcionActual: (state, action) => {
+      state.suscripcionActual = action.payload || null;
       limpiarEstadoTemporalPago(state);
     },
 
@@ -128,7 +128,7 @@ const checkoutSlice = createSlice({
         state.successMessage =
           action.payload?.message || "QR generado correctamente";
 
-        actualizarCompraSiExiste(state, action);
+        actualizarSuscripcionSiExiste(state, action);
       })
       .addCase(iniciarPagoQrThunk.rejected, (state, action) => {
         state.loading = false;
@@ -159,7 +159,7 @@ const checkoutSlice = createSlice({
         state.successMessage =
           action.payload?.message || "Pago confirmado correctamente";
 
-        actualizarCompraSiExiste(state, action);
+        actualizarSuscripcionSiExiste(state, action);
       })
       .addCase(confirmarPagoThunk.rejected, (state, action) => {
         state.loading = false;
@@ -180,7 +180,7 @@ const checkoutSlice = createSlice({
         state.successMessage =
           action.payload?.message || "Pago con tarjeta confirmado correctamente";
 
-        actualizarCompraSiExiste(state, action);
+        actualizarSuscripcionSiExiste(state, action);
       })
       .addCase(simularPagoTarjetaThunk.rejected, (state, action) => {
         state.loading = false;
@@ -202,7 +202,7 @@ const checkoutSlice = createSlice({
         state.successMessage =
           action.payload?.message || "Transferencia confirmada correctamente";
 
-        actualizarCompraSiExiste(state, action);
+        actualizarSuscripcionSiExiste(state, action);
       })
       .addCase(simularPagoTransferenciaThunk.rejected, (state, action) => {
         state.loading = false;
@@ -210,32 +210,24 @@ const checkoutSlice = createSlice({
         state.error = action.payload || "No se pudo procesar la transferencia";
       })
 
-      .addCase(pagarConSaldoThunk.pending, (state) => {
+      //suscripciones
+      .addCase(confirmarSuscripcionThunk.pending, (state) => {
         state.loading = true;
-        state.procesandoSaldo = true;
-        state.error = null;
       })
-      .addCase(pagarConSaldoThunk.fulfilled, (state, action) => {
+      .addCase(confirmarSuscripcionThunk.fulfilled, (state, action) => {
         state.loading = false;
-        state.procesandoSaldo = false;
-        state.pagoConfirmado = true;
-        state.pago = action.payload?.pago || null;
-        state.factura = action.payload?.factura || null;
-        state.successMessage =
-          action.payload?.message || "Pago con saldo confirmado correctamente";
-
-        actualizarCompraSiExiste(state, action);
+        state.suscripcion = action.payload.suscripcion;
       })
-      .addCase(pagarConSaldoThunk.rejected, (state, action) => {
+      .addCase(confirmarSuscripcionThunk.rejected, (state, action) => {
         state.loading = false;
-        state.procesandoSaldo = false;
-        state.error = action.payload || "No se pudo procesar el pago con saldo";
+        state.error = action.payload;
       });
+      
   },
 });
 
 export const {
-  setCompraActual,
+  setsuscripcionActual,
   clearCheckout,
   setMetodoSeleccionado,
   setTipoComprobante,
@@ -246,8 +238,8 @@ export const {
   resetCheckoutFlow,
 } = checkoutSlice.actions;
 
-export const selectCheckoutCompraActual = (state) =>
-  state?.checkout?.compraActual ?? null;
+export const selectCheckoutsuscripcionActual = (state) =>
+  state?.checkout?.suscripcionActual ?? null;
 
 export const selectCheckoutMetodoSeleccionado = (state) =>
   state?.checkout?.metodoSeleccionado ?? "QR";

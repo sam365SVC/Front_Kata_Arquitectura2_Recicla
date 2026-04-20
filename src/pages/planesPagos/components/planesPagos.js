@@ -2,41 +2,22 @@ import React, { useEffect, useState } from "react";
 import PlanCard from "./PlanCard";
 import "./planesPagos.scss";
 
-// ─── Origen de datos ──────────────────────────────────────────────────────────
-// En desarrollo se usa el mock; en producción apunta al endpoint real.
-// Para cambiar al endpoint real, sustituye la importación por:
-//   import { fetchPlanes } from "../../../services/planesService";
-// y elimina la de abajo.
 import { fetchPlanes } from "../mock/data";
 
-// Cuando el backend esté listo, usar algo como:
-// async function fetchPlanes() {
-//   const res = await fetch("/api/planes");
-//   if (!res.ok) throw new Error("Error al obtener los planes");
-//   return res.json();
-// }
+
+import { useDispatch, useSelector } from "react-redux";
+import { planesSlice } from "../slicesPlanes/PlanSlice";
+import { obtenerPlanesThunk } from "../slicesPlanes/PlanThunk";
 
 function PlanesPagos() {
-  const [planes, setPlanes] = useState([]);
-  const [cargando, setCargando] = useState(true);
-  const [error, setError] = useState(null);
+  const dispatch = useDispatch();
 
+  const { planes, cargando, error } = useSelector((state) => state.planes);
+  
   useEffect(() => {
-    let cancelado = false;
+    dispatch(obtenerPlanesThunk());
+  }, [dispatch]);
 
-    (async () => {
-      try {
-        const data = await fetchPlanes();
-        if (!cancelado) setPlanes(data);
-      } catch (err) {
-        if (!cancelado) setError(err.message || "Error desconocido");
-      } finally {
-        if (!cancelado) setCargando(false);
-      }
-    })();
-
-    return () => { cancelado = true; };
-  }, []);
 
   return (
     <main className="planes-pagos">

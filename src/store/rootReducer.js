@@ -11,13 +11,13 @@ import despachoReducer from './slices/despachoSlice';
 import ordenesReducer from './slices/ordenesSlice';
 import { authReducer }    from './slices/authSlice'; 
 
-
+import checkoutReducer from '../pages/checkoutPago/slicesCheckout/CheckoutSlice';
 // admin estudiantes
 import perfilReducer from '../pages/adminEstudiantes/slicesPerfil/PerfilSlice';
 import carritoReducer from '../pages/adminEstudiantes/slicesCarrito/CarritoSlice';
 import ofertaAcademicaReducer from '../pages/adminEstudiantes/slicesOfertaAcademica/OfertaAcademicaSlice';
 import cursosEstudianteReducer from '../pages/adminEstudiantes/slicesCursos/CursosSlice';
-import checkoutReducer from '../pages/adminEstudiantes/slicesCheckout/CheckoutSlice';
+//import checkoutReducer from '../pages/adminEstudiantes/slicesCheckout/CheckoutSlice';
 
 // admin docentes
 import perfilDocenteReducer from '../pages/adminDocentes/slicesPerfilDocente/PerfilDocenteSlice';
@@ -35,6 +35,7 @@ import tiposDispositivoReducer from '../pages/adminUsuarioFinal/slicesTiposDispo
 import usuariosEmpresaReducer from '../pages/adminEmpresa/slicesUsuariosEmpresa/UsuariosEmpresaSlice';
 import tiposDispositivoEmpresaReducer from '../pages/adminEmpresa/slicesTiposDispositivoEmpresa/TiposDispositivoEmpresaSlice';
 import inspeccionesReducer from '../pages/inspector/slicesInspecciones/InspeccionesSlice';
+import planesReducer from '../pages/planesPagos/slicesPlanes/PlanSlice';
 const loginPersistConfig = {
   key: 'login',
   storage,
@@ -60,7 +61,9 @@ export const rootReducer = combineReducers({
   //PARA EL INSPECTOR
   inspecciones: inspeccionesReducer,
 
+  planes :planesReducer,
   planEmpresa: planEmpresaReducer,
+  checkout: checkoutReducer,
 });
 
 export default rootReducer;

@@ -6,8 +6,6 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const extractErrorMessage = (error) => {
   if (!error) return "Ocurrió un error inesperado";
 
-  if (typeof error === "string") return error;
-
   return (
     error.message ||
     error.msg ||
@@ -17,23 +15,20 @@ const extractErrorMessage = (error) => {
   );
 };
 
-const createOrReusePago = async ({ idCompraTotal, metodo, monto }) => {
+const createOrReusePago = async ({ idSuscripcion, metodo, monto }) => {
   try {
-    const response = await pagoApi.createPago({
-      compra_total_id_compra_total: idCompraTotal,
+    return await pagoApi.createPago({
+      suscripcion_pago_id: idSuscripcion,
       metodo,
       monto,
     });
-
-    return response;
   } catch (error) {
+
     const message = extractErrorMessage(error).toLowerCase();
 
     if (
-      message.includes("pago existente reutilizado") ||
-      message.includes("ya existe un pago para esta compra total") ||
-      message.includes("el pago ya está confirmado") ||
-      message.includes("la compra ya está completada")
+      message.includes("ya existe") ||
+      message.includes("reutilizado")
     ) {
       return { ok: true, reused: true };
     }
@@ -42,53 +37,28 @@ const createOrReusePago = async ({ idCompraTotal, metodo, monto }) => {
   }
 };
 
-const intentarEnviarComprobante = async ({ idPago, idCompraTotal }) => {
-  try {
-    if (idPago) {
-      return await comprobantesApi.enviarComprobantePorPago(idPago);
-    }
-
-    if (idCompraTotal) {
-      return await comprobantesApi.enviarComprobantePorCompraTotal(idCompraTotal);
-    }
-
-    return null;
-  } catch (error) {
-    return {
-      ok: false,
-      message: extractErrorMessage(error),
-    };
-  }
-};
-
 export const iniciarPagoQrThunk = createAsyncThunk(
   "checkout/iniciarPagoQr",
   async (
-    { idCompraTotal, total, moneda = "BOB", gloss, additionalData },
+    { idSuscripcion, total, moneda = "BOB", gloss },
     { rejectWithValue }
   ) => {
     try {
-      const createPagoResponse = await createOrReusePago({
-        idCompraTotal,
+      
+      await createOrReusePago({
+        idSuscripcion,
         metodo: "QR",
         monto: total,
       });
 
       const response = await qrApi.generarQR({
-        id_compra_total: idCompraTotal,
+        suscripcion_pago_id: idSuscripcion,
         currency: moneda,
-        gloss: gloss || "Pago de inscripción",
+        gloss: gloss || "Pago de suscripción",
         amount: Number(total),
-        additionalData: additionalData || `Compra ${idCompraTotal}`,
       });
 
-      return {
-        ...response,
-        compra:
-          response?.compra ||
-          createPagoResponse?.compra_total ||
-          null,
-      };
+      return response;
     } catch (error) {
       return rejectWithValue(extractErrorMessage(error));
     }
@@ -97,14 +67,13 @@ export const iniciarPagoQrThunk = createAsyncThunk(
 
 export const verificarQrThunk = createAsyncThunk(
   "checkout/verificarQr",
-  async ({ idCompraTotal, qrId }, { rejectWithValue }) => {
+  async ({ idSuscripcion, qrId }, { rejectWithValue }) => {
     try {
-      const payload = idCompraTotal
-        ? { id_compra_total: idCompraTotal }
+      const payload = idSuscripcion
+        ? { suscripcion_id: idSuscripcion }
         : { qrId };
 
-      const response = await qrApi.verificarPagoQR(payload);
-      return response;
+      return await qrApi.verificarPagoQR(payload);
     } catch (error) {
       return rejectWithValue(extractErrorMessage(error));
     }
@@ -113,24 +82,16 @@ export const verificarQrThunk = createAsyncThunk(
 
 export const confirmarPagoThunk = createAsyncThunk(
   "checkout/confirmarPago",
-  async ({ idCompraTotal, tipo, razonSocial, nitCi }, { rejectWithValue }) => {
+  async (
+    { idSuscripcion, tipo, razonSocial, nitCi },
+    { rejectWithValue }
+  ) => {
     try {
-      const response = await pagoApi.confirmarPagoPorCompraTotal(idCompraTotal, {
+      return await pagoApi.confirmarPagoPorSuscripcion(idSuscripcion, {
         tipo,
         razon_social: razonSocial,
         nit_ci: nitCi,
       });
-
-      const comprobanteResult = await intentarEnviarComprobante({
-        idPago: response?.pago?.id_pago,
-        idCompraTotal,
-      });
-
-      return {
-        ...response,
-        comprobante_enviado: comprobanteResult?.ok === true,
-        comprobante_resultado: comprobanteResult || null,
-      };
     } catch (error) {
       return rejectWithValue(extractErrorMessage(error));
     }
@@ -140,34 +101,23 @@ export const confirmarPagoThunk = createAsyncThunk(
 export const simularPagoTarjetaThunk = createAsyncThunk(
   "checkout/simularPagoTarjeta",
   async (
-    { idCompraTotal, total, tipo, razonSocial, nitCi, delayMs = 2800 },
+    { idSuscripcion, total, tipo, razonSocial, nitCi },
     { rejectWithValue }
   ) => {
     try {
       await createOrReusePago({
-        idCompraTotal,
+        idSuscripcion,
         metodo: "TARJETA",
         monto: total,
       });
 
-      await sleep(delayMs);
+      await sleep(2500);
 
-      const response = await pagoApi.confirmarPagoPorCompraTotal(idCompraTotal, {
+      return await pagoApi.confirmarPagoSuscripcion(idSuscripcion, {
         tipo,
         razon_social: razonSocial,
         nit_ci: nitCi,
       });
-
-      const comprobanteResult = await intentarEnviarComprobante({
-        idPago: response?.pago?.id_pago,
-        idCompraTotal,
-      });
-
-      return {
-        ...response,
-        comprobante_enviado: comprobanteResult?.ok === true,
-        comprobante_resultado: comprobanteResult || null,
-      };
     } catch (error) {
       return rejectWithValue(extractErrorMessage(error));
     }
@@ -177,34 +127,23 @@ export const simularPagoTarjetaThunk = createAsyncThunk(
 export const simularPagoTransferenciaThunk = createAsyncThunk(
   "checkout/simularPagoTransferencia",
   async (
-    { idCompraTotal, total, tipo, razonSocial, nitCi, delayMs = 5000 },
+    { idSuscripcion, total, tipo, razonSocial, nitCi },
     { rejectWithValue }
   ) => {
     try {
       await createOrReusePago({
-        idCompraTotal,
+        idSuscripcion,
         metodo: "TRANSFERENCIA",
         monto: total,
       });
 
-      await sleep(delayMs);
+      await sleep(4000);
 
-      const response = await pagoApi.confirmarPagoPorCompraTotal(idCompraTotal, {
+      return await pagoApi.confirmarPagoSuscripcion(idSuscripcion, {
         tipo,
         razon_social: razonSocial,
         nit_ci: nitCi,
       });
-
-      const comprobanteResult = await intentarEnviarComprobante({
-        idPago: response?.pago?.id_pago,
-        idCompraTotal,
-      });
-
-      return {
-        ...response,
-        comprobante_enviado: comprobanteResult?.ok === true,
-        comprobante_resultado: comprobanteResult || null,
-      };
     } catch (error) {
       return rejectWithValue(extractErrorMessage(error));
     }
@@ -213,35 +152,55 @@ export const simularPagoTransferenciaThunk = createAsyncThunk(
 
 export const pagarConSaldoThunk = createAsyncThunk(
   "checkout/pagarConSaldo",
-  async ({ idCompraTotal, tipo, razonSocial, nitCi }, { rejectWithValue }) => {
+  async (
+    { idSuscripcion, tipo, razonSocial, nitCi },
+    { rejectWithValue }
+  ) => {
     try {
-      const createPagoResponse = await createOrReusePago({
-        idCompraTotal,
+      await createOrReusePago({
+        idSuscripcion,
         metodo: "SALDO",
         monto: 0,
       });
 
-      const response = await pagoApi.confirmarPagoPorCompraTotal(idCompraTotal, {
+      return await pagoApi.confirmarPagoSuscripcion(idSuscripcion, {
         tipo,
         razon_social: razonSocial,
         nit_ci: nitCi,
       });
+    } catch (error) {
+      return rejectWithValue(extractErrorMessage(error));
+    }
+  }
+);
 
-      const comprobanteResult = await intentarEnviarComprobante({
-        idPago: response?.pago?.id_pago,
-        idCompraTotal,
-      });
+export const confirmarSuscripcionThunk = createAsyncThunk(
+  "suscripcion/confirmarPorId",
+  async (idSuscripcion, { rejectWithValue }) => {
+    try {
+      const response = await pagoApi.confirmarSuscripcionId(idSuscripcion);
+      return response;
 
-      return {
-        ...response,
-        compra:
-          response?.compra ||
-          response?.compra_total ||
-          createPagoResponse?.compra_total ||
-          null,
-        comprobante_enviado: comprobanteResult?.ok === true,
-        comprobante_resultado: comprobanteResult || null,
-      };
+    } catch (error) {
+      return rejectWithValue(extractErrorMessage(error));
+    }
+  }
+);
+
+export const intentarEnviarComprobante = createAsyncThunk(
+  "checkout/intentarEnviarComprobante",
+  async ({ idPago, email }, { rejectWithValue }) => {
+    try {
+      if (idPago) {
+        const resp = await comprobantesApi.enviarComprobantePorPago({
+          idPago,
+          email,
+        });
+
+        return resp;
+      }
+
+      return null;
     } catch (error) {
       return rejectWithValue(extractErrorMessage(error));
     }
