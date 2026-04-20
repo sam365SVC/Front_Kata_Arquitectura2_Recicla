@@ -1,11 +1,6 @@
-import React from 'react';
-import HeaderFive from '../../components/Header/HeaderFive';
-import AdminWrapper from './adminWrapper';
-import FooterTwo from '../../components/Footer/FooterTwo';
+import AdminWrapper from './AdminWrapper';
 
-import Logo from '../../assets/img/logo/logo-white-2.png';
-
-const Admin = () => {
+const Docente = () => {
   return (
     <>
      
@@ -15,4 +10,4 @@ const Admin = () => {
       
     </>
   );
-}; export default Admin;
+}; export default Docente;

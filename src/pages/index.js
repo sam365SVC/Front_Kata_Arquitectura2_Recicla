@@ -44,10 +44,15 @@ import Docente from './adminDocentes';
 
 
 import AdminUsuarioFinal from './adminUsuarioFinal';
+import Despachador from './despachador';
+import Conductor from './conductor';
+import PlanesPagos from './planesPagos';
+import CheckoutPago from './checkoutPago';
 import AdminEmpresa from './adminEmpresa';
 
 //nuevo
 import Inspector from './inspector';
+import CrearSuscripcion from './crearSuscripcion.js';
 
 export {
   Home,
@@ -93,7 +98,12 @@ export {
   Estudiante,
   Docente,
   AdminUsuarioFinal,
+  Despachador,
+  Conductor,
+  PlanesPagos,
+  CheckoutPago,
   AdminEmpresa,
   Inspector,
+  CrearSuscripcion,
 };
 

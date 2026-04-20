@@ -5,9 +5,11 @@ import { store } from '../store/index';
 // por ahora con la api del microservicio del core
 //NOTA: CAMBIAR CON LA INTEGRACION DE LOS DEMAS
 const api = axios.create({
-  baseURL: 'http://localhost:3000',
+  baseURL: 'http://localhost:3001/api/',
 });
-
+const apiFlags = axios.create({
+  baseURL: 'http://localhost:3004',
+});
 const METODO_TRANSFERENCIA = 'TRANSFERENCIA';
 
 const normalizarMetodoPago = (metodo) => {
@@ -19,6 +21,7 @@ const normalizarMetodoPago = (metodo) => {
 };
 
 // request interceptor
+/*
 api.interceptors.request.use((config) => {
   const state = store.getState();
   const user = state?.login?.user;
@@ -35,6 +38,15 @@ api.interceptors.request.use((config) => {
     config.headers['x-token'] = user.token;
   }
 
+  return config;
+});
+*/
+//TRAMPEADA TEMPORAL
+api.interceptors.request.use((config) => {
+  const state = store.getState();
+
+  config.headers['x-token'] = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjozLCJhY2NvdW50IjoiQURNSU4iLCJlbWFpbCI6Iml2b25uZS5jb2xxdWVAdWNiLmVkdS5ibyIsInRlbmFudF9pZCI6OCwidGVuYW50X25hbWUiOiJHYXRvYnl0ZSAiLCJkZXBhcnRtZW50IjoiRmluYW56YXMiLCJwb3NpdGlvbiI6ImJvc3MiLCJpc3MiOiJzMS10ZW5hbnQiLCJleHAiOjE3NzY2Nzk4NDksImlhdCI6MTc3NjU5MzQ0OX0.pOWxkmHRuA_oSQVA0WJ23AtBIckPlDkHkBSih_fINhs";
+  
   return config;
 });
 
@@ -271,25 +283,67 @@ export const perfilApi = {
 
 export const pagoApi = {
   fetchPagos: () =>
-    api.get('/pago').then((res) => res.data).catch(handleError),
+    api.get('/pagos').then((res) => res.data).catch(handleError),
 
   fetchPagoById: (id) =>
-    api.get(`/pago/${id}`).then((res) => res.data).catch(handleError),
+    api.get(`/pagos/${id}`).then((res) => res.data).catch(handleError),
 
   createPago: (data) =>
     api
-      .post('/pago/new', {
+      .post('/pagos/new', {
         ...data,
         metodo: normalizarMetodoPago(data?.metodo),
       })
       .then((res) => res.data)
       .catch(handleError),
-
-  confirmarPagoPorCompraTotal: (idCompraTotal, data) =>
+  
+    // SUSCRIPCIONES    
+  confirmarSuscripcionId: (idSuscripcion) =>
     api
-      .put(`/pago/confirmar/compra-total/${idCompraTotal}`, data)
-      .then((res) => res.data)
+      .get(`/suscripcion-pagos/${idSuscripcion}`)
+      .then(res => res.data)
       .catch(handleError),
+    
+  confirmarPagoSuscripcion: (idSuscripcion, data) =>
+    api
+      .put(`/suscripcion-pagos/${idSuscripcion}`, data)
+        .then(res => res.data)
+        .catch(handleError),
+    
+  createSuscripcion: (data) =>
+    api
+      .post('/suscripcion-pagos/new', {
+        user_id: data.user_id,
+        servicio_id: data.servicio_id,
+        meses: data.meses,
+        precio_unitario: data.precio_unitario,
+        moneda: data.moneda,
+      })
+      .then(res => res.data)
+      .catch(handleError),
+
+  createFacturaRecibo: (data) =>
+    api
+      .post('/factura-recibo/new', {
+        pago_id_pago: data.pago_id_pago,
+        tipo: data.tipo,
+        numero: data.numero,
+        razon_social: data.razon_social,
+        nit_ci: data.nit_ci,
+      })
+      .then(res => res.data)
+      .catch(handleError),
+
+  confirmarPagoPorSuscripcion: (idSuscripcion, data) =>
+  api
+    .put(`/pagos/confirmar/suscripcion/${idSuscripcion}`, {
+      tipo: data.tipo,
+      razon_social: data.razon_social,
+      nit_ci: data.nit_ci,
+    })
+    .then(res => res.data)
+    .catch(handleError),
+    
 };
 
 export const qrApi = {
@@ -309,17 +363,15 @@ export const certificadosApi = {
 };
 
 export const comprobantesApi = {
-  enviarComprobantePorPago: (idPago) =>
+  enviarComprobantePorPago: ({ idPago, email }) =>
     api
-      .post('/comprobantes/enviar', { id_pago: idPago })
+      .post('/comprobantes/enviar', { 
+        id_suscripcion_pago: idPago,
+        user_email: email, 
+      })
       .then((res) => res.data)
       .catch(handleError),
 
-  enviarComprobantePorCompraTotal: (idCompraTotal) =>
-    api
-      .post('/comprobantes/enviar', { id_compra_total: idCompraTotal })
-      .then((res) => res.data)
-      .catch(handleError),
 };
 export const perfilDocenteApi = {
   fetchPerfilDocenteByUserId: (userId) =>
@@ -442,6 +494,55 @@ export const inspeccionesApi = {
     api.put(`/api/core/inspecciones/${idInspeccion}`, data).then((res) => res.data).catch(handleError),
   observarInspeccion: (idInspeccion, data) =>
     api.post(`/api/core/inspecciones/observar/${idInspeccion}`, data).then((res) => res.data).catch(handleError),
+};
+
+export const flagsApi = {
+  fetchFlags: (planId) =>
+    apiFlags
+      .get(`/flags/${planId}`)
+      .then((res) => res.data)
+      .catch(handleError),
+
+  // Verificar permiso según acción
+  verificarPermiso: (tenantId, accion) =>
+    apiFlags
+      .post(`/flags/${tenantId}/verificar`, { accion })
+      .then((res) => res.data)
+      .catch(handleError),
+
+  // Invalidar caché del tenant
+  invalidarCache: (tenantId) =>
+    apiFlags
+      .delete(`/flags/${tenantId}/cache`)
+      .then((res) => res.data)
+      .catch(handleError),
+
+  // Cambiar plan del tenant
+  cambiarPlan: (tenantId, data) =>
+    apiFlags
+      .put(`/flags/${tenantId}/plan`, {
+        nuevo_plan: data.nuevo_plan,
+        ciclo_inicio: data.ciclo_inicio,
+        ciclo_fin: data.ciclo_fin,
+      })
+      .then((res) => res.data)
+      .catch(handleError),
+
+  // Actualizar uso del tenant
+  actualizarUso: (tenantId, data) =>
+    apiFlags
+      .post(`/flags/${tenantId}/uso`, {
+        campo: data.campo,
+        cantidad: data.cantidad,
+      })
+      .then((res) => res.data)
+      .catch(handleError),
+
+  obtenerPlanes: () =>
+    apiFlags
+      .get(`/planes`)
+      .then((res) => res.data)
+      .catch(handleError),
 };
 
   

@@ -14,14 +14,17 @@ import 'swiper/scss/effect-fade';
 
 import { Provider } from 'react-redux';
 import { store } from './store';
+import { SocketProvider } from './socket/SocketContext';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
     <Provider store={store}>
-      <Router>
-        <App />
-      </Router>
+      <SocketProvider>
+        <Router>
+          <App />
+        </Router>
+      </SocketProvider>
     </Provider>
   </React.StrictMode>
 );
