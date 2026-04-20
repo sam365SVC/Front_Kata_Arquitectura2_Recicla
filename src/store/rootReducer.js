@@ -10,10 +10,7 @@ import ubicacionesReducer from './slices/ubicacionesSlice';
 import despachoReducer from './slices/despachoSlice';
 import ordenesReducer from './slices/ordenesSlice';
 import { authReducer }    from './slices/authSlice'; 
-// admin
-//import studentsReducer from '../pages/admin/slicesStudents/StudentsSlice';
-//import docentesReducer from '../pages/admin/slicesDocentes/DocentesSlice';
-//import cursoReducer from '../pages/admin/slicesCursos/CursosSlice';
+
 import checkoutReducer from '../pages/checkoutPago/slicesCheckout/CheckoutSlice';
 // admin estudiantes
 import perfilReducer from '../pages/adminEstudiantes/slicesPerfil/PerfilSlice';

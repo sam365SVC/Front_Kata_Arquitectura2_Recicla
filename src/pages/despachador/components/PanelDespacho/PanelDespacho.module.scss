@@ -10,178 +10,177 @@
 }
 
 .btnIcon {
-  width: 38px; height: 38px; border-radius: $radius-md;
-  border: 1px solid $grey-4; background: $white;
-  @include flex-center; cursor: pointer; color: $black;
-  @include transition; flex-shrink: 0;
+  width: 38px; height: 38px; border-radius: $radius-md; border: 1px solid $grey-4;
+  background: $white; @include flex-center; cursor: pointer; color: $black; @include transition; flex-shrink: 0;
   &:hover { background: $grey-2; }
 }
 
-// Layout 2 columnas 
 .layout {
-  display: grid; grid-template-columns: 1fr 380px; gap: 20px;
-  flex: 1; min-height: 0; overflow: hidden;
-  @include respond-to($bp-lg)  { grid-template-columns: 1fr; overflow: visible; }
+  display: grid; grid-template-columns: 1fr 360px; gap: 20px; flex: 1; min-height: 0; overflow: hidden;
+  @include respond-to($bp-lg) { grid-template-columns: 1fr; overflow: visible; }
 }
 
-.col {
-  display: flex; flex-direction: column; gap: 12px;
-  min-height: 0; overflow: hidden;
-  @include respond-to($bp-lg) { overflow: visible; }
-}
+.col { display: flex; flex-direction: column; gap: 12px; min-height: 0; overflow: hidden;
+  @include respond-to($bp-lg) { overflow: visible; } }
 
 .colHeader {
   @include flex(center, space-between, 8px); flex-shrink: 0;
   h2 { font-size: 15px; font-weight: 900; color: $black; margin: 0; font-family: $font-heading; }
 }
 
-.selCount {
-  @include status-badge($main-2, $main-4, $main-3);
-}
+.selCount { @include status-badge($main-2, $main-4, $main-3); }
 
-// Lista de órdenes 
 .ordenesList {
-  flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;
-  @include scrollbar;
-  @include respond-to($bp-lg) { max-height: 50vh; }
+  flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; @include scrollbar;
+  @include respond-to($bp-lg) { max-height: 60vh; }
 }
 
 .ordenCard {
-  width: 100%; border: 2px solid $grey-4; border-radius: $radius-lg;
-  background: $white; padding: 14px; cursor: pointer;
-  @include flex(flex-start, flex-start, 12px);
-  @include transition; text-align: left;
-  &:hover { border-color: $main-3; background: $main-2; }
+  border: 2px solid $grey-4; border-radius: $radius-lg; background: $white;
+  @include transition; overflow: hidden;
 
-  &--selected {
-    border-color: $main-1; background: $main-2;
-    box-shadow: 0 0 0 3px rgba($main-1, 0.12);
+  &--selected { border-color: $main-1; background: $main-2; box-shadow: 0 0 0 3px rgba($main-1, 0.12); }
+
+  &__main {
+    padding: 12px 14px; cursor: pointer; @include flex(flex-start, flex-start, 12px);
+    &:hover { background: rgba($main-1, 0.04); }
+    .ordenCard--selected &:hover { background: transparent; }
   }
 
   &__check {
-    width: 20px; height: 20px; border-radius: 6px; flex-shrink: 0;
-    border: 2px solid $grey-4; @include flex-center; margin-top: 1px;
-    color: $white; background: transparent;
-    @include transition(background, border-color);
-
+    width: 20px; height: 20px; border-radius: 6px; flex-shrink: 0; margin-top: 2px;
+    border: 2px solid $grey-4; @include flex-center; color: $white; @include transition(background, border-color);
     .ordenCard--selected & { background: $main-1; border-color: $main-1; }
   }
 
-  &__body { flex: 1; min-width: 0; }
+  &__body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 5px; }
 
-  &__top { @include flex(center, space-between, 8px); margin-bottom: 6px; }
+  &__top { @include flex(center, space-between, 8px); }
 
-  &__cliente { font-size: 14px; font-weight: 800; color: $black; margin: 0; @include truncate; }
+  &__clienteRow { @include flex(center, flex-start, 6px); }
+  &__cliente    { font-size: 14px; font-weight: 800; color: $black; @include truncate; }
+  &__tel        { font-size: 11px; color: $text-muted; white-space: nowrap; }
 
-  &__dir { font-size: 12px; color: $text-muted; margin: 3px 0 0; @include truncate; }
+  &__origenRow  { @include flex(flex-start, flex-start, 6px); color: $text-muted; }
+  &__dir        { font-size: 12px; color: $text-muted; @include truncate; }
+  &__ref        { font-size: 11px; color: $main-4; margin: 0 0 0 18px; font-style: italic; }
 
-  &__tipo { font-size: 11px; color: $text-muted; margin: 4px 0 0; }
+  &__expandBtn {
+    width: 100%; @include flex(center, flex-start, 8px);
+    padding: 8px 14px; border: none; border-top: 1px solid $grey-4;
+    background: $grey-2; color: $text-muted; cursor: pointer;
+    font-size: 12px; font-weight: 700; font-family: $font-body; @include transition;
+    &:hover { background: $grey-4; color: $black; }
+  }
+
+  &__expandArrow { margin-left: auto; font-size: 10px; }
+}
+
+// Detalle del equipo 
+.equipoDetail {
+  background: $grey-3; border-top: 1px solid $grey-4;
+  padding: 12px 14px 12px 46px; display: flex; flex-direction: column; gap: 6px;
+
+  &__row { @include flex(flex-start, flex-start, 8px); }
+
+  &__label {
+    font-size: 11px; font-weight: 800; color: $text-muted; text-transform: uppercase;
+    letter-spacing: 0.4px; min-width: 80px; flex-shrink: 0; padding-top: 1px;
+  }
+
+  &__val  { font-size: 13px; color: $black; font-weight: 700; }
+
+  &__desc { font-size: 12px; color: $text-muted; line-height: 1.4; }
+}
+
+// Condición dots
+.condDot {
+  font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: $radius-pill;
+  &--success { @include status-badge($status-success-bg, $status-success-text, $status-success-border); }
+  &--active  { @include status-badge($status-active-bg,  $status-active-text,  $status-active-border); }
+  &--warning { @include status-badge($status-warning-bg, $status-warning-text, $status-warning-border); }
+  &--danger  { @include status-badge($status-danger-bg,  $status-danger-text,  $status-danger-border); }
+  &--neutral { @include status-badge($status-neutral-bg, $status-neutral-text, $status-neutral-border); }
 }
 
 .code {
-  font-family: $font-mono; font-size: 11px;
-  background: rgba($main-4, 0.1); color: $main-4;
-  padding: 2px 7px; border-radius: $radius-sm;
+  font-family: $font-mono; font-size: 11px; background: rgba($main-4, 0.1);
+  color: $main-4; padding: 2px 7px; border-radius: $radius-sm;
 }
 
-// Badges 
 .badge { @include status-badge($status-neutral-bg, $status-neutral-text, $status-neutral-border); }
 .badge--urgente { @include status-badge($status-danger-bg,  $status-danger-text,  $status-danger-border); }
 .badge--normal  { @include status-badge($status-neutral-bg, $status-neutral-text, $status-neutral-border); }
 
 // Asignación
-.asignBox {
-  @include card; padding: 20px;
-  display: flex; flex-direction: column; gap: 16px;
-}
+.asignBox { @include card; padding: 20px; display: flex; flex-direction: column; gap: 16px; }
 
 .label {
   display: flex; flex-direction: column; gap: 6px;
-  font-size: 12px; font-weight: 800; color: $black-2;
-  text-transform: uppercase; letter-spacing: 0.4px;
+  font-size: 12px; font-weight: 800; color: $black-2; text-transform: uppercase; letter-spacing: 0.4px;
 }
 
 .select {
   padding: 10px 12px; border: 1px solid $grey-4; border-radius: $radius-md;
-  font-size: 13px; font-family: $font-body; color: $text-body;
-  background: $white; cursor: pointer; @include transition(border-color);
+  font-size: 13px; font-family: $font-body; color: $text-body; background: $white; cursor: pointer;
   &:focus { outline: none; border-color: $main-3; }
 }
 
 .resumen {
   background: $grey-2; border-radius: $radius-md; padding: 12px 14px;
   display: flex; flex-direction: column; gap: 4px;
-  p { font-size: 13px; color: $text-muted; margin: 0;
-      strong { color: $black; } }
+  p { font-size: 13px; color: $text-muted; margin: 0; strong { color: $black; } }
 }
 
 .btnDespachar {
-  @include flex(center, center, 10px);
-  width: 100%; padding: 13px; border-radius: $radius-md;
-  background: $main-1; color: $white; border: none;
-  font-size: 14px; font-weight: 900; cursor: pointer;
-  font-family: $font-body; @include transition(background, box-shadow);
-  box-shadow: $shadow-main;
+  @include flex(center, center, 10px); width: 100%; padding: 13px; border-radius: $radius-md;
+  background: $main-1; color: $white; border: none; font-size: 14px; font-weight: 900;
+  cursor: pointer; font-family: $font-body; @include transition(background, box-shadow); box-shadow: $shadow-main;
   &:hover:not(:disabled) { background: $main-4; }
   &:disabled { opacity: 0.5; cursor: not-allowed; }
 }
 
 // Resultado ruta 
 .rutaResult {
-  @include card; padding: 18px;
-  display: flex; flex-direction: column; gap: 14px;
+  @include card; padding: 18px; display: flex; flex-direction: column; gap: 14px;
   border-left: 4px solid $main-1;
-
   &__header { @include flex(center, space-between, 8px); }
-
   h3 { font-size: 14px; font-weight: 900; color: $black; margin: 0; font-family: $font-heading; }
 }
 
 .btnClear {
-  font-size: 12px; color: $text-muted; background: none; border: none;
-  cursor: pointer; @include transition(color); padding: 0;
-  &:hover { color: $status-danger-text; }
+  font-size: 12px; color: $text-muted; background: none; border: none; cursor: pointer;
+  @include transition(color); padding: 0; &:hover { color: $status-danger-text; }
 }
 
-.rutaStats {
-  display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
-}
+.rutaStats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
 
 .rutaStat {
-  background: $grey-2; border-radius: $radius-md; padding: 12px;
-  text-align: center;
-
-  &__val   { font-size: 20px; font-weight: 900; color: $black; margin: 0; font-family: $font-heading; }
+  background: $grey-2; border-radius: $radius-md; padding: 12px; text-align: center;
+  &__val   { font-size: 22px; font-weight: 900; color: $black; margin: 0; font-family: $font-heading; }
   &__label { font-size: 11px; color: $text-muted; font-weight: 700; margin: 4px 0 0; text-transform: uppercase; }
 }
 
 .waypoints {
-  display: flex; flex-direction: column; gap: 6px;
-  list-style: none; padding: 0; margin: 0;
-  max-height: 260px; overflow-y: auto; @include scrollbar;
+  display: flex; flex-direction: column; gap: 6px; list-style: none; padding: 0; margin: 0;
+  max-height: 280px; overflow-y: auto; @include scrollbar;
 }
 
 .waypoint {
-  @include flex(flex-start, flex-start, 10px);
-  padding: 10px; background: $grey-2; border-radius: $radius-md;
+  @include flex(flex-start, flex-start, 10px); padding: 10px; background: $grey-2; border-radius: $radius-md;
 
   &__num {
-    width: 22px; height: 22px; border-radius: 50%;
-    background: $main-1; color: $white; @include flex-center;
-    font-size: 11px; font-weight: 900; flex-shrink: 0; margin-top: 1px;
+    width: 24px; height: 24px; border-radius: 50%; background: $main-1; color: $white;
+    @include flex-center; font-size: 11px; font-weight: 900; flex-shrink: 0; margin-top: 1px;
+    &--destino { background: $black; }
   }
 
+  &__info { flex: 1; }
   &__nombre { font-size: 13px; font-weight: 700; color: $black; margin: 0; }
   &__tipo   { font-size: 11px; color: $text-muted; margin: 2px 0 0; }
 }
 
-// Vacío y carga 
-.emptyState {
-  @include flex-center; flex-direction: column; gap: 10px;
-  padding: 40px 0; color: $text-muted;
-  p { font-size: 14px; font-weight: 700; margin: 0; }
-}
-
+.emptyState { @include flex-center; flex-direction: column; gap: 10px; padding: 40px 0; color: $text-muted;
+  p { font-size: 14px; font-weight: 700; margin: 0; } }
 .emptyIcon { color: $status-success-text; }
-
-.loading { text-align: center; color: $text-muted; padding: 30px 0; font-size: 14px; }
+.loading   { text-align: center; color: $text-muted; padding: 30px 0; font-size: 14px; }
