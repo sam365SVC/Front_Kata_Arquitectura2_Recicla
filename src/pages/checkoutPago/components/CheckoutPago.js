@@ -457,6 +457,7 @@ const CheckoutPagos = ({ onBack, onSuccess }) => {
           idSuscripcion: compra.idSuscripcion,
           total: montoPendienteCalculado,
           moneda: compra.moneda,
+          tipoPago: 'SAAS',
           gloss: "Pago de suscripción",
           additionalData: `Compra ${compra.idSuscripcion}`,
         })
@@ -495,6 +496,7 @@ const CheckoutPagos = ({ onBack, onSuccess }) => {
           idSuscripcion: compra.idSuscripcion,
           total: montoPendienteCalculado,
           tipo: tipoComprobante,
+          tipoPago: 'SAAS',
           razonSocial,
           nitCi,
         })
@@ -528,6 +530,7 @@ const CheckoutPagos = ({ onBack, onSuccess }) => {
           idSuscripcion: compra.idSuscripcion,
           total: montoPendienteCalculado,
           tipo: tipoComprobante,
+          tipoPago: 'SAAS',
           razonSocial,
           nitCi,
         })
@@ -561,6 +564,7 @@ const CheckoutPagos = ({ onBack, onSuccess }) => {
           idSuscripcion: compra.idSuscripcion,
           tipo: tipoComprobante,
           razonSocial,
+          tipoPago: 'SAAS',
           nitCi,
         })
       ).unwrap();
