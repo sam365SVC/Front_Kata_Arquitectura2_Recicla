@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { FaFilePdf, FaFileExcel, FaChartPie, FaMobileAlt, FaRecycle, FaClipboardCheck, FaDownload } from 'react-icons/fa';
 import Swal from 'sweetalert2';
 import { Chart, registerables } from 'chart.js';
+import { FaFilePdf, FaFileExcel, FaChartPie, FaMobileAlt, FaRecycle, FaClipboardCheck, FaDownload } from 'react-icons/fa';
 import styles from "./ReportesReecicla.module.scss";
 import {
   fetchDatosReportes,

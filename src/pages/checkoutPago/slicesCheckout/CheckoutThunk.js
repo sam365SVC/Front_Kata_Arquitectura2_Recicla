@@ -18,36 +18,80 @@ const extractErrorMessage = (error) => {
 const createOrReusePago = async ({ idSuscripcion, metodo, monto, tipoPago }) => {
   try {
     return await pagoApi.createPago({
-      referencia_id: idSuscripcion,  
+      referencia_id: idSuscripcion,
       metodo,
       monto,
-      tipo_pago: tipoPago,          
+      tipo_pago: tipoPago,
     });
   } catch (error) {
     const message = extractErrorMessage(error).toLowerCase();
-    if (
-      message.includes("ya existe") ||
-      message.includes("reutilizado")
-    ) {
+
+    if (message.includes("ya existe") || message.includes("reutilizado")) {
       return { ok: true, reused: true };
     }
+
     throw error;
   }
 };
 
+const resolveSuscripcionFromPayload = (payload) => {
+  return payload?.suscripcion || payload?.data?.suscripcion || null;
+};
+
+const resolvePagoFromPayload = (payload) => {
+  return payload?.pago || payload?.data?.pago || null;
+};
+
+const resolveFacturaFromPayload = (payload) => {
+  return payload?.factura || payload?.data?.factura || null;
+};
+
+const resolvePlanChangeFromPayload = (payload) => {
+  return payload?.plan || payload?.data?.plan || null;
+};
+
+const buildSuccessMessage = (payload) => {
+  const suscripcion = resolveSuscripcionFromPayload(payload);
+  const plan = resolvePlanChangeFromPayload(payload);
+
+  const nombrePlan =
+    suscripcion?.nombre_plan ||
+    suscripcion?.plan_nombre ||
+    payload?.nombre_plan ||
+    null;
+
+  const fechaFin = suscripcion?.fecha_fin
+    ? new Date(suscripcion.fecha_fin).toLocaleDateString("es-BO")
+    : null;
+
+  const esFree = String(nombrePlan || "").trim().toLowerCase() === "free";
+
+  if (plan?.ok && nombrePlan && fechaFin) {
+    if (esFree) {
+      return `Tu plan ${nombrePlan} fue activado correctamente. Estará vigente hasta ${fechaFin}.`;
+    }
+
+    return `Tu upgrade al plan ${nombrePlan} fue aplicado correctamente. Tendrás este plan activo hasta ${fechaFin}.`;
+  }
+
+  return payload?.message || "Pago confirmado correctamente";
+};
+
+// =========================
+// INICIAR PAGO QR
+// =========================
 export const iniciarPagoQrThunk = createAsyncThunk(
   "checkout/iniciarPagoQr",
   async (
-    { idSuscripcion, total, moneda = "BOB", gloss ,tipoPago},
+    { idSuscripcion, total, moneda = "BOB", gloss, tipoPago },
     { rejectWithValue }
   ) => {
     try {
-      
       await createOrReusePago({
         idSuscripcion,
         metodo: "QR",
         monto: total,
-        tipoPago
+        tipoPago,
       });
 
       const response = await qrApi.generarQR({
@@ -64,6 +108,9 @@ export const iniciarPagoQrThunk = createAsyncThunk(
   }
 );
 
+// =========================
+// VERIFICAR QR
+// =========================
 export const verificarQrThunk = createAsyncThunk(
   "checkout/verificarQr",
   async ({ idSuscripcion, qrId }, { rejectWithValue }) => {
@@ -79,6 +126,9 @@ export const verificarQrThunk = createAsyncThunk(
   }
 );
 
+// =========================
+// CONFIRMAR PAGO
+// =========================
 export const confirmarPagoThunk = createAsyncThunk(
   "checkout/confirmarPago",
   async (
@@ -86,21 +136,33 @@ export const confirmarPagoThunk = createAsyncThunk(
     { rejectWithValue }
   ) => {
     try {
-      return await pagoApi.confirmarPagoPorSuscripcion(idSuscripcion, {
+      const response = await pagoApi.confirmarPagoPorSuscripcion(idSuscripcion, {
         tipo,
         razon_social: razonSocial,
         nit_ci: nitCi,
       });
+
+      return {
+        ...response,
+        pago: resolvePagoFromPayload(response),
+        factura: resolveFacturaFromPayload(response),
+        suscripcion: resolveSuscripcionFromPayload(response),
+        planChange: resolvePlanChangeFromPayload(response),
+        successMessage: buildSuccessMessage(response),
+      };
     } catch (error) {
       return rejectWithValue(extractErrorMessage(error));
     }
   }
 );
 
+// =========================
+// TARJETA
+// =========================
 export const simularPagoTarjetaThunk = createAsyncThunk(
   "checkout/simularPagoTarjeta",
   async (
-    { idSuscripcion, total, tipo, razonSocial, nitCi  ,tipoPago},
+    { idSuscripcion, total, tipo, razonSocial, nitCi, tipoPago },
     { rejectWithValue }
   ) => {
     try {
@@ -108,26 +170,38 @@ export const simularPagoTarjetaThunk = createAsyncThunk(
         idSuscripcion,
         metodo: "TARJETA",
         monto: total,
-        tipoPago
+        tipoPago,
       });
 
       await sleep(2500);
 
-      return await pagoApi.confirmarPagoSuscripcion(idSuscripcion, {
+      const response = await pagoApi.confirmarPagoSuscripcion(idSuscripcion, {
         tipo,
         razon_social: razonSocial,
         nit_ci: nitCi,
       });
+
+      return {
+        ...response,
+        pago: resolvePagoFromPayload(response),
+        factura: resolveFacturaFromPayload(response),
+        suscripcion: resolveSuscripcionFromPayload(response),
+        planChange: resolvePlanChangeFromPayload(response),
+        successMessage: buildSuccessMessage(response),
+      };
     } catch (error) {
       return rejectWithValue(extractErrorMessage(error));
     }
   }
 );
 
+// =========================
+// TRANSFERENCIA
+// =========================
 export const simularPagoTransferenciaThunk = createAsyncThunk(
   "checkout/simularPagoTransferencia",
   async (
-    { idSuscripcion, total, tipo, razonSocial, nitCi  ,tipoPago},
+    { idSuscripcion, total, tipo, razonSocial, nitCi, tipoPago },
     { rejectWithValue }
   ) => {
     try {
@@ -140,21 +214,33 @@ export const simularPagoTransferenciaThunk = createAsyncThunk(
 
       await sleep(4000);
 
-      return await pagoApi.confirmarPagoSuscripcion(idSuscripcion, {
+      const response = await pagoApi.confirmarPagoSuscripcion(idSuscripcion, {
         tipo,
         razon_social: razonSocial,
         nit_ci: nitCi,
       });
+
+      return {
+        ...response,
+        pago: resolvePagoFromPayload(response),
+        factura: resolveFacturaFromPayload(response),
+        suscripcion: resolveSuscripcionFromPayload(response),
+        planChange: resolvePlanChangeFromPayload(response),
+        successMessage: buildSuccessMessage(response),
+      };
     } catch (error) {
       return rejectWithValue(extractErrorMessage(error));
     }
   }
 );
 
+// =========================
+// SALDO
+// =========================
 export const pagarConSaldoThunk = createAsyncThunk(
   "checkout/pagarConSaldo",
   async (
-    { idSuscripcion, tipo, razonSocial, nitCi  ,tipoPago},
+    { idSuscripcion, tipo, razonSocial, nitCi, tipoPago },
     { rejectWithValue }
   ) => {
     try {
@@ -162,47 +248,56 @@ export const pagarConSaldoThunk = createAsyncThunk(
         idSuscripcion,
         metodo: "SALDO",
         monto: 0,
-        tipoPago        
+        tipoPago,
       });
 
-      return await pagoApi.confirmarPagoSuscripcion(idSuscripcion, {
+      const response = await pagoApi.confirmarPagoSuscripcion(idSuscripcion, {
         tipo,
         razon_social: razonSocial,
         nit_ci: nitCi,
       });
+
+      return {
+        ...response,
+        pago: resolvePagoFromPayload(response),
+        factura: resolveFacturaFromPayload(response),
+        suscripcion: resolveSuscripcionFromPayload(response),
+        planChange: resolvePlanChangeFromPayload(response),
+        successMessage: buildSuccessMessage(response),
+      };
     } catch (error) {
       return rejectWithValue(extractErrorMessage(error));
     }
   }
 );
 
+// =========================
+// OBTENER SUSCRIPCIÓN
+// =========================
 export const confirmarSuscripcionThunk = createAsyncThunk(
-  "suscripcion/confirmarPorId",
+  "checkout/confirmarSuscripcionPorId",
   async (idSuscripcion, { rejectWithValue }) => {
     try {
-      const response = await pagoApi.confirmarSuscripcionId(idSuscripcion);
-      return response;
-
+      return await pagoApi.confirmarSuscripcionId(idSuscripcion);
     } catch (error) {
       return rejectWithValue(extractErrorMessage(error));
     }
   }
 );
 
+// =========================
+// ENVIAR COMPROBANTE
+// =========================
 export const intentarEnviarComprobante = createAsyncThunk(
   "checkout/intentarEnviarComprobante",
-  async ({ idPago, email }, { rejectWithValue }) => {
+  async ({ idSuscripcionPago, email }, { rejectWithValue }) => {
     try {
-      if (idPago) {
-        const resp = await comprobantesApi.enviarComprobantePorPago({
-          idPago,
-          email,
-        });
+      if (!idSuscripcionPago || !email) return null;
 
-        return resp;
-      }
-
-      return null;
+      return await comprobantesApi.enviarComprobantePorPago({
+        idSuscripcionPago,
+        email,
+      });
     } catch (error) {
       return rejectWithValue(extractErrorMessage(error));
     }

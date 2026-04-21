@@ -103,13 +103,35 @@ export const actualizarUsoThunk = createAsyncThunk(
 // OBTENER PLANES
 // =========================
 export const obtenerPlanesThunk = createAsyncThunk(
-  "flags/obtenerPlanes",
+
+  "planes/obtenerPlanes",
+
   async (_, { rejectWithValue }) => {
+
     try {
+
       const response = await flagsApi.obtenerPlanes();
-      return response;
+
+      if (Array.isArray(response?.data)) {
+
+        return response.data;
+
+      }
+
+      if (Array.isArray(response)) {
+
+        return response;
+
+      }
+
+      return [];
+
     } catch (error) {
+
       return rejectWithValue(extractErrorMessage(error));
+
     }
+
   }
+
 );

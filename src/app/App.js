@@ -8,6 +8,7 @@ import ScrollToTop from "../components/ScrollToTop";
 import LoadTop from "../components/ScrollToTop/LoadTop";
 import ProtectedRoute from "../components/auth/ProtectedRoute";
 
+
 import {
   About,
   Blog,
@@ -207,6 +208,14 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+  path="/admin-empresa/planes"
+  element={
+    <ProtectedRoute allowedRoles={["ADMIN_TENANT"]}>
+      <PlanesPagos modo="empresa" />
+    </ProtectedRoute>
+  }
+/>
 
         <Route
           path="/checkout-pagos/:id"
