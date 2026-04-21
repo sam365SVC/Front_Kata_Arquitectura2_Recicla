@@ -1,99 +1,95 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   FiClipboard,
-  FiClock,
-  FiCheckSquare,
   FiMenu,
   FiChevronLeft,
   FiChevronRight,
   FiLogOut,
   FiTool,
-  FiAlertCircle,
 } from "react-icons/fi";
-import { MdOutlineDevices } from "react-icons/md";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 
 import styles from "./ClientOffersWrapper.module.scss";
-import MisCotizaciones from "./components/MisInspecciones";
+import MisInspecciones from "./components/MisInspecciones";
+
+import { logout } from "../signin/slices/loginSlice";
+import { selectUser } from "../signin/slices/loginSelectors";
 
 const NAV_ITEMS = [
   {
     id: "asignadas",
-    label: "Solicitudes Asignadas",
+    label: "Inspecciones asignadas",
     icon: FiClipboard,
-    title: "Solicitudes asignadas",
-    description: "Revisa las solicitudes preliminares que requieren inspección.",
-  },
-  {
-    id: "en_proceso",
-    label: "En Inspección",
-    icon: FiTool,
-    title: "Inspecciones en proceso",
-    description: "Gestiona las inspecciones técnicas que están siendo evaluadas.",
-    disabled: true,
-  },
-  {
-    id: "finalizadas",
-    label: "Finalizadas",
-    icon: FiCheckSquare,
-    title: "Inspecciones finalizadas",
-    description: "Consulta inspecciones concluidas con resultado aprobado o rechazado.",
-    disabled: true,
-  },
-  {
-    id: "observadas",
-    label: "Observadas",
-    icon: FiAlertCircle,
-    title: "Solicitudes observadas",
-    description: "Solicitudes con inconsistencias o hallazgos importantes durante la revisión.",
-    disabled: true,
+    title: "Inspecciones asignadas",
+    description: "Revisa y gestiona las inspecciones técnicas que tienes asignadas.",
   },
 ];
 
 const renderContent = (tab) => {
   switch (tab) {
     case "asignadas":
-      return <MisCotizaciones />;
+      return <MisInspecciones />;
     default:
-      return (
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            height: "60vh",
-            gap: 12,
-            fontFamily: "'Nunito', sans-serif",
-          }}
-        >
-          <FiClock size={40} color="#BDB77C" />
-          <p style={{ fontSize: 16, fontWeight: 700, color: "#4D5756" }}>
-            Próximamente disponible
-          </p>
-        </div>
-      );
+      return <MisInspecciones />;
   }
 };
 
+const getInitials = (name = "") => {
+  if (!name.trim()) return "IN";
+
+  return name
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((p) => p[0])
+    .join("")
+    .toUpperCase();
+};
+
+const getDisplayNameFromEmail = (email = "") => {
+  if (!email || !email.includes("@")) return "Inspector";
+
+  return email
+    .split("@")[0]
+    .split(/[._-]/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+};
+
 const InspectorWrapper = ({
-  inspectorNombre = "Inspector",
-  inspectorEmail = "inspector@email.com",
+  inspectorNombre: inspectorNombreProp,
+  inspectorEmail: inspectorEmailProp,
 }) => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  const user = useSelector(selectUser);
+
   const [activeTab, setActiveTab] = useState("asignadas");
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  const inspectorEmail =
+    inspectorEmailProp || user?.mail || user?.email || "inspector@email.com";
+
+  const inspectorNombre =
+    inspectorNombreProp ||
+    user?.nombres ||
+    [user?.nombre, user?.apellido].filter(Boolean).join(" ") ||
+    getDisplayNameFromEmail(inspectorEmail);
 
   const activeItem = useMemo(
     () => NAV_ITEMS.find((n) => n.id === activeTab) || NAV_ITEMS[0],
     [activeTab]
   );
 
-  const iniciales = inspectorNombre
-    .split(" ")
-    .slice(0, 2)
-    .map((p) => p[0])
-    .join("")
-    .toUpperCase();
+  const iniciales = useMemo(
+    () => getInitials(inspectorNombre),
+    [inspectorNombre]
+  );
 
   useEffect(() => {
     const handle = () => {
@@ -111,6 +107,38 @@ const InspectorWrapper = ({
     setMobileOpen(false);
   };
 
+  const handleLogout = async () => {
+    const result = await Swal.fire({
+      title: "¿Cerrar sesión?",
+      text: "Tendrás que volver a iniciar sesión para acceder al panel.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Sí, salir",
+      cancelButtonText: "Cancelar",
+      confirmButtonColor: "#78793F",
+      cancelButtonColor: "#B0B0B0",
+      background: "#fffef8",
+      color: "#2f2f2f",
+      reverseButtons: true,
+    });
+
+    if (!result.isConfirmed) return;
+
+    dispatch(logout());
+
+    await Swal.fire({
+      title: "Sesión cerrada",
+      text: "Has salido correctamente.",
+      icon: "success",
+      timer: 1200,
+      showConfirmButton: false,
+      background: "#fffef8",
+      color: "#2f2f2f",
+    });
+
+    navigate("/signin", { replace: true });
+  };
+
   const sidebarClass = [
     styles.sidebar,
     collapsed ? styles["sidebar--collapsed"] : "",
@@ -126,9 +154,11 @@ const InspectorWrapper = ({
           className={styles.mobileBar__toggle}
           onClick={() => setMobileOpen(true)}
           aria-label="Abrir menú"
+          type="button"
         >
           <FiMenu size={18} />
         </button>
+
         <div className={styles.mobileBar__info}>
           <h2>
             Panel <span>Inspector</span>
@@ -160,6 +190,7 @@ const InspectorWrapper = ({
             className={styles.sidebar__toggleBtn}
             onClick={() => setCollapsed((c) => !c)}
             aria-label={collapsed ? "Expandir" : "Colapsar"}
+            type="button"
           >
             {collapsed ? (
               <FiChevronRight size={13} />
@@ -187,21 +218,18 @@ const InspectorWrapper = ({
                   className={[
                     styles.sidebar__navItem,
                     isAct ? styles["sidebar__navItem--active"] : "",
-                    item.disabled ? styles["sidebar__navItem--disabled"] : "",
                   ]
                     .filter(Boolean)
                     .join(" ")}
-                  onClick={() => !item.disabled && handleNav(item.id)}
+                  onClick={() => handleNav(item.id)}
                   title={collapsed ? item.label : undefined}
                   aria-current={isAct ? "page" : undefined}
+                  type="button"
                 >
                   <span className={styles.sidebar__navIcon}>
                     <Icon size={18} />
                   </span>
                   <span className={styles.sidebar__navLabel}>{item.label}</span>
-                  {item.disabled && (
-                    <span className={styles.sidebar__navSoon}>Pronto</span>
-                  )}
                 </button>
               );
             })}
@@ -211,12 +239,19 @@ const InspectorWrapper = ({
             <div className={styles.sidebar__footerUser}>
               <div className={styles.sidebar__footerAvatar}>{iniciales}</div>
               <div className={styles.sidebar__footerInfo}>
-                <p>{inspectorNombre}</p>
-                <span>{inspectorEmail}</span>
+                <p title={inspectorNombre}>{inspectorNombre}</p>
+                <span title={inspectorEmail}>{inspectorEmail}</span>
               </div>
-              <div className={styles.sidebar__footerAction}>
+
+              <button
+                type="button"
+                className={styles.sidebar__footerAction}
+                onClick={handleLogout}
+                aria-label="Cerrar sesión"
+                title="Cerrar sesión"
+              >
                 <FiLogOut size={15} />
-              </div>
+              </button>
             </div>
           </div>
         </aside>
