@@ -1,12 +1,22 @@
 import React, { useState, useEffect, useMemo } from "react";
 import {
   FiClipboard, FiClock, FiCheckSquare,
-  FiMenu, FiChevronLeft, FiChevronRight, FiLogOut,
+  FiMenu, FiChevronLeft, FiChevronRight, FiLogOut, FiCreditCard,
 } from "react-icons/fi";
 import { MdOutlineDevices } from "react-icons/md";
 
 import styles from "./ClientOffersWrapper.module.scss";
 import MisCotizaciones from "./components/MisCotizaciones";
+
+import { useSelector } from "react-redux";
+import {
+  selectUser,
+  selectTenantId,
+} from "../signin/slices/loginSelectors";
+import { useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
+import { logout } from "../signin/slices/loginSlice";
 
 const NAV_ITEMS = [
     {
@@ -17,20 +27,12 @@ const NAV_ITEMS = [
         description: "Gestiona y revisa todas tus solicitudes de valoración de dispositivos.",
     },
     {
-        id:          "historial",
-        label:       "Historial",
-        icon:        FiClock,
-        title:       "Historial de actividad",
-        description: "Revisa el historial completo de tus movimientos anteriores.",
-        disabled:    true,
-    },
-    {
-        id:          "aprobadas",
-        label:       "Aprobadas",
-        icon:        FiCheckSquare,
-        title:       "Cotizaciones aprobadas",
-        description: "Todas las cotizaciones que fueron aprobadas y pagadas.",
-        disabled:    true,
+        id: "pagos",
+        label: "Pagos",
+        icon: FiCreditCard,
+        title: "Pagos y cotizaciones",
+        description:
+          "Revisa tu saldo  actual, sus beneficios, límites y opciones disponibles.",
     },
 ];
 
@@ -61,12 +63,57 @@ const renderContent = (tab) => {
 };
 
 const ClientOffersWrapper = ({
-  clienteNombre = "Cliente",
-  clienteEmail  = "cliente@email.com",
 }) => {
     const [activeTab,   setActiveTab]   = useState("cotizaciones");
     const [collapsed,   setCollapsed]   = useState(false);
     const [mobileOpen,  setMobileOpen]  = useState(false);
+
+    const user      = useSelector(selectUser);
+    const tenantId  = useSelector(selectTenantId);
+
+    const clienteId    = user?.uid;
+    const clienteNombre = user?.nombre && user?.apellido
+    ? `${user.nombre} ${user.apellido}`
+    : user?.nombre || user?.email || "Cliente";
+
+    const clienteEmail = user?.email || "";
+
+    // dentro del componente
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
+
+    const handleLogout = async () => {
+        const result = await Swal.fire({
+            title: "¿Cerrar sesión?",
+            text: "Tendrás que volver a iniciar sesión para continuar.",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Sí, salir",
+            cancelButtonText: "Cancelar",
+            confirmButtonColor: "#78793F",
+            cancelButtonColor: "#B0B0B0",
+            background: "#fffef8",
+            color: "#2f2f2f",
+            reverseButtons: true,
+        });
+
+        if (!result.isConfirmed) return;
+
+        dispatch(logout());
+
+        await Swal.fire({
+            title: "Sesión cerrada",
+            text: "Has salido correctamente.",
+            icon: "success",
+            timer: 1200,
+            showConfirmButton: false,
+            background: "#fffef8",
+            color: "#2f2f2f",
+        });
+
+        navigate("/signin", { replace: true });
+    };
+
 
     const activeItem = useMemo(
         () => NAV_ITEMS.find((n) => n.id === activeTab) || NAV_ITEMS[0],
@@ -189,9 +236,15 @@ const ClientOffersWrapper = ({
                     <p>{clienteNombre}</p>
                     <span>{clienteEmail}</span>
                 </div>
-                <div className={styles.sidebar__footerAction}>
+                <button
+                type="button"
+                className={styles.sidebar__footerAction}
+                onClick={handleLogout}
+                aria-label="Cerrar sesión"
+                title="Cerrar sesión"
+                >
                     <FiLogOut size={15} />
-                </div>
+                </button>
                 </div>
             </div>
             </aside>
