@@ -1,7 +1,3 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { FaFilePdf, FaFileExcel, FaChartPie, FaMobileAlt, FaRecycle, FaClipboardCheck, FaDownload } from 'react-icons/fa';
-import Swal from 'sweetalert2';
-import { Chart, registerables } from 'chart.js';
 Chart.register(...registerables);
 
 const GQL_URL = 'http://localhost:4009/graphql';
@@ -49,7 +45,6 @@ const M_GENERAR = (mutation) => `
   }
 `;
 import { useDispatch, useSelector } from 'react-redux';
-import { FaFilePdf, FaFileExcel, FaChartPie, FaMobileAlt, FaRecycle, FaClipboardCheck, FaDownload } from 'react-icons/fa';
 import Swal from 'sweetalert2';
 import { Chart, registerables } from 'chart.js';
 import styles from "./ReportesReecicla.module.scss";
@@ -136,7 +131,6 @@ const ReporteCard = ({ icon, titulo, descripcion, mutation, onGenerar, loading }
 // ─── Componente principal ─────────────────────────────────────────────────────
 
 const ReportesReecicla = () => {
-  const [resumen, setResumen] = useState(null);
   const [dispositivos, setDispositivos] = useState([]);
   const [loading, setLoading] = useState(false);
   const [fechaDesde, setFechaDesde] = useState('2026-01-01');
