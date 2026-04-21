@@ -19,7 +19,43 @@ const featureValue = (value) => {
 
 const isPositiveFeature = (value) => {
   const normalized = String(value || "").toLowerCase().trim();
-  return normalized !== "no";
+  return normalized !== "no" && normalized !== "ninguno" && normalized !== "-";
+};
+
+const formatPrice = (precio, moneda = "Bs.") => {
+  if (precio === null || precio === undefined || precio === "") {
+    return "Personalizado";
+  }
+
+  const parsed = Number(precio);
+
+  if (Number.isNaN(parsed)) {
+    return `${moneda} ${precio}`;
+  }
+
+  return `${moneda} ${parsed.toLocaleString("es-BO")}`;
+};
+
+const getPlanSubtitle = (plan) => {
+  const nombre = String(plan?.nombre || "").toLowerCase();
+
+  if (nombre.includes("free")) {
+    return "Ideal para comenzar y probar la plataforma.";
+  }
+
+  if (nombre.includes("basic")) {
+    return "Para operaciones pequeñas con necesidades iniciales.";
+  }
+
+  if (nombre.includes("premium")) {
+    return "Para empresas en crecimiento con mayor operación.";
+  }
+
+  if (nombre.includes("enterprise")) {
+    return "Para operaciones avanzadas con necesidades amplias.";
+  }
+
+  return "Una opción diseñada para ajustarse a las necesidades de tu empresa.";
 };
 
 const PlanChangeModal = ({
@@ -30,7 +66,8 @@ const PlanChangeModal = ({
   onChangePlan,
 }) => {
   const currentPlan = useMemo(
-    () => plans.find((plan) => plan.id === currentPlanId) || null,
+    () =>
+      plans.find((plan) => String(plan.id) === String(currentPlanId)) || null,
     [plans, currentPlanId]
   );
 
@@ -75,7 +112,7 @@ const PlanChangeModal = ({
 
           <div className={styles.planGrid}>
             {plans.map((plan) => {
-              const isCurrent = plan.id === currentPlanId;
+              const isCurrent = String(plan.id) === String(currentPlanId);
 
               return (
                 <article
@@ -87,33 +124,26 @@ const PlanChangeModal = ({
                   <div className={styles.planCard__top}>
                     <div>
                       <div className={styles.planCard__titleRow}>
-                        <h4>{plan.nombre}</h4>
+                        <h4>{plan.nombre || "Sin nombre"}</h4>
                         {isCurrent && (
                           <span className={styles.planBadge}>Actual</span>
                         )}
                       </div>
 
                       <p className={styles.planSubtitle}>
-                        {plan.nombre === "Free" &&
-                          "Ideal para comenzar y probar la plataforma."}
-                        {plan.nombre === "Basic" &&
-                          "Para operaciones pequeñas con necesidades iniciales."}
-                        {plan.nombre === "Premium" &&
-                          "Para empresas en crecimiento con mayor operación."}
-                        {plan.nombre === "Enterprise" &&
-                          "Para operaciones avanzadas con necesidades amplias."}
+                        {getPlanSubtitle(plan)}
                       </p>
                     </div>
 
                     <div className={styles.planPrice}>
-                      {plan.precio === null ? (
+                      {plan.precio === null || plan.precio === undefined ? (
                         <>
                           <strong>Personalizado</strong>
                           <span>contáctanos</span>
                         </>
                       ) : (
                         <>
-                          <strong>Bs. {plan.precio}</strong>
+                          <strong>{formatPrice(plan.precio, plan.moneda)}</strong>
                           <span>por mes</span>
                         </>
                       )}
@@ -123,15 +153,17 @@ const PlanChangeModal = ({
                   <div className={styles.planHighlights}>
                     <div className={styles.planHighlight}>
                       <FiBox size={15} />
-                      <span>{plan.dispositivos} dispositivos</span>
+                      <span>{featureValue(plan.dispositivos)} dispositivos</span>
                     </div>
+
                     <div className={styles.planHighlight}>
                       <FiZap size={15} />
-                      <span>{plan.reglas} reglas</span>
+                      <span>{featureValue(plan.reglas)} reglas</span>
                     </div>
+
                     <div className={styles.planHighlight}>
                       <FiUsers size={15} />
-                      <span>{plan.inspectores} inspectores</span>
+                      <span>{featureValue(plan.inspectores)} inspectores</span>
                     </div>
                   </div>
 
@@ -166,8 +198,8 @@ const PlanChangeModal = ({
                     {plans.map((plan) => (
                       <th key={plan.id}>
                         <div className={styles.tablePlanHead}>
-                          <span>{plan.nombre}</span>
-                          {plan.id === currentPlanId && (
+                          <span>{plan.nombre || "Sin nombre"}</span>
+                          {String(plan.id) === String(currentPlanId) && (
                             <small>Actual</small>
                           )}
                         </div>
@@ -183,7 +215,9 @@ const PlanChangeModal = ({
                       Dispositivos en catálogo
                     </td>
                     {plans.map((plan) => (
-                      <td key={`${plan.id}-dispositivos`}>{plan.dispositivos}</td>
+                      <td key={`${plan.id}-dispositivos`}>
+                        {featureValue(plan.dispositivos)}
+                      </td>
                     ))}
                   </tr>
 
@@ -193,7 +227,9 @@ const PlanChangeModal = ({
                       Reglas de cotización
                     </td>
                     {plans.map((plan) => (
-                      <td key={`${plan.id}-reglas`}>{plan.reglas}</td>
+                      <td key={`${plan.id}-reglas`}>
+                        {featureValue(plan.reglas)}
+                      </td>
                     ))}
                   </tr>
 
@@ -203,7 +239,9 @@ const PlanChangeModal = ({
                       Usuarios inspectores
                     </td>
                     {plans.map((plan) => (
-                      <td key={`${plan.id}-inspectores`}>{plan.inspectores}</td>
+                      <td key={`${plan.id}-inspectores`}>
+                        {featureValue(plan.inspectores)}
+                      </td>
                     ))}
                   </tr>
 
@@ -213,7 +251,9 @@ const PlanChangeModal = ({
                       Historial de operaciones
                     </td>
                     {plans.map((plan) => (
-                      <td key={`${plan.id}-historial`}>{plan.historial}</td>
+                      <td key={`${plan.id}-historial`}>
+                        {featureValue(plan.historial)}
+                      </td>
                     ))}
                   </tr>
 

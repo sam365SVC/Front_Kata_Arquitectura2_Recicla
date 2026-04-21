@@ -9,9 +9,6 @@ import HomeFourOnePage from './home-4/home-4-one-page';
 import HomeFive from './home-5';
 import HomeFiveOnePage from './home-5/home-5-one-page';
 import About from './about';
-import CourseOne from './course';
-import CourseTwo from './course/course-2';
-import CourseDetails from './course/course-details';
 import Event from './event';
 import EventDetails from './event/event-details';
 import Teacher from './teacher';
@@ -39,8 +36,6 @@ import BlogDetails from './blog/blog-details';
 import Contact from './contact';
 
 import Admin from './admin';
-import Estudiante from './adminEstudiantes';
-import Docente from './adminDocentes';
 
 
 import AdminUsuarioFinal from './adminUsuarioFinal';
@@ -69,9 +64,6 @@ export {
   HomeFive,
   HomeFiveOnePage,
   About,
-  CourseOne,
-  CourseTwo,
-  CourseDetails,
   Event,
   EventDetails,
   Teacher,
@@ -98,8 +90,6 @@ export {
   BlogDetails,
   Contact,
   Admin,
-  Estudiante,
-  Docente,
   AdminUsuarioFinal,
   Despachador,
   Conductor,
