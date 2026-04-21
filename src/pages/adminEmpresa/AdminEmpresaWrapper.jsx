@@ -8,6 +8,7 @@ import {
   FiSettings,
   FiCreditCard,
   FiBarChart,
+  FiCheck,
 } from "react-icons/fi";
 import { MdOutlineBusinessCenter } from "react-icons/md";
 import { useDispatch, useSelector } from "react-redux";
@@ -19,6 +20,7 @@ import UsuariosEmpresa from "./components/UsuariosEmpresa";
 import TiposDispositivoEmpresa from "./components/TiposDispositivoEmpresa";
 import PlanEmpresa from "./components/PlanEmpresa";
 import ReportesReecicla from "./components/ReportesReecicla";
+import PagosEmpresa from "./components/PagosEmpresa";
 
 import { logout } from "../signin/slices/loginSlice";
 import {
@@ -61,6 +63,15 @@ const NAV_ITEMS = [
     description:
       "Observa en graficas, estadisticas y rangos sobre tu negocio",
   },
+  {id: "misPagos",
+    label: "Mis pagos",
+    icon: FiCheck,
+    title: "Historial de pagos",
+    description:
+      "Revisa tu historial de pagos y detalles de transacciones.",
+
+  },
+
 ];
 
 const renderContent = (tab, props) => {
@@ -77,6 +88,8 @@ const renderContent = (tab, props) => {
     case "reportes":
       return <ReportesReecicla {...props} />;
 
+    case "misPagos":
+      return <PagosEmpresa {...props} />;
     default:
       return <UsuariosEmpresa {...props} />;
   }

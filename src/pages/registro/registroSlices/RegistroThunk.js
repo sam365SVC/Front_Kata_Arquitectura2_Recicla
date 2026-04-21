@@ -14,7 +14,7 @@ export const registrarClienteThunk = createAsyncThunk(
         telefono: normalizeText(payload?.telefono),
         direccion: normalizeText(payload?.direccion),
         password: normalizeText(payload?.password),
-        tenant_id: 6, // ID de tenant fijo para clientes registrados desde esta página
+        tenant_id: Number(payload?.tenant_id), // ID de tenant fijo para clientes registrados desde esta página
       };
 
       const response = await authApi.registrarCliente(body);
@@ -50,4 +50,36 @@ export const registrarTenantThunk = createAsyncThunk(
       );
     }
   }
+);
+
+export const fetchTenantsDisponibles = createAsyncThunk(
+
+  "registro/fetchTenantsDisponibles",
+
+  async (params = {}, { rejectWithValue }) => {
+
+    try {
+
+      const response = await authApi.listarTenants(params);
+
+      return response;
+
+    } catch (error) {
+
+      return rejectWithValue(
+
+        error?.message ||
+
+          error?.error?.message ||
+
+          error?.data?.message ||
+
+          "No se pudieron cargar las empresas disponibles."
+
+      );
+
+    }
+
+  }
+
 );

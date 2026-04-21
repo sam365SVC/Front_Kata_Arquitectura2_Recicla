@@ -1,12 +1,13 @@
-import React, { useEffect, useState } from 'react';
-import { Routes, Route, useLocation } from 'react-router-dom';
-import 'animate.css/animate.min.css';
-import { WOW } from 'wowjs';
+import React, { useEffect, useState } from "react";
+import { Routes, Route, useLocation } from "react-router-dom";
+import "animate.css/animate.min.css";
+import { WOW } from "wowjs";
 
-import Preloader from '../components/Preloader';
-import ScrollToTop from '../components/ScrollToTop';
-import LoadTop from '../components/ScrollToTop/LoadTop';
+import Preloader from "../components/Preloader";
+import ScrollToTop from "../components/ScrollToTop";
+import LoadTop from "../components/ScrollToTop/LoadTop";
 import ProtectedRoute from "../components/auth/ProtectedRoute";
+
 
 import {
   About,
@@ -56,23 +57,23 @@ import {
   Inspector,
   RegistroPage,
   RegistroEmpleado,
-  AdminService
-} from '../pages';
+  AdminService,
+} from "../pages";
 
 function App() {
   const [isLoading, setIsLoading] = useState(true);
   const location = useLocation();
 
-  //preloader
   useEffect(() => {
-    setTimeout(() => {
+    const timer = setTimeout(() => {
       setIsLoading(false);
     }, 500);
+
+    return () => clearTimeout(timer);
   }, []);
 
-  //Initialize wow
   useEffect(() => {
-    new WOW({ live: false, animateClass: 'animate__animated' }).init();
+    new WOW({ live: false, animateClass: "animate__animated" }).init();
   }, [location]);
 
   return (
@@ -80,7 +81,9 @@ function App() {
       {isLoading && <Preloader />}
       <ScrollToTop />
       <LoadTop />
+
       <Routes>
+        {/* Públicas */}
         <Route path="/" element={<Home />} />
         <Route path="/home-one-page" element={<HomeOnePage />} />
         <Route path="/home-2" element={<HomeTwo />} />
@@ -119,180 +122,124 @@ function App() {
         <Route path="/blog-sidebar" element={<BlogSidebar />} />
         <Route path="/blog-details" element={<BlogDetails />} />
         <Route path="/contact" element={<Contact />} />
-        <Route path="*" element={<Error />} />
-
-        <Route path="/admin" element={<Admin />} />
-       
-        <Route path="/admin-usfin" element={<AdminUsuarioFinal />} />
-        <Route path="/despachador" element={<Despachador />} />
-        <Route path="/conductor" element={<Conductor />} />
-        <Route path="/planes-pagos" element={<PlanesPagos />} />
-        <Route path="/checkout-pagos/:id" element={<CheckoutPago />} />
-        <Route path="/crear-suscripcion/:id" element={<CrearSuscripcion />} />
-        <Route path="/admin-empresa" element={<AdminEmpresa />} />
-        <Route path="/inspector" element={<Inspector />} />
-        <Route path="/registro" element={<RegistroPage  />} />
+        <Route path="/registro" element={<RegistroPage />} />
         <Route path="/registro-empleado" element={<RegistroEmpleado />} />
-        <Route path="/admin-servicio" element={<AdminService />} />
-        <Route
 
+        {/* Protegidas */}
+        <Route
           path="/admin"
-
           element={
-
             <ProtectedRoute allowedRoles={["ADMIN_LOGISTICA"]}>
-
               <Admin />
-
             </ProtectedRoute>
-
           }
-
         />
 
         <Route
-
           path="/admin-empresa"
-
           element={
-
             <ProtectedRoute allowedRoles={["ADMIN_TENANT"]}>
-
               <AdminEmpresa />
-
             </ProtectedRoute>
-
           }
-
         />
-        <Route
 
+        <Route
           path="/admin-servicio"
-
           element={
-
             <ProtectedRoute allowedRoles={["SUPERADMIN"]}>
-
               <AdminService />
-
             </ProtectedRoute>
-
           }
-
         />
 
         <Route
-
           path="/admin-usuario-final"
-
           element={
-
             <ProtectedRoute allowedRoles={["CLIENTE"]}>
-
               <AdminUsuarioFinal />
-
             </ProtectedRoute>
-
           }
-
         />
 
         <Route
+          path="/admin-usfin"
+          element={
+            <ProtectedRoute allowedRoles={["CLIENTE"]}>
+              <AdminUsuarioFinal />
+            </ProtectedRoute>
+          }
+        />
 
+        <Route
           path="/despachador"
-
           element={
-
             <ProtectedRoute allowedRoles={["DESPACHADOR"]}>
-
               <Despachador />
-
             </ProtectedRoute>
-
           }
-
         />
 
         <Route
-
           path="/conductor"
-
           element={
-
             <ProtectedRoute allowedRoles={["CONDUCTOR"]}>
-
               <Conductor />
-
             </ProtectedRoute>
-
           }
-
         />
 
         <Route
-
           path="/inspector"
-
           element={
-
             <ProtectedRoute allowedRoles={["INSPECTOR"]}>
-
               <Inspector />
-
             </ProtectedRoute>
-
           }
-
         />
 
         <Route
-
           path="/planes-pagos"
-
           element={
-
-            <ProtectedRoute allowedRoles={["SUPERADMIN", "ADMIN_TENANT", "CLIENTE"]}>
-
+            <ProtectedRoute
+              allowedRoles={["SUPERADMIN", "ADMIN_TENANT", "CLIENTE"]}
+            >
               <PlanesPagos />
-
             </ProtectedRoute>
-
           }
-
         />
+        <Route
+  path="/admin-empresa/planes"
+  element={
+    <ProtectedRoute allowedRoles={["ADMIN_TENANT"]}>
+      <PlanesPagos modo="empresa" />
+    </ProtectedRoute>
+  }
+/>
 
         <Route
-
           path="/checkout-pagos/:id"
-
           element={
-
-            <ProtectedRoute allowedRoles={["SUPERADMIN", "ADMIN_TENANT", "CLIENTE"]}>
-
+            <ProtectedRoute
+              allowedRoles={["SUPERADMIN", "ADMIN_TENANT", "CLIENTE"]}
+            >
               <CheckoutPago />
-
             </ProtectedRoute>
-
           }
-
         />
 
         <Route
-
           path="/crear-suscripcion/:id"
-
           element={
-
-            <ProtectedRoute allowedRoles={["SUPERADMIN", "ADMIN_TENANT", "CLIENTE"]}>
-
+            <ProtectedRoute
+              allowedRoles={["SUPERADMIN", "ADMIN_TENANT", "CLIENTE"]}
+            >
               <CrearSuscripcion />
-
             </ProtectedRoute>
-            }
-
+          }
         />
 
-          
+        <Route path="*" element={<Error />} />
       </Routes>
     </div>
   );

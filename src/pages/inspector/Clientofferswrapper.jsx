@@ -80,6 +80,7 @@ const InspectorWrapper = ({
     user?.nombres ||
     [user?.nombre, user?.apellido].filter(Boolean).join(" ") ||
     getDisplayNameFromEmail(inspectorEmail);
+  const inspectorEmpresa = user?.tenantNombre|| "Empresa";
 
   const activeItem = useMemo(
     () => NAV_ITEMS.find((n) => n.id === activeTab) || NAV_ITEMS[0],
@@ -161,7 +162,9 @@ const InspectorWrapper = ({
 
         <div className={styles.mobileBar__info}>
           <h2>
-            Panel <span>Inspector</span>
+            Panel <span>Inspector</span> 
+            
+            
           </h2>
           <p>{activeItem.label}</p>
         </div>
@@ -183,6 +186,7 @@ const InspectorWrapper = ({
             <div className={styles.sidebar__brandText}>
               <h1>Inspector</h1>
               <p>Panel operativo</p>
+              <p>{inspectorEmpresa}</p>
             </div>
           </div>
 

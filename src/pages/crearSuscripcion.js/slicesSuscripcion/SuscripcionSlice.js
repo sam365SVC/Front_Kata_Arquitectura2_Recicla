@@ -3,7 +3,7 @@ import { crearSuscripcionThunk } from "./SuscripcionThunk";
 
 const initialState = {
   suscripcionActual: null,
-  nombre_plan: "", // <-- Nuevo campo en el estado
+  nombre_plan: "",
 
   metodoSeleccionado: "QR",
   tipoComprobante: "RECIBO",
@@ -45,16 +45,14 @@ const limpiarEstadoTemporalPago = (state) => {
 const suscripcionSlice = createSlice({
   name: "checkout",
   initialState,
-
   reducers: {
     setsuscripcionActual: (state, action) => {
       state.suscripcionActual = action.payload || null;
       limpiarEstadoTemporalPago(state);
     },
 
-    // Reducer para capturar el nombre del plan antes de crear la suscripción
     setNombrePlan: (state, action) => {
-      state.nombre_plan = action.payload;
+      state.nombre_plan = action.payload || "";
     },
 
     clearCheckout: () => initialState,
@@ -95,21 +93,29 @@ const suscripcionSlice = createSlice({
 
   extraReducers: (builder) => {
     builder
-      // =========================
-      // SUSCRIPCIÓN
-      // =========================
       .addCase(crearSuscripcionThunk.pending, (state) => {
         state.loading = true;
         state.error = null;
+        state.successMessage = null;
       })
       .addCase(crearSuscripcionThunk.fulfilled, (state, action) => {
         state.loading = false;
-        state.suscripcionActual = action.payload;
-        // Si la respuesta trae el nombre, lo actualizamos también
-        if (action.payload?.nombre_plan) {
-          state.nombre_plan = action.payload.nombre_plan;
+
+        const suscripcion =
+          action.payload?.suscripcion ||
+          action.payload?.data?.suscripcion ||
+          action.payload?.data ||
+          null;
+
+        state.suscripcionActual = suscripcion;
+
+        if (suscripcion?.nombre_plan) {
+          state.nombre_plan = suscripcion.nombre_plan;
         }
-        state.successMessage = "Suscripción creada correctamente";
+
+        state.successMessage = action.payload?.forceApplied
+          ? "Se creó la suscripción reemplazando la anterior por tratarse de un upgrade."
+          : "Suscripción creada correctamente";
       })
       .addCase(crearSuscripcionThunk.rejected, (state, action) => {
         state.loading = false;
@@ -120,7 +126,7 @@ const suscripcionSlice = createSlice({
 
 export const {
   setsuscripcionActual,
-  setNombrePlan, // Exportado
+  setNombrePlan,
   clearCheckout,
   setMetodoSeleccionado,
   setTipoComprobante,
@@ -130,5 +136,23 @@ export const {
   clearCheckoutSuccess,
   resetCheckoutFlow,
 } = suscripcionSlice.actions;
+
+export const selectSuscripcionActual = (state) =>
+  state.checkout.suscripcionActual;
+
+export const selectNombrePlan = (state) =>
+  state.checkout.nombre_plan;
+
+export const selectCheckoutLoading = (state) =>
+  state.checkout.loading;
+
+export const selectCheckoutError = (state) =>
+  state.checkout.error;
+
+export const selectCheckoutSuccess = (state) =>
+  state.checkout.successMessage;
+
+export const selectMetodoSeleccionado = (state) =>
+  state.checkout.metodoSeleccionado;
 
 export default suscripcionSlice.reducer;

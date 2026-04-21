@@ -19,11 +19,11 @@ const planesSlice = createSlice({
       })
       .addCase(obtenerPlanesThunk.fulfilled, (state, action) => {
         state.cargando = false;
-        state.planes = action.payload;
+        state.planes = Array.isArray(action.payload) ? action.payload : [];
       })
       .addCase(obtenerPlanesThunk.rejected, (state, action) => {
         state.cargando = false;
-        state.error = action.payload;
+        state.error = action.payload || "No se pudieron cargar los planes";
       });
   },
 });

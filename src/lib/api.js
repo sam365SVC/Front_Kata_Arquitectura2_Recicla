@@ -1,69 +1,14 @@
-import axios from 'axios';
-import { store } from '../store/index';
-
-
-// por ahora con la api del microservicio del core
-//NOTA: CAMBIAR CON LA INTEGRACION DE LOS DEMAS
-const api = axios.create({
-  baseURL: 'http://localhost:3000/api/',
-});
-const apiFlags = axios.create({
-  baseURL: 'http://localhost:3004',
-});
-const METODO_TRANSFERENCIA = 'TRANSFERENCIA';
-
-const normalizarMetodoPago = (metodo) => {
-  const valor = String(metodo || '').trim().toUpperCase();
-
-  if (valor === 'TRANSFERENCIA') return METODO_TRANSFERENCIA;
-
-  return valor;
-};
-
-// request interceptor
-/*
-api.interceptors.request.use((config) => {
-  const state = store.getState();
-  const user = state?.login?.user;
-
-  if (user?.token) {
-    if (user.expiresAt && Date.now() > user.expiresAt) {
-      store.dispatch({ type: 'login/logout' });
-      return Promise.reject({
-        message: 'Sesión expirada',
-        status: 401,
-      });
-    }
-
-    config.headers['x-token'] = user.token;
-  }
-
-  return config;
-});
-*/
-//TRAMPEADA TEMPORAL
-
-
-// response interceptor
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response) {
-      const errorData = {
-        message:
-          error.response.data?.msg ||
-          error.response.data?.message ||
-          'Error en la petición',
-        status: error.response.status,
-        data: error.response.data,
-      };
-
-      if (error.response.status === 401) {
-        store.dispatch({ type: 'login/logout' });
 import axios from "axios";
 import { store } from "../store/index";
 
 const API_BASE = "http://localhost:3000/api";
+const METODO_TRANSFERENCIA = "TRANSFERENCIA";
+
+const normalizarMetodoPago = (metodo) => {
+  const valor = String(metodo || "").trim().toUpperCase();
+  if (valor === "TRANSFERENCIA") return METODO_TRANSFERENCIA;
+  return valor;
+};
 
 // =========================
 // FACTORY
@@ -140,7 +85,7 @@ const handleError = (error) => {
 };
 
 // =========================
-// CLIENTES
+// CLIENTES BASE
 // =========================
 export const apiAuth = createApi("/auth");
 export const apiCore = createApi("/core");
@@ -148,8 +93,10 @@ export const apiLogistics = createApi("/logistics");
 export const apiFlags = createApi("/flags");
 export const apiOrchestration = createApi("/orchestration");
 export const apiAdmin = createApi("/admin");
+export const apiPagos = createApi("/pagos");
+export const apiInternal = createApi("/internal");
 
-// default temporal para thunks viejos de logistics
+// default temporal para módulos viejos
 const api = apiLogistics;
 export default api;
 
@@ -186,16 +133,23 @@ export const authApi = {
       .put(`/${id}/plan`, data)
       .then((res) => res.data)
       .catch(handleError),
+
   activarUsuarioEmpresa: (data) =>
     apiAuth
       .post("/empleados/activar", data)
       .then((res) => res.data)
       .catch(handleError),
+
   getAllTenants: (params = {}) =>
-  apiAuth
-    .get("/tenants", { params })
-    .then((res) => res.data)
-    .catch(handleError),
+    apiAuth
+      .get("/tenants", { params })
+      .then((res) => res.data)
+      .catch(handleError),
+  listarTenants: (params = {}) =>
+    apiAuth
+      .get("/clientes/tenants-disponibles", { params })
+      .then((res) => res.data)
+      .catch(handleError),
 };
 
 // alias viejo
@@ -360,70 +314,6 @@ export const cotizacionesApi = {
       .then((res) => res.data)
       .catch(handleError),
 
-export const pagoApi = {
-  fetchPagos: () =>
-    api.get('/pagos').then((res) => res.data).catch(handleError),
-
-  fetchPagoById: (id) =>
-    api.get(`/pagos/${id}`).then((res) => res.data).catch(handleError),
-
-  createPago: (data) =>
-    api
-      .post('/pagos/new', {
-        ...data,
-        metodo: normalizarMetodoPago(data?.metodo),
-      })
-      .then((res) => res.data)
-      .catch(handleError),
-  
-    // SUSCRIPCIONES    
-  confirmarSuscripcionId: (idSuscripcion) =>
-    api
-      .get(`/suscripcion-pagos/${idSuscripcion}`)
-      .then(res => res.data)
-      .catch(handleError),
-    
-  confirmarPagoSuscripcion: (idSuscripcion, data) =>
-    api
-      .put(`/suscripcion-pagos/${idSuscripcion}`, data)
-        .then(res => res.data)
-        .catch(handleError),
-    
-  createSuscripcion: (data) =>
-    api
-      .post('/suscripcion-pagos/new', {
-        user_id: data.user_id,
-        servicio_id: data.servicio_id,
-        meses: data.meses,
-        precio_unitario: data.precio_unitario,
-        moneda: data.moneda,
-        nombre_plan: data.nombre_plan,
-      })
-      .then(res => res.data)
-      .catch(handleError),
-
-  createFacturaRecibo: (data) =>
-    api
-      .post('/factura-recibo/new', {
-        pago_id_pago: data.pago_id_pago,
-        tipo: data.tipo,
-        numero: data.numero,
-        razon_social: data.razon_social,
-        nit_ci: data.nit_ci,
-      })
-      .then(res => res.data)
-      .catch(handleError),
-
-  confirmarPagoPorSuscripcion: (idSuscripcion, data) =>
-  api
-    .put(`/pagos/confirmar/suscripcion/${idSuscripcion}`, {
-      tipo: data.tipo,
-      razon_social: data.razon_social,
-      nit_ci: data.nit_ci,
-    })
-    .then(res => res.data)
-    .catch(handleError),
-    
   rechazarCotizacionInicial: (idSolicitud, estado) =>
     apiCore
       .patch(`/solicitudes-cotizacion/${idSolicitud}/estado`, { estado })
@@ -481,6 +371,9 @@ export const inspeccionesApi = {
       .catch(handleError),
 };
 
+// =========================
+// EMPRESA / AUTH
+// =========================
 export const empresasApi = {
   fetchUsuarios: (params = {}) =>
     apiAuth
@@ -489,10 +382,7 @@ export const empresasApi = {
       .catch(handleError),
 
   fetchUsuariosEmpresaByTenantId: () =>
-    apiAuth
-      .get("/usuarios")
-      .then((res) => res.data)
-      .catch(handleError),
+    apiAuth.get("/usuarios").then((res) => res.data).catch(handleError),
 
   createUsuario: (data) =>
     apiAuth
@@ -505,6 +395,7 @@ export const empresasApi = {
       .post("/empleados/invitar", data)
       .then((res) => res.data)
       .catch(handleError),
+
   activarUsuarioEmpresa: (data) =>
     apiAuth
       .post("/empleados/activar", data)
@@ -524,6 +415,9 @@ export const empresasApi = {
       .catch(handleError),
 };
 
+// =========================
+// TIPOS DE DISPOSITIVO
+// =========================
 export const tipoDispositivoApi = {
   fetchTiposByTenantId: (tenantId) =>
     apiCore
@@ -562,18 +456,14 @@ export const tipoDispositivoApi = {
       .catch(handleError),
 };
 
-// alias por si prefieres plural en otros lados
 export const tiposDispositivoApi = tipoDispositivoApi;
 
 // =========================
 // FLAGS
 // =========================
 export const flagsApi = {
-  fetchFlags: (planId) =>
-    apiFlags
-      .get(`/${planId}`)
-      .then((res) => res.data)
-      .catch(handleError),
+  fetchFlags: (tenantId) =>
+    apiFlags.get(`/${tenantId}`).then((res) => res.data).catch(handleError),
 
   verificarPermiso: (tenantId, accion) =>
     apiFlags
@@ -600,19 +490,112 @@ export const flagsApi = {
       .catch(handleError),
 
   obtenerPlanes: () =>
-    apiFlags
-      .get("/planes")
+    apiFlags.get("/planes").then((res) => res.data).catch(handleError),
+};
+
+// =========================
+// PAGOS / BILLING
+// =========================
+export const pagoApi = {
+  fetchPagos: () =>
+    apiPagos.get("/pagos").then((res) => res.data).catch(handleError),
+
+  fetchPagoById: (id) =>
+    apiPagos.get(`/pagos/${id}`).then((res) => res.data).catch(handleError),
+
+  createPago: (data) =>
+    apiPagos
+      .post("/pagos/new", {
+        ...data,
+        metodo: normalizarMetodoPago(data?.metodo),
+      })
+      .then((res) => res.data)
+      .catch(handleError),
+
+  confirmarSuscripcionId: (idSuscripcion) =>
+    apiPagos
+      .get(`/suscripciones/${idSuscripcion}`)
+      .then((res) => res.data)
+      .catch(handleError),
+
+  confirmarPagoSuscripcion: (idSuscripcion, data) =>
+    apiPagos
+      .put(`/suscripciones/${idSuscripcion}`, data)
+      .then((res) => res.data)
+      .catch(handleError),
+
+  createSuscripcion: (data) =>
+  apiPagos
+    .post("/suscripciones/new", {
+      user_id: data.user_id,
+      servicio_id: data.servicio_id,
+      meses: data.meses,
+      precio_unitario: data.precio_unitario,
+      moneda: data.moneda,
+      nombre_plan: data.nombre_plan,
+      force: data.force ?? true,
+    })
+    .then((res) => res.data)
+    .catch(handleError),
+
+  createFacturaRecibo: (data) =>
+    apiPagos
+      .post("/factura-recibo/new", {
+        pago_id_pago: data.pago_id_pago,
+        tipo: data.tipo,
+        numero: data.numero,
+        razon_social: data.razon_social,
+        nit_ci: data.nit_ci,
+      })
+      .then((res) => res.data)
+      .catch(handleError),
+
+  confirmarPagoPorSuscripcion: (idSuscripcion, data) =>
+    apiPagos
+      .put(`/pagos/confirmar/suscripcion/${idSuscripcion}`, {
+        tipo: data.tipo,
+        razon_social: data.razon_social,
+        nit_ci: data.nit_ci,
+      })
       .then((res) => res.data)
       .catch(handleError),
 };
 
+export const qrApi = {
+  generarQR: (data) =>
+    apiPagos.post("/qr/generar", data).then((res) => res.data).catch(handleError),
+
+  verificarPagoQR: (data) =>
+    apiPagos.post("/qr/verificar", data).then((res) => res.data).catch(handleError),
+};
+
+export const certificadosApi = {
+  enviarCertificadoPorMatricula: (idMatricula) =>
+    apiPagos
+      .post("/certificados/enviar", { id_matricula: idMatricula })
+      .then((res) => res.data)
+      .catch(handleError),
+};
+export const comprobantesApi = {
+  enviarComprobantePorPago: ({ idSuscripcionPago, email }) =>
+    apiPagos
+      .post("/comprobantes/enviar", {
+        id_suscripcion_pago: idSuscripcionPago,
+        user_email: email,
+      })
+      .then((res) => res.data)
+      .catch(handleError),
+};
 // =========================
 // ORCHESTRATION
 // =========================
 export const orchestrationApi = {
   aceptarYCrearLogistica: (idSolicitud, data = {}) =>
     apiOrchestration
-      .patch(`/solicitudes-cotizacion/${idSolicitud}/aceptar-y-crear-logistica`, data)
+      .patch(
+        `/solicitudes-cotizacion/${idSolicitud}/aceptar-y-crear-logistica`,
+        data
+      )
       .then((res) => res.data)
       .catch(handleError),
 };
@@ -627,39 +610,10 @@ export const adminApi = {
       .then((res) => res.data)
       .catch(handleError),
 };
-
-// =========================
-// TEMPORALES PARA NO ROMPER
-// =========================
-export const pagoApi = {
-  fetchPagos: () =>
-    Promise.reject({ message: "pagoApi aún no migrada al gateway" }),
-  fetchPagoById: () =>
-    Promise.reject({ message: "pagoApi aún no migrada al gateway" }),
-  createPago: () =>
-    Promise.reject({ message: "pagoApi aún no migrada al gateway" }),
-  confirmarSuscripcionId: () =>
-    Promise.reject({ message: "pagoApi aún no migrada al gateway" }),
-  confirmarPagoSuscripcion: () =>
-    Promise.reject({ message: "pagoApi aún no migrada al gateway" }),
-  createSuscripcion: () =>
-    Promise.reject({ message: "pagoApi aún no migrada al gateway" }),
-  createFacturaRecibo: () =>
-    Promise.reject({ message: "pagoApi aún no migrada al gateway" }),
-  confirmarPagoPorSuscripcion: () =>
-    Promise.reject({ message: "pagoApi aún no migrada al gateway" }),
+export const internalApi = {
+  cambiarPlanTenant: (tenantId, data) =>
+    apiInternal
+      .put(`/admin/tenants/${tenantId}/plan`, data)
+      .then((res) => res.data)
+      .catch(handleError),
 };
-
-export const qrApi = {
-  generarQR: () =>
-    Promise.reject({ message: "qrApi aún no migrada al gateway" }),
-  verificarPagoQR: () =>
-    Promise.reject({ message: "qrApi aún no migrada al gateway" }),
-};
-
-export const comprobantesApi = {
-  enviarComprobantePorPago: () =>
-    Promise.reject({ message: "comprobantesApi aún no migrada al gateway" }),
-};
-
-//
