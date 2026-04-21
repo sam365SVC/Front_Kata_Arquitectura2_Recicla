@@ -1,8 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { usuariosEmpresaMock } from "../mock/data";
 
 const initialState = {
-  items: usuariosEmpresaMock,
+  items: [],
   loading: false,
   error: null,
   selectedUser: null,
@@ -28,14 +27,14 @@ const usuariosEmpresaSlice = createSlice({
       );
     },
 
-    toggleEstadoUsuarioEmpresa: (state, action) => {
+    removeUsuarioEmpresa: (state, action) => {
       const userId = action.payload;
 
       state.items = state.items.map((user) =>
         user.id === userId
           ? {
               ...user,
-              estado: user.estado === "Activo" ? "Inactivo" : "Activo",
+              estado: "Inactivo",
             }
           : user
       );
@@ -67,7 +66,7 @@ export const {
   setUsuariosEmpresa,
   addUsuarioEmpresa,
   updateUsuarioEmpresa,
-  toggleEstadoUsuarioEmpresa,
+  removeUsuarioEmpresa,
   setSelectedUsuarioEmpresa,
   clearSelectedUsuarioEmpresa,
   setUsuariosEmpresaLoading,

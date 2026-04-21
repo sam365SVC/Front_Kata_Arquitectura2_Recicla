@@ -3,114 +3,99 @@ import {
   FiX,
   FiUser,
   FiMail,
-  FiPhone,
-  FiBriefcase,
   FiShield,
-  FiLock,
-  FiCheck,
   FiAlertCircle,
   FiSave,
-  FiMapPin,
-  FiToggleLeft,
+  FiTruck,
+  FiSearch,
+  FiClipboard,
+  FiSettings,
 } from "react-icons/fi";
 import styles from "./UsuarioEmpresaModal.module.scss";
 
 const ROLES = [
-  "Administrador",
-  "Supervisor",
-  "Inspector",
-  "Operador",
-  "Recepcionista",
+  {
+    label: "Admin logística",
+    value: "ADMIN_LOGISTICA",
+    description: "Gestiona operaciones y personal logístico.",
+    icon: FiSettings,
+  },
+  {
+    label: "Despachador",
+    value: "DESPACHADOR",
+    description: "Coordina rutas y asignaciones.",
+    icon: FiClipboard,
+  },
+  {
+    label: "Inspector",
+    value: "INSPECTOR",
+    description: "Revisa equipos y valida condiciones.",
+    icon: FiSearch,
+  },
+  {
+    label: "Conductor",
+    value: "CONDUCTOR",
+    description: "Realiza traslados y entregas.",
+    icon: FiTruck,
+  },
 ];
-
-const CARGOS = [
-  "Administrador general",
-  "Supervisor de recepción",
-  "Inspector técnico",
-  "Operador de recepción",
-  "Recepcionista principal",
-  "Encargado de logística",
-  "Coordinador de operaciones",
-];
-
-const AREAS = [
-  "Administración",
-  "Recepción",
-  "Inspección técnica",
-  "Operaciones",
-  "Logística",
-];
-
-const ESTADOS = ["Activo", "Inactivo"];
-
-const PASSWORD_RULES = {
-  minLength: (value) => value.length >= 8,
-  upper: (value) => /[A-Z]/.test(value),
-  lower: (value) => /[a-z]/.test(value),
-  number: (value) => /[0-9]/.test(value),
-  special: (value) => /[^A-Za-z0-9]/.test(value),
-};
-
-const getPasswordChecks = (password) => ({
-  minLength: PASSWORD_RULES.minLength(password),
-  upper: PASSWORD_RULES.upper(password),
-  lower: PASSWORD_RULES.lower(password),
-  number: PASSWORD_RULES.number(password),
-  special: PASSWORD_RULES.special(password),
-});
-
-const isPasswordStrong = (password) => {
-  const checks = getPasswordChecks(password);
-  return Object.values(checks).every(Boolean);
-};
 
 const initialForm = {
   id: null,
   nombre: "",
+  apellido: "",
   email: "",
-  telefono: "",
-  cargo: "Operador de recepción",
-  rol: "Operador",
-  area: "Operaciones",
-  estado: "Activo",
-  password: "",
+  rol: "DESPACHADOR",
 };
 
-const SelectorPills = ({
+const RoleCards = ({
   label,
   icon,
   options,
   value,
   onChange,
   error,
-  columns = 3,
+  disabled = false,
 }) => {
   const Icon = icon;
 
   return (
-    <div className={`${styles.formGroup} ${error ? styles["formGroup--error"] : ""}`}>
+    <div
+      className={`${styles.formGroup} ${
+        error ? styles["formGroup--error"] : ""
+      }`}
+    >
       <label className={styles.formGroup__label}>
         {Icon ? <Icon size={14} /> : null}
         {label}
       </label>
 
-      <div
-        className={`${styles.pillsGrid} ${
-          columns === 2 ? styles["pillsGrid--2"] : ""
-        } ${columns === 4 ? styles["pillsGrid--4"] : ""}`}
-      >
-        {options.map((option) => (
-          <button
-            key={option}
-            type="button"
-            className={`${styles.pillButton} ${
-              value === option ? styles["pillButton--active"] : ""
-            }`}
-            onClick={() => onChange(option)}
-          >
-            {option}
-          </button>
-        ))}
+      <div className={styles.roleGrid}>
+        {options.map((option) => {
+          const RoleIcon = option.icon;
+          const isActive = value === option.value;
+
+          return (
+            <button
+              key={option.value}
+              type="button"
+              className={`${styles.roleCard} ${
+                isActive ? styles["roleCard--active"] : ""
+              } ${disabled ? styles["roleCard--disabled"] : ""}`}
+              onClick={() => !disabled && onChange(option.value)}
+              disabled={disabled}
+            >
+              <span className={styles.roleCard__icon}>
+                <RoleIcon size={15} />
+              </span>
+
+              <span className={styles.roleCard__text}>
+                <strong>{option.label}</strong>
+                <small>{option.description}</small>
+              </span>
+            </button>
+          );
+        })}
       </div>
 
       {error && (
@@ -135,7 +120,6 @@ const UsuarioEmpresaModal = ({
 
   const [form, setForm] = useState(initialForm);
   const [errors, setErrors] = useState({});
-  const [changePassword, setChangePassword] = useState(false);
 
   useEffect(() => {
     if (!open) return;
@@ -143,31 +127,23 @@ const UsuarioEmpresaModal = ({
     if (isEditMode && userData) {
       setForm({
         id: userData.id || null,
-        nombre: userData.nombre || "",
+        nombre: userData.nombreRaw || userData.nombre || "",
+        apellido: userData.apellidoRaw || "",
         email: userData.email || "",
-        telefono: userData.telefono || "",
-        cargo: userData.cargo || "Operador de recepción",
-        rol: userData.rol || "Operador",
-        area: userData.area || "Operaciones",
-        estado: userData.estado || "Activo",
-        password: "",
+        rol: userData.rolBackend || "DESPACHADOR",
       });
-      setChangePassword(false);
       setErrors({});
       return;
     }
 
     setForm(initialForm);
-    setChangePassword(false);
     setErrors({});
   }, [open, isEditMode, userData]);
 
-  const passwordChecks = useMemo(
-    () => getPasswordChecks(form.password || ""),
-    [form.password]
+  const rolSeleccionado = useMemo(
+    () => ROLES.find((item) => item.value === form.rol),
+    [form.rol]
   );
-
-  const shouldValidatePassword = !isEditMode || changePassword;
 
   const handleChange = (field, value) => {
     setForm((prev) => ({
@@ -184,23 +160,24 @@ const UsuarioEmpresaModal = ({
   const validate = () => {
     const newErrors = {};
 
-    if (!form.nombre.trim()) newErrors.nombre = "El nombre es obligatorio.";
+    if (!form.nombre.trim()) {
+      newErrors.nombre = "El nombre es obligatorio.";
+    }
+
+    if (!form.apellido.trim()) {
+      newErrors.apellido = "El apellido es obligatorio.";
+    }
 
     if (!form.email.trim()) {
       newErrors.email = "El correo es obligatorio.";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
       newErrors.email = "Ingresa un correo válido.";
-    } else {
+    } else if (!isEditMode) {
       const duplicated = existingUsers.some((user) => {
-        const sameEmail =
+        return (
           String(user.email || "").trim().toLowerCase() ===
-          form.email.trim().toLowerCase();
-
-        if (isEditMode) {
-          return sameEmail && user.id !== form.id;
-        }
-
-        return sameEmail;
+          form.email.trim().toLowerCase()
+        );
       });
 
       if (duplicated) {
@@ -208,24 +185,8 @@ const UsuarioEmpresaModal = ({
       }
     }
 
-    if (!form.telefono.trim()) {
-      newErrors.telefono = "El teléfono es obligatorio.";
-    } else if (!/^\+?[0-9\s-]{7,15}$/.test(form.telefono.trim())) {
-      newErrors.telefono = "Ingresa un teléfono válido.";
-    }
-
-    if (!form.cargo.trim()) newErrors.cargo = "Selecciona un cargo.";
-    if (!form.rol.trim()) newErrors.rol = "Selecciona un rol.";
-    if (!form.area.trim()) newErrors.area = "Selecciona un área.";
-    if (!form.estado.trim()) newErrors.estado = "Selecciona un estado.";
-
-    if (shouldValidatePassword) {
-      if (!form.password.trim()) {
-        newErrors.password = "La contraseña es obligatoria.";
-      } else if (!isPasswordStrong(form.password.trim())) {
-        newErrors.password =
-          "La contraseña no cumple con todos los requisitos.";
-      }
+    if (!form.rol.trim()) {
+      newErrors.rol = "Selecciona un rol.";
     }
 
     setErrors(newErrors);
@@ -238,26 +199,22 @@ const UsuarioEmpresaModal = ({
     if (!validate()) return;
 
     const payload = {
-      ...form,
+      id: form.id,
       nombre: form.nombre.trim(),
+      apellido: form.apellido.trim(),
       email: form.email.trim().toLowerCase(),
-      telefono: form.telefono.trim(),
-      cargo: form.cargo.trim(),
-      rol: form.rol.trim(),
-      area: form.area.trim(),
-      estado: form.estado.trim(),
-      password: shouldValidatePassword ? form.password.trim() : undefined,
+      rol: form.rol,
     };
 
-    onSubmit(payload, { isEditMode, changePassword });
+    onSubmit(payload, { isEditMode });
   };
 
   if (!open) return null;
 
-  const title = isEditMode ? "Editar usuario" : "Nuevo usuario";
+  const title = isEditMode ? "Editar usuario" : "Invitar usuario";
   const subtitle = isEditMode
-    ? "Actualiza la información del usuario de empresa."
-    : "Completa los datos para registrar un nuevo usuario interno.";
+    ? "Actualiza los datos básicos del usuario."
+    : "Completa los datos para enviar una invitación a un nuevo integrante.";
 
   return (
     <div className={styles.overlay} onClick={onClose}>
@@ -295,13 +252,13 @@ const UsuarioEmpresaModal = ({
             >
               <label className={styles.formGroup__label}>
                 <FiUser size={14} />
-                Nombre completo *
+                Nombre *
               </label>
               <input
                 type="text"
                 value={form.nombre}
                 onChange={(e) => handleChange("nombre", e.target.value)}
-                placeholder="Ej: Carlos Mendoza"
+                placeholder="Ej: Carlos"
               />
               {errors.nombre && (
                 <span className={styles.formGroup__error}>
@@ -313,197 +270,75 @@ const UsuarioEmpresaModal = ({
 
             <div
               className={`${styles.formGroup} ${
-                errors.email ? styles["formGroup--error"] : ""
+                errors.apellido ? styles["formGroup--error"] : ""
               }`}
             >
               <label className={styles.formGroup__label}>
-                <FiMail size={14} />
-                Correo electrónico *
-              </label>
-              <input
-                type="email"
-                value={form.email}
-                onChange={(e) => handleChange("email", e.target.value)}
-                placeholder="usuario@empresa.com"
-              />
-              {errors.email && (
-                <span className={styles.formGroup__error}>
-                  <FiAlertCircle size={12} />
-                  {errors.email}
-                </span>
-              )}
-            </div>
-
-            <div
-              className={`${styles.formGroup} ${
-                errors.telefono ? styles["formGroup--error"] : ""
-              }`}
-            >
-              <label className={styles.formGroup__label}>
-                <FiPhone size={14} />
-                Teléfono *
+                <FiUser size={14} />
+                Apellido *
               </label>
               <input
                 type="text"
-                value={form.telefono}
-                onChange={(e) => handleChange("telefono", e.target.value)}
-                placeholder="+591 70000000"
+                value={form.apellido}
+                onChange={(e) => handleChange("apellido", e.target.value)}
+                placeholder="Ej: Mendoza"
               />
-              {errors.telefono && (
+              {errors.apellido && (
                 <span className={styles.formGroup__error}>
                   <FiAlertCircle size={12} />
-                  {errors.telefono}
+                  {errors.apellido}
                 </span>
               )}
             </div>
           </div>
 
+          <div
+            className={`${styles.formGroup} ${
+              errors.email ? styles["formGroup--error"] : ""
+            }`}
+          >
+            <label className={styles.formGroup__label}>
+              <FiMail size={14} />
+              Correo electrónico *
+            </label>
+            <input
+              type="email"
+              value={form.email}
+              onChange={(e) => handleChange("email", e.target.value)}
+              placeholder="usuario@empresa.com"
+              disabled={isEditMode}
+            />
+            {errors.email && (
+              <span className={styles.formGroup__error}>
+                <FiAlertCircle size={12} />
+                {errors.email}
+              </span>
+            )}
+          </div>
+
           <div className={styles.sectionDivider} />
 
-          <SelectorPills
-            label="Cargo *"
-            icon={FiBriefcase}
-            options={CARGOS}
-            value={form.cargo}
-            onChange={(value) => handleChange("cargo", value)}
-            error={errors.cargo}
-            columns={2}
-          />
-
-          <div className={styles.sectionDivider} />
-
-          <SelectorPills
-            label="Rol *"
+          <RoleCards
+            label="Rol del usuario *"
             icon={FiShield}
             options={ROLES}
             value={form.rol}
             onChange={(value) => handleChange("rol", value)}
             error={errors.rol}
-            columns={3}
-          />
-
-          <div className={styles.sectionDivider} />
-
-          <SelectorPills
-            label="Área *"
-            icon={FiMapPin}
-            options={AREAS}
-            value={form.area}
-            onChange={(value) => handleChange("area", value)}
-            error={errors.area}
-            columns={3}
-          />
-
-          <div className={styles.sectionDivider} />
-
-          <SelectorPills
-            label="Estado *"
-            icon={FiToggleLeft}
-            options={ESTADOS}
-            value={form.estado}
-            onChange={(value) => handleChange("estado", value)}
-            error={errors.estado}
-            columns={2}
+            disabled={isEditMode}
           />
 
           {isEditMode && (
-            <div className={styles.passwordToggle}>
-              <label className={styles.checkboxRow}>
-                <input
-                  type="checkbox"
-                  checked={changePassword}
-                  onChange={(e) => setChangePassword(e.target.checked)}
-                />
-                <span>Cambiar contraseña</span>
-              </label>
+            <div className={styles.readOnlyInfo}>
+              <p>
+                El correo y el rol se muestran solo como referencia. Desde este
+                panel actualmente solo puedes actualizar nombre y apellido.
+              </p>
+              {rolSeleccionado && <span>{rolSeleccionado.label}</span>}
             </div>
           )}
 
-          {shouldValidatePassword && (
-            <div className={styles.passwordBox}>
-              <div
-                className={`${styles.formGroup} ${
-                  errors.password ? styles["formGroup--error"] : ""
-                }`}
-              >
-                <label className={styles.formGroup__label}>
-                  <FiLock size={14} />
-                  Contraseña *
-                </label>
-                <input
-                  type="password"
-                  value={form.password}
-                  onChange={(e) => handleChange("password", e.target.value)}
-                  placeholder="Crea una contraseña segura"
-                />
-                {errors.password && (
-                  <span className={styles.formGroup__error}>
-                    <FiAlertCircle size={12} />
-                    {errors.password}
-                  </span>
-                )}
-              </div>
-
-              <div className={styles.passwordChecks}>
-                <p className={styles.passwordChecks__title}>
-                  La contraseña debe cumplir con:
-                </p>
-
-                <ul className={styles.passwordChecks__list}>
-                  <li
-                    className={
-                      passwordChecks.minLength
-                        ? styles["passwordChecks__item--ok"]
-                        : ""
-                    }
-                  >
-                    <FiCheck size={13} />
-                    Al menos 8 caracteres
-                  </li>
-                  <li
-                    className={
-                      passwordChecks.upper
-                        ? styles["passwordChecks__item--ok"]
-                        : ""
-                    }
-                  >
-                    <FiCheck size={13} />
-                    Una letra mayúscula
-                  </li>
-                  <li
-                    className={
-                      passwordChecks.lower
-                        ? styles["passwordChecks__item--ok"]
-                        : ""
-                    }
-                  >
-                    <FiCheck size={13} />
-                    Una letra minúscula
-                  </li>
-                  <li
-                    className={
-                      passwordChecks.number
-                        ? styles["passwordChecks__item--ok"]
-                        : ""
-                    }
-                  >
-                    <FiCheck size={13} />
-                    Un número
-                  </li>
-                  <li
-                    className={
-                      passwordChecks.special
-                        ? styles["passwordChecks__item--ok"]
-                        : ""
-                    }
-                  >
-                    <FiCheck size={13} />
-                    Un carácter especial
-                  </li>
-                </ul>
-              </div>
-            </div>
-          )}
+        
 
           <div className={styles.footer}>
             <button
@@ -516,7 +351,7 @@ const UsuarioEmpresaModal = ({
 
             <button type="submit" className={styles.primaryButton}>
               <FiSave size={15} />
-              {isEditMode ? "Guardar cambios" : "Crear usuario"}
+              {isEditMode ? "Guardar cambios" : "Enviar invitación"}
             </button>
           </div>
         </form>

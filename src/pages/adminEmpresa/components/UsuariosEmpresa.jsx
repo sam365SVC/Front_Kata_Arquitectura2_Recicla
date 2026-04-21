@@ -1,20 +1,26 @@
 import React, { useEffect, useMemo, useState } from "react";
 import Swal from "sweetalert2";
+import { useDispatch, useSelector } from "react-redux";
 import {
   FiPlus,
   FiSearch,
   FiEdit2,
   FiPower,
   FiMail,
-  FiPhone,
   FiUsers,
   FiShield,
 } from "react-icons/fi";
+
 import styles from "./UsuariosEmpresa.module.scss";
 import UsuarioEmpresaModal from "./UsuarioEmpresaModal";
-import { usuariosEmpresaMock } from "../mock/data";
 
-const STORAGE_KEY = "adminEmpresa_usuarios";
+import {
+  fetchUsuariosEmpresa,
+  createUsuarioEmpresa,
+  editUsuarioEmpresa,
+  changeEstadoUsuarioEmpresa,
+} from "../slicesUsuariosEmpresa/UsuariosEmpresaThunk";
+import { clearUsuariosEmpresaError } from "../slicesUsuariosEmpresa/UsuariosEmpresaSlice";
 
 const normalizeText = (value) =>
   String(value || "")
@@ -22,41 +28,6 @@ const normalizeText = (value) =>
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .trim();
-
-const normalizeUser = (usuario, index = 0) => ({
-  id: usuario?.id?.toString?.() || `USR-${String(index + 1).padStart(4, "0")}`,
-  nombre: usuario?.nombre || "",
-  email: usuario?.email || "",
-  telefono: usuario?.telefono || "+591 ",
-  cargo: usuario?.cargo || "Operador de recepción",
-  rol: usuario?.rol || "Operador",
-  area: usuario?.area || "Operaciones",
-  estado: usuario?.estado === "Inactivo" ? "Inactivo" : "Activo",
-  password: usuario?.password || "",
-  createdAt: usuario?.createdAt || new Date().toISOString(),
-  passwordUpdatedAt: usuario?.passwordUpdatedAt || null,
-});
-
-const getInitialUsers = () => {
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-
-    if (!stored) {
-      return usuariosEmpresaMock.map((item, index) => normalizeUser(item, index));
-    }
-
-    const parsed = JSON.parse(stored);
-
-    if (!Array.isArray(parsed) || parsed.length === 0) {
-      return usuariosEmpresaMock.map((item, index) => normalizeUser(item, index));
-    }
-
-    return parsed.map((item, index) => normalizeUser(item, index));
-  } catch (error) {
-    console.error("Error leyendo usuarios desde localStorage:", error);
-    return usuariosEmpresaMock.map((item, index) => normalizeUser(item, index));
-  }
-};
 
 const buildSwalClasses = () => ({
   popup: styles.swalPopup,
@@ -67,7 +38,12 @@ const buildSwalClasses = () => ({
 });
 
 const UsuariosEmpresa = () => {
-  const [usuarios, setUsuarios] = useState([]);
+  const dispatch = useDispatch();
+
+  const usuarios = useSelector((state) => state.usuariosEmpresa.items);
+  const loading = useSelector((state) => state.usuariosEmpresa.loading);
+  const error = useSelector((state) => state.usuariosEmpresa.error);
+
   const [search, setSearch] = useState("");
   const [estadoFiltro, setEstadoFiltro] = useState("Todos");
   const [modalOpen, setModalOpen] = useState(false);
@@ -75,14 +51,23 @@ const UsuariosEmpresa = () => {
   const [selectedUser, setSelectedUser] = useState(null);
 
   useEffect(() => {
-    const initialUsers = getInitialUsers();
-    setUsuarios(initialUsers);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(initialUsers));
-  }, []);
+    dispatch(fetchUsuariosEmpresa());
+  }, [dispatch]);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(usuarios));
-  }, [usuarios]);
+    if (!error) return;
+
+    Swal.fire({
+      icon: "error",
+      title: "Ocurrió un problema",
+      text: error,
+      confirmButtonText: "Entendido",
+      buttonsStyling: false,
+      customClass: buildSwalClasses(),
+    }).then(() => {
+      dispatch(clearUsuariosEmpresaError());
+    });
+  }, [error, dispatch]);
 
   const usuariosFiltrados = useMemo(() => {
     const query = normalizeText(search);
@@ -92,9 +77,7 @@ const UsuariosEmpresa = () => {
         !query ||
         normalizeText(usuario.nombre).includes(query) ||
         normalizeText(usuario.email).includes(query) ||
-        normalizeText(usuario.cargo).includes(query) ||
-        normalizeText(usuario.rol).includes(query) ||
-        normalizeText(usuario.area).includes(query);
+        normalizeText(usuario.rol).includes(query);
 
       const matchesEstado =
         estadoFiltro === "Todos" || usuario.estado === estadoFiltro;
@@ -106,8 +89,9 @@ const UsuariosEmpresa = () => {
   const resumen = useMemo(() => {
     const activos = usuarios.filter((u) => u.estado === "Activo").length;
     const inactivos = usuarios.filter((u) => u.estado === "Inactivo").length;
-    const admins = usuarios.filter(
-      (u) => normalizeText(u.rol) === "administrador"
+
+    const admins = usuarios.filter((u) =>
+      normalizeText(u.rol).includes("admin")
     ).length;
 
     return {
@@ -150,89 +134,60 @@ const UsuariosEmpresa = () => {
     });
   };
 
-  const handleSubmitUser = async (payload, { isEditMode, changePassword }) => {
+  const handleSubmitUser = async (payload, { isEditMode }) => {
     if (isEditMode) {
-      const usuarioAnterior = usuarios.find((item) => item.id === payload.id);
+      const result = await dispatch(editUsuarioEmpresa(payload));
 
-      setUsuarios((prev) =>
-        prev.map((item) => {
-          if (item.id !== payload.id) return item;
-
-          const updated = {
-            ...item,
-            nombre: payload.nombre,
-            email: payload.email,
-            telefono: payload.telefono,
-            cargo: payload.cargo,
-            rol: payload.rol,
-            area: payload.area,
-            estado: payload.estado,
-          };
-
-          if (changePassword && payload.password) {
-            updated.password = payload.password;
-            updated.passwordUpdatedAt = new Date().toISOString();
-          }
-
-          return normalizeUser(updated);
-        })
-      );
+      if (!result?.ok) return;
 
       closeModal();
 
       await showSuccessAlert({
         title: "Usuario actualizado",
-        text: `Los datos de ${usuarioAnterior?.nombre || "este usuario"} se guardaron correctamente.`,
+        text: `Los datos de ${payload?.nombre || "este usuario"} se guardaron correctamente.`,
         confirmText: "Perfecto",
       });
 
       return;
     }
 
-    const nuevoUsuario = normalizeUser({
-      id: `USR-${Date.now()}`,
-      nombre: payload.nombre,
-      email: payload.email,
-      telefono: payload.telefono,
-      cargo: payload.cargo,
-      rol: payload.rol,
-      area: payload.area,
-      estado: payload.estado,
-      password: payload.password,
-      createdAt: new Date().toISOString(),
-    });
+    const result = await dispatch(createUsuarioEmpresa(payload));
 
-    setUsuarios((prev) => [nuevoUsuario, ...prev]);
+    if (!result?.ok) return;
+
     closeModal();
 
     await showSuccessAlert({
-      title: "Usuario creado",
-      text: `${nuevoUsuario.nombre} fue agregado correctamente a la empresa.`,
+      title: "Invitación enviada",
+      text: `Se envió correctamente la invitación a ${payload.email}.`,
       confirmText: "Continuar",
     });
   };
 
   const toggleEstadoUsuario = async (usuario) => {
-    const accion =
-      usuario.estado === "Activo" ? "desactivar" : "activar";
-    const siguienteEstado =
-      usuario.estado === "Activo" ? "Inactivo" : "Activo";
+    if (usuario.estado !== "Activo") {
+      await Swal.fire({
+        icon: "info",
+        title: "Usuario inactivo",
+        text: "Por ahora solo está disponible la desactivación desde este panel.",
+        confirmButtonText: "Entendido",
+        buttonsStyling: false,
+        customClass: buildSwalClasses(),
+      });
+      return;
+    }
 
     const result = await Swal.fire({
       icon: "warning",
-      title:
-        usuario.estado === "Activo"
-          ? "¿Desactivar usuario?"
-          : "¿Activar usuario?",
+      title: "¿Desactivar usuario?",
       html: `
         <div>
-          Se va a <b>${accion}</b> a <b>${usuario.nombre}</b>.<br/>
-          El estado cambiará a <b>${siguienteEstado}</b>.
+          Se desactivará a <b>${usuario.nombre}</b>.<br/>
+          El usuario dejará de estar activo en este tenant.
         </div>
       `,
       showCancelButton: true,
-      confirmButtonText:
-        usuario.estado === "Activo" ? "Sí, desactivar" : "Sí, activar",
+      confirmButtonText: "Sí, desactivar",
       cancelButtonText: "Cancelar",
       reverseButtons: true,
       buttonsStyling: false,
@@ -241,23 +196,13 @@ const UsuariosEmpresa = () => {
 
     if (!result.isConfirmed) return;
 
-    setUsuarios((prev) =>
-      prev.map((item) =>
-        item.id === usuario.id
-          ? normalizeUser({
-              ...item,
-              estado: siguienteEstado,
-            })
-          : item
-      )
-    );
+    const action = await dispatch(changeEstadoUsuarioEmpresa(usuario.id));
+
+    if (!action?.ok) return;
 
     await showSuccessAlert({
-      title:
-        siguienteEstado === "Activo"
-          ? "Usuario activado"
-          : "Usuario desactivado",
-      text: `${usuario.nombre} ahora se encuentra ${siguienteEstado.toLowerCase()}.`,
+      title: "Usuario desactivado",
+      text: `${usuario.nombre} ahora se encuentra inactivo.`,
       confirmText: "Entendido",
     });
   };
@@ -269,14 +214,17 @@ const UsuariosEmpresa = () => {
           <span className={styles.hero__eyebrow}>Gestión interna</span>
           <h2>Usuarios de la empresa</h2>
           <p>
-            Administra empleados, roles, accesos y estados dentro del panel de
-            la empresa.
+            Administra empleados, roles y estados dentro del panel de la empresa.
           </p>
         </div>
 
-        <button type="button" className={styles.primaryButton} onClick={openCreateModal}>
+        <button
+          type="button"
+          className={styles.primaryButton}
+          onClick={openCreateModal}
+        >
           <FiPlus size={16} />
-          Nuevo usuario
+          Invitar usuario
         </button>
       </div>
 
@@ -327,7 +275,7 @@ const UsuariosEmpresa = () => {
           <FiSearch size={16} />
           <input
             type="text"
-            placeholder="Buscar por nombre, correo, cargo, rol o área..."
+            placeholder="Buscar por nombre, correo o rol..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -360,10 +308,9 @@ const UsuariosEmpresa = () => {
               <tr>
                 <th>Usuario</th>
                 <th>Contacto</th>
-                <th>Cargo</th>
                 <th>Rol</th>
-                <th>Área</th>
                 <th>Estado</th>
+                <th>Creado</th>
                 <th>Acciones</th>
               </tr>
             </thead>
@@ -377,6 +324,10 @@ const UsuariosEmpresa = () => {
                   .map((item) => item[0])
                   .join("")
                   .toUpperCase();
+
+                const fechaCreacion = usuario.createdAt
+                  ? new Date(usuario.createdAt).toLocaleDateString()
+                  : "Sin fecha";
 
                 return (
                   <tr key={usuario.id}>
@@ -396,22 +347,14 @@ const UsuariosEmpresa = () => {
                           <FiMail size={13} />
                           {usuario.email || "Sin correo"}
                         </span>
-                        <span>
-                          <FiPhone size={13} />
-                          {usuario.telefono || "Sin teléfono"}
-                        </span>
                       </div>
                     </td>
 
-                    <td>{usuario.cargo || "Sin cargo"}</td>
-
                     <td>
                       <span className={styles.roleBadge}>
-                        {usuario.rol || "Operador"}
+                        {usuario.rol || "Sin rol"}
                       </span>
                     </td>
-
-                    <td>{usuario.area || "Operaciones"}</td>
 
                     <td>
                       <span
@@ -424,6 +367,8 @@ const UsuariosEmpresa = () => {
                         {usuario.estado}
                       </span>
                     </td>
+
+                    <td>{fechaCreacion}</td>
 
                     <td>
                       <div className={styles.actions}>
@@ -441,14 +386,15 @@ const UsuariosEmpresa = () => {
                           className={`${styles.actionButton} ${
                             usuario.estado === "Activo"
                               ? styles.actionDanger
-                              : styles.actionSuccess
+                              : styles.actionDisabled
                           }`}
                           onClick={() => toggleEstadoUsuario(usuario)}
+                          disabled={usuario.estado !== "Activo"}
                         >
                           <FiPower size={14} />
                           {usuario.estado === "Activo"
                             ? "Desactivar"
-                            : "Activar"}
+                            : "Inactivo"}
                         </button>
                       </div>
                     </td>
@@ -456,14 +402,25 @@ const UsuariosEmpresa = () => {
                 );
               })}
 
-              {usuariosFiltrados.length === 0 && (
+              {!loading && usuariosFiltrados.length === 0 && (
                 <tr>
-                  <td colSpan="7">
+                  <td colSpan="6">
                     <div className={styles.emptyTable}>
                       <h4>No se encontraron usuarios</h4>
                       <p>
                         Prueba cambiando la búsqueda o el filtro de estado.
                       </p>
+                    </div>
+                  </td>
+                </tr>
+              )}
+
+              {loading && (
+                <tr>
+                  <td colSpan="6">
+                    <div className={styles.emptyTable}>
+                      <h4>Cargando usuarios...</h4>
+                      <p>Espera un momento mientras obtenemos la información.</p>
                     </div>
                   </td>
                 </tr>

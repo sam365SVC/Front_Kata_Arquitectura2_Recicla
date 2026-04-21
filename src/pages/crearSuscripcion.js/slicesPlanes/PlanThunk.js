@@ -1,5 +1,5 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import { planApi } from "../../../lib/api";
+import { flagsApi } from "../../../lib/api";
 
 const extractErrorMessage = (error) => {
   if (!error) return "Ocurrió un error inesperado";
@@ -20,7 +20,7 @@ export const fetchFlagsThunk = createAsyncThunk(
   "flags/fetchFlags",
   async (tenantId, { rejectWithValue }) => {
     try {
-      const response = await planApi.fetchFlags(tenantId);
+      const response = await flagsApi.fetchFlags(tenantId);
       return response;
     } catch (error) {
       return rejectWithValue(extractErrorMessage(error));
@@ -35,7 +35,7 @@ export const verificarPermisoThunk = createAsyncThunk(
   "flags/verificarPermiso",
   async ({ tenantId, accion }, { rejectWithValue }) => {
     try {
-      const response = await planApi.verificarPermiso(tenantId, accion);
+      const response = await flagsApi.verificarPermiso(tenantId, accion);
       return response;
     } catch (error) {
       return rejectWithValue(extractErrorMessage(error));
@@ -50,7 +50,7 @@ export const invalidarCacheThunk = createAsyncThunk(
   "flags/invalidarCache",
   async (tenantId, { rejectWithValue }) => {
     try {
-      const response = await planApi.invalidarCache(tenantId);
+      const response = await flagsApi.invalidarCache(tenantId);
       return response;
     } catch (error) {
       return rejectWithValue(extractErrorMessage(error));
@@ -68,7 +68,7 @@ export const cambiarPlanThunk = createAsyncThunk(
     { rejectWithValue }
   ) => {
     try {
-      const response = await planApi.cambiarPlan(tenantId, {
+      const response = await flagsApi.cambiarPlan(tenantId, {
         nuevo_plan,
         ciclo_inicio,
         ciclo_fin,
@@ -88,11 +88,26 @@ export const actualizarUsoThunk = createAsyncThunk(
   "flags/actualizarUso",
   async ({ tenantId, campo, cantidad }, { rejectWithValue }) => {
     try {
-      const response = await planApi.actualizarUso(tenantId, {
+      const response = await flagsApi.actualizarUso(tenantId, {
         campo,
         cantidad,
       });
 
+      return response;
+    } catch (error) {
+      return rejectWithValue(extractErrorMessage(error));
+    }
+  }
+);
+
+// =========================
+// OBTENER PLANES
+// =========================
+export const obtenerPlanesThunk = createAsyncThunk(
+  "flags/obtenerPlanes",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await flagsApi.obtenerPlanes();
       return response;
     } catch (error) {
       return rejectWithValue(extractErrorMessage(error));
