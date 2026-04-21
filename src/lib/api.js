@@ -578,12 +578,6 @@ export const pagoApi = {
 
 
 // =========================
-// PAGOS / BILLING
-// =========================
-
-
-
-// =========================
 // ORCHESTRATION
 // =========================
 export const orchestrationApi = {
@@ -635,5 +629,11 @@ export const comprobantesApi = {
       })
       .then((res) => res.data)
       .catch(handleError),
-
+};
+export const internalApi = {
+  cambiarPlanTenant: (tenantId, data) =>
+    apiInternal
+      .put(`/admin/tenants/${tenantId}/plan`, data)
+      .then((res) => res.data)
+      .catch(handleError),
 };
