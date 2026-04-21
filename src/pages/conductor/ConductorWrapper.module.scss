@@ -1,126 +1,438 @@
-@use '../admin/variables' as *;
+@use "../admin/variables" as *;
 
-
-$bottom-nav-h: 64px;
-$topbar-h: 56px;
+$bottom-nav-h: 68px;
+$topbar-h: 58px;
 
 .shell {
-  display: flex; flex-direction: column;
-  height: 100vh; overflow: hidden;
-  font-family: $font-body; background: $grey-2;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+  font-family: $font-body;
+  background: $grey-2;
   position: relative;
 }
 
-// Topbar
 .topbar {
-  height: $topbar-h; background: $black;
+  height: $topbar-h;
+  background: $black;
   @include flex(center, space-between, 0);
-  padding: 0 16px; flex-shrink: 0;
-  z-index: $z-topbar; border-bottom: 1px solid rgba($white, 0.08);
+  padding: 0 16px;
+  flex-shrink: 0;
+  z-index: $z-topbar;
+  border-bottom: 1px solid rgba($white, 0.08);
+  box-shadow: 0 8px 18px rgba($black, 0.16);
 
   &__menu {
-    width: 38px; height: 38px; border: none; border-radius: 10px;
-    background: rgba($white, 0.08); color: $white;
-    @include flex-center; cursor: pointer; @include transition(background);
-    &:hover { background: rgba($white, 0.15); }
+    width: 38px;
+    height: 38px;
+    border: none;
+    border-radius: 10px;
+    background: rgba($white, 0.08);
+    color: $white;
+    @include flex-center;
+    cursor: pointer;
+    @include transition(background);
+
+    &:hover {
+      background: rgba($white, 0.15);
+    }
   }
 
   &__brand {
     @include flex(center, center, 8px);
-    color: rgba($white, 0.9); font-size: 14px; font-weight: 700;
-    strong { color: $theme-5; }
+    color: rgba($white, 0.92);
+    font-size: 14px;
+    font-weight: 700;
+    min-width: 0;
+
+    strong {
+      color: $theme-5;
+    }
+
+    span {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+
+  &__right {
+    @include flex(center, flex-end, 10px);
+    min-width: 0;
+  }
+
+  &__meta {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    min-width: 0;
+
+    @include respond-to($bp-sm) {
+      display: none;
+    }
+  }
+
+  &__title {
+    color: $white;
+    font-size: 12px;
+    font-weight: 800;
+    line-height: 1.1;
+    white-space: nowrap;
+  }
+
+  &__meta small {
+    color: rgba($white, 0.58);
+    font-size: 10px;
+    font-weight: 700;
+    margin-top: 2px;
+    white-space: nowrap;
   }
 
   &__ws {
-    width: 9px; height: 9px; border-radius: 50%;
-    background: $status-danger-text; flex-shrink: 0;
-    &--on { background: $status-success-text; }
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: $status-danger-text;
+    flex-shrink: 0;
+    box-shadow: 0 0 0 4px rgba($status-danger-text, 0.14);
+
+    &--on {
+      background: $status-success-text;
+      box-shadow: 0 0 0 4px rgba($status-success-text, 0.14);
+    }
   }
 }
 
-// Overlay
 .overlay {
-  position: fixed; inset: 0; background: rgba($black, 0.5);
-  opacity: 0; pointer-events: none; z-index: $z-overlay;
+  position: fixed;
+  inset: 0;
+  background: rgba($black, 0.5);
+  opacity: 0;
+  pointer-events: none;
+  z-index: $z-overlay;
   @include transition(opacity);
-  &--active { opacity: 1; pointer-events: auto; }
+
+  &--active {
+    opacity: 1;
+    pointer-events: auto;
+  }
 }
 
-// Drawer lateral
 .drawer {
-  position: fixed; top: 0; left: 0; height: 100%;
-  width: 260px; background: $black;
-  z-index: $z-sidebar; display: flex; flex-direction: column;
-  padding: 0; transform: translateX(-100%);
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 280px;
+  background: $black;
+  z-index: $z-sidebar;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  transform: translateX(-100%);
   @include transition(transform);
   border-right: 1px solid rgba($white, 0.08);
+  box-shadow: 20px 0 40px rgba($black, 0.16);
 
-  &--open { transform: translateX(0); }
+  &--open {
+    transform: translateX(0);
+  }
+
+  &__head {
+    padding: 16px 16px 0;
+    flex-shrink: 0;
+  }
+
+  &__brand {
+    @include flex(center, flex-start, 12px);
+    padding: 14px;
+    border-radius: 16px;
+    background: rgba($white, 0.05);
+    border: 1px solid rgba($white, 0.07);
+  }
+
+  &__brandIcon {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, $theme-5, $theme-3);
+    color: $white;
+    @include flex-center;
+    flex-shrink: 0;
+    box-shadow: 0 8px 18px rgba($theme-5, 0.24);
+  }
+
+  &__brandText {
+    min-width: 0;
+
+    strong {
+      display: block;
+      font-size: 14px;
+      color: $white;
+      font-weight: 900;
+      line-height: 1.1;
+      font-family: $font-heading;
+    }
+
+    span {
+      display: block;
+      margin-top: 3px;
+      font-size: 11px;
+      color: rgba($white, 0.62);
+      font-weight: 700;
+      line-height: 1.35;
+    }
+  }
 
   &__user {
     @include flex(center, flex-start, 12px);
-    padding: 28px 20px 20px; border-bottom: 1px solid rgba($white, 0.08);
+    padding: 20px 20px 16px;
+    border-bottom: 1px solid rgba($white, 0.08);
+    margin-top: 8px;
   }
 
   &__avatar {
-    width: 44px; height: 44px; border-radius: 50%; flex-shrink: 0;
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    flex-shrink: 0;
     background: linear-gradient(135deg, $theme-5, $theme-3);
-    color: $white; @include flex-center; font-size: 15px; font-weight: 900;
+    color: $white;
+    @include flex-center;
+    font-size: 15px;
+    font-weight: 900;
+    box-shadow: 0 8px 18px rgba($theme-5, 0.24);
   }
 
-  &__nombre { font-size: 14px; font-weight: 900; color: $white; margin: 0; }
-  &__email  { font-size: 12px; color: rgba($white, 0.6); }
+  &__userMeta {
+    min-width: 0;
+  }
+
+  &__nombre {
+    font-size: 14px;
+    font-weight: 900;
+    color: $white;
+    margin: 0;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__email {
+    display: block;
+    font-size: 12px;
+    color: rgba($white, 0.6);
+    margin-top: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__status {
+    @include flex(center, flex-start, 8px);
+    padding: 14px 20px 0;
+    flex-shrink: 0;
+  }
+
+  &__statusDot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: $status-danger-text;
+    flex-shrink: 0;
+
+    &--on {
+      background: $status-success-text;
+    }
+  }
+
+  &__statusText {
+    font-size: 11px;
+    color: rgba($white, 0.56);
+    font-weight: 700;
+    line-height: 1.35;
+  }
+
+  &__context {
+    margin: 14px 14px 0;
+    background: rgba($white, 0.06);
+    border: 1px solid rgba($white, 0.08);
+    border-radius: 16px;
+    padding: 14px;
+    flex-shrink: 0;
+
+    p {
+      font-size: 13px;
+      font-weight: 900;
+      color: $white;
+      margin: 0 0 5px;
+      font-family: $font-heading;
+      line-height: 1.3;
+    }
+
+    span {
+      display: block;
+      font-size: 12px;
+      color: rgba($white, 0.68);
+      line-height: 1.45;
+    }
+  }
 
   &__nav {
-    display: flex; flex-direction: column; gap: 4px;
-    padding: 16px 12px; flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 16px 12px;
+    flex: 1;
+    overflow-y: auto;
   }
 
   &__navItem {
     @include flex(center, flex-start, 12px);
-    width: 100%; border: none; background: transparent;
-    color: rgba($white, 0.7); border-radius: 12px; padding: 13px 14px;
-    cursor: pointer; @include transition; text-align: left; font-family: $font-body;
-    font-size: 14px; font-weight: 700;
-    &:hover { background: rgba($white, 0.08); color: $white; }
-    &--active { background: rgba($white, 0.10); color: $white; box-shadow: inset 4px 0 0 $theme-5; }
+    width: 100%;
+    border: none;
+    background: transparent;
+    color: rgba($white, 0.72);
+    border-radius: 14px;
+    padding: 13px 14px;
+    cursor: pointer;
+    @include transition;
+    text-align: left;
+    font-family: $font-body;
+    font-size: 14px;
+    font-weight: 800;
+
+    &:hover {
+      background: rgba($white, 0.08);
+      color: $white;
+    }
+
+    &--active {
+      background: rgba($white, 0.1);
+      color: $white;
+      box-shadow: inset 4px 0 0 $theme-5;
+    }
   }
 
   &__logout {
     @include flex(center, flex-start, 10px);
-    margin: 0 12px 20px; padding: 12px 14px;
-    border: none; border-radius: 12px; cursor: pointer;
-    background: rgba($white, 0.04); color: rgba($white, 0.55);
-    font-size: 13px; font-weight: 700; font-family: $font-body;
-    @include transition; border: 1px solid rgba($white, 0.06);
-    &:hover { background: rgba($white, 0.08); color: $white; }
+    margin: 0 12px 20px;
+    padding: 13px 14px;
+    border: none;
+    border-radius: 14px;
+    cursor: pointer;
+    background: rgba($white, 0.04);
+    color: rgba($white, 0.58);
+    font-size: 13px;
+    font-weight: 800;
+    font-family: $font-body;
+    @include transition;
+    border: 1px solid rgba($white, 0.06);
+
+    &:hover {
+      background: rgba($white, 0.08);
+      color: $white;
+    }
   }
 }
 
-// Main content
 .main {
-  flex: 1; overflow-y: auto; min-height: 0;
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
   padding-bottom: $bottom-nav-h;
   @include scrollbar(5px, $grey-4);
+
+  &__header {
+    padding: 20px 18px 10px;
+    background: linear-gradient(
+      180deg,
+      rgba($white, 0.95) 0%,
+      rgba($grey-2, 0.92) 100%
+    );
+    border-bottom: 1px solid rgba($black, 0.04);
+
+    @include respond-to($bp-sm) {
+      padding: 16px 14px 8px;
+    }
+
+    h2 {
+      margin: 6px 0 0;
+      font-size: 24px;
+      font-family: $font-heading;
+      color: $black;
+      line-height: 1.08;
+    }
+
+    p {
+      margin: 8px 0 0;
+      color: $black-2;
+      font-size: 13px;
+      line-height: 1.5;
+      max-width: 720px;
+    }
+  }
+
+  &__eyebrow {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 11px;
+    border-radius: 999px;
+    background: rgba($theme-5, 0.14);
+    color: darken($theme-5, 10%);
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: 0.25px;
+    text-transform: uppercase;
+  }
+
+  &__content {
+    padding: 16px;
+
+    @include respond-to($bp-sm) {
+      padding: 12px;
+    }
+  }
 }
 
-// Bottom nav (mobile primary navigation) 
 .bottomNav {
-  position: fixed; bottom: 0; left: 0; right: 0;
-  height: $bottom-nav-h; background: $black;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: $bottom-nav-h;
+  background: $black;
   border-top: 1px solid rgba($white, 0.1);
-  display: grid; grid-template-columns: repeat(2, 1fr);
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
   z-index: $z-topbar;
+  box-shadow: 0 -8px 16px rgba($black, 0.16);
 
   &__item {
     @include flex(center, center, 0);
-    flex-direction: column; gap: 4px;
-    border: none; background: transparent;
-    color: rgba($white, 0.55); cursor: pointer; font-family: $font-body;
+    flex-direction: column;
+    gap: 4px;
+    border: none;
+    background: transparent;
+    color: rgba($white, 0.55);
+    cursor: pointer;
+    font-family: $font-body;
     @include transition(color, background);
-    span { font-size: 11px; font-weight: 700; }
 
-    &:hover { background: rgba($white, 0.06); color: rgba($white, 0.9); }
-    &--active { color: $theme-5; }
+    span {
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    &:hover {
+      background: rgba($white, 0.06);
+      color: rgba($white, 0.9);
+    }
+
+    &--active {
+      color: $theme-5;
+    }
   }
 }
