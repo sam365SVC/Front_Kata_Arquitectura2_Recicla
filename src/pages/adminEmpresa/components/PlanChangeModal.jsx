@@ -9,17 +9,102 @@ import {
   FiClock,
   FiBarChart2,
   FiArrowUpRight,
+  FiDownload,
+  FiTrendingUp,
+  FiCreditCard,
 } from "react-icons/fi";
 import styles from "./PlanChangeModal.module.scss";
 
 const featureValue = (value) => {
-  if (value === null || value === undefined || value === "") return "No";
+  if (value === null || value === undefined || value === "") return "No definido";
   return value;
 };
 
 const isPositiveFeature = (value) => {
   const normalized = String(value || "").toLowerCase().trim();
-  return normalized !== "no";
+  return (
+    normalized !== "no" &&
+    normalized !== "ninguno" &&
+    normalized !== "-" &&
+    normalized !== "no definido" &&
+    normalized !== "false"
+  );
+};
+
+const formatPrice = (precio, moneda = "Bs.") => {
+  if (
+    precio === null ||
+    precio === undefined ||
+    precio === "" ||
+    String(precio).toLowerCase() === "null"
+  ) {
+    return "Personalizado";
+  }
+
+  const parsed = Number(precio);
+
+  if (Number.isNaN(parsed)) {
+    return `${moneda} ${precio}`;
+  }
+
+  return `${moneda} ${parsed.toLocaleString("es-BO", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
+};
+
+const formatHistorial = (value) => {
+  if (value === null || value === undefined || value === "") {
+    return "No definido";
+  }
+
+  const normalized = String(value).toLowerCase().trim();
+
+  if (normalized === "ilimitado") return "Ilimitado";
+
+  const parsed = Number(value);
+  if (Number.isNaN(parsed)) return value;
+
+  if (parsed === 1) return "1 mes";
+  return `${parsed} meses`;
+};
+
+const formatReportes = (value) => {
+  const normalized = String(value || "").toLowerCase().trim();
+
+  if (!normalized) return "No definido";
+  if (normalized === "ninguno") return "Ninguno";
+  if (normalized === "basico") return "Básicos";
+  if (normalized === "avanzado") return "Avanzados";
+  if (normalized === "personalizado") return "Personalizado";
+
+  return value;
+};
+
+const formatBooleanFeature = (value) => {
+  return value ? "Sí" : "No";
+};
+
+const getPlanSubtitle = (plan) => {
+  const nombre = String(plan?.nombre || "").toLowerCase();
+
+  if (nombre.includes("free")) {
+    return "Ideal para comenzar y probar la plataforma.";
+  }
+
+  if (nombre.includes("basic")) {
+    return "Para operaciones pequeñas con necesidades iniciales.";
+  }
+
+  if (nombre.includes("premium")) {
+    return "Para empresas en crecimiento con mayor operación.";
+  }
+
+  if (nombre.includes("enterprise")) {
+    return "Para operaciones avanzadas con necesidades amplias.";
+  }
+
+  return "Una opción diseñada para ajustarse a las necesidades de tu empresa.";
 };
 
 const PlanChangeModal = ({
@@ -30,7 +115,8 @@ const PlanChangeModal = ({
   onChangePlan,
 }) => {
   const currentPlan = useMemo(
-    () => plans.find((plan) => plan.id === currentPlanId) || null,
+    () =>
+      plans.find((plan) => String(plan.id) === String(currentPlanId)) || null,
     [plans, currentPlanId]
   );
 
@@ -75,7 +161,7 @@ const PlanChangeModal = ({
 
           <div className={styles.planGrid}>
             {plans.map((plan) => {
-              const isCurrent = plan.id === currentPlanId;
+              const isCurrent = String(plan.id) === String(currentPlanId);
 
               return (
                 <article
@@ -87,51 +173,48 @@ const PlanChangeModal = ({
                   <div className={styles.planCard__top}>
                     <div>
                       <div className={styles.planCard__titleRow}>
-                        <h4>{plan.nombre}</h4>
+                        <h4>{plan.nombre || "Sin nombre"}</h4>
                         {isCurrent && (
                           <span className={styles.planBadge}>Actual</span>
                         )}
                       </div>
 
                       <p className={styles.planSubtitle}>
-                        {plan.nombre === "Free" &&
-                          "Ideal para comenzar y probar la plataforma."}
-                        {plan.nombre === "Basic" &&
-                          "Para operaciones pequeñas con necesidades iniciales."}
-                        {plan.nombre === "Premium" &&
-                          "Para empresas en crecimiento con mayor operación."}
-                        {plan.nombre === "Enterprise" &&
-                          "Para operaciones avanzadas con necesidades amplias."}
+                        {getPlanSubtitle(plan)}
                       </p>
                     </div>
 
                     <div className={styles.planPrice}>
-                      {plan.precio === null ? (
-                        <>
-                          <strong>Personalizado</strong>
-                          <span>contáctanos</span>
-                        </>
-                      ) : (
-                        <>
-                          <strong>Bs. {plan.precio}</strong>
-                          <span>por mes</span>
-                        </>
-                      )}
+                      <strong>{formatPrice(plan.precio, plan.moneda)}</strong>
+                      <span>
+                        {plan.precio === null || plan.precio === undefined
+                          ? "contáctanos"
+                          : "por mes"}
+                      </span>
                     </div>
                   </div>
 
                   <div className={styles.planHighlights}>
                     <div className={styles.planHighlight}>
                       <FiBox size={15} />
-                      <span>{plan.dispositivos} dispositivos</span>
+                      <span>{featureValue(plan.dispositivos)} dispositivos</span>
                     </div>
+
                     <div className={styles.planHighlight}>
                       <FiZap size={15} />
-                      <span>{plan.reglas} reglas</span>
+                      <span>{featureValue(plan.reglas)} reglas</span>
                     </div>
+
                     <div className={styles.planHighlight}>
                       <FiUsers size={15} />
-                      <span>{plan.inspectores} inspectores</span>
+                      <span>{featureValue(plan.inspectores)} inspectores</span>
+                    </div>
+
+                    <div className={styles.planHighlight}>
+                      <FiTrendingUp size={15} />
+                      <span>
+                        {featureValue(plan.cotizacionesMes)} cotizaciones/mes
+                      </span>
                     </div>
                   </div>
 
@@ -166,8 +249,8 @@ const PlanChangeModal = ({
                     {plans.map((plan) => (
                       <th key={plan.id}>
                         <div className={styles.tablePlanHead}>
-                          <span>{plan.nombre}</span>
-                          {plan.id === currentPlanId && (
+                          <span>{plan.nombre || "Sin nombre"}</span>
+                          {String(plan.id) === String(currentPlanId) && (
                             <small>Actual</small>
                           )}
                         </div>
@@ -183,7 +266,9 @@ const PlanChangeModal = ({
                       Dispositivos en catálogo
                     </td>
                     {plans.map((plan) => (
-                      <td key={`${plan.id}-dispositivos`}>{plan.dispositivos}</td>
+                      <td key={`${plan.id}-dispositivos`}>
+                        {featureValue(plan.dispositivos)}
+                      </td>
                     ))}
                   </tr>
 
@@ -193,7 +278,9 @@ const PlanChangeModal = ({
                       Reglas de cotización
                     </td>
                     {plans.map((plan) => (
-                      <td key={`${plan.id}-reglas`}>{plan.reglas}</td>
+                      <td key={`${plan.id}-reglas`}>
+                        {featureValue(plan.reglas)}
+                      </td>
                     ))}
                   </tr>
 
@@ -203,7 +290,21 @@ const PlanChangeModal = ({
                       Usuarios inspectores
                     </td>
                     {plans.map((plan) => (
-                      <td key={`${plan.id}-inspectores`}>{plan.inspectores}</td>
+                      <td key={`${plan.id}-inspectores`}>
+                        {featureValue(plan.inspectores)}
+                      </td>
+                    ))}
+                  </tr>
+
+                  <tr>
+                    <td className={styles.featureCell}>
+                      <FiTrendingUp size={15} />
+                      Cotizaciones por mes
+                    </td>
+                    {plans.map((plan) => (
+                      <td key={`${plan.id}-cotizaciones`}>
+                        {featureValue(plan.cotizacionesMes)}
+                      </td>
                     ))}
                   </tr>
 
@@ -213,7 +314,9 @@ const PlanChangeModal = ({
                       Historial de operaciones
                     </td>
                     {plans.map((plan) => (
-                      <td key={`${plan.id}-historial`}>{plan.historial}</td>
+                      <td key={`${plan.id}-historial`}>
+                        {formatHistorial(plan.historial)}
+                      </td>
                     ))}
                   </tr>
 
@@ -222,22 +325,62 @@ const PlanChangeModal = ({
                       <FiBarChart2 size={15} />
                       Reportes
                     </td>
+                    {plans.map((plan) => {
+                      const reportes = formatReportes(plan.reportes);
+                      return (
+                        <td key={`${plan.id}-reportes`}>
+                          <span
+                            className={`${styles.reportBadge} ${
+                              isPositiveFeature(reportes)
+                                ? styles.reportBadgeOk
+                                : styles.reportBadgeNo
+                            }`}
+                          >
+                            {isPositiveFeature(reportes) ? (
+                              <FiCheck size={14} />
+                            ) : (
+                              <FiX size={14} />
+                            )}
+                            {reportes}
+                          </span>
+                        </td>
+                      );
+                    })}
+                  </tr>
+
+                  <tr>
+                    <td className={styles.featureCell}>
+                      <FiDownload size={15} />
+                      Exportación
+                    </td>
                     {plans.map((plan) => (
-                      <td key={`${plan.id}-reportes`}>
+                      <td key={`${plan.id}-exportar`}>
                         <span
                           className={`${styles.reportBadge} ${
-                            isPositiveFeature(plan.reportes)
+                            plan.puedeExportar
                               ? styles.reportBadgeOk
                               : styles.reportBadgeNo
                           }`}
                         >
-                          {isPositiveFeature(plan.reportes) ? (
+                          {plan.puedeExportar ? (
                             <FiCheck size={14} />
                           ) : (
                             <FiX size={14} />
                           )}
-                          {featureValue(plan.reportes)}
+                          {formatBooleanFeature(plan.puedeExportar)}
                         </span>
+                      </td>
+                    ))}
+                  </tr>
+
+                  <tr>
+                    <td className={styles.featureCell}>
+                      <FiCreditCard size={15} />
+                      Precio mensual
+                    </td>
+                    {plans.map((plan) => (
+                      <td key={`${plan.id}-precio`}>
+                        {formatPrice(plan.precio, plan.moneda)}
                       </td>
                     ))}
                   </tr>

@@ -1,90 +1,85 @@
-import { createAsyncThunk } from "@reduxjs/toolkit"
-import { loginApi } from "../../../lib/api"
+import { createAsyncThunk } from "@reduxjs/toolkit";
+import { loginApi } from "../../../lib/api";
 
 function normalizeLoginResponse(res) {
-  // backend actual: { ok, id, mail, nombres, admin, token }
-  const ok = !!res?.ok
-  const token = res?.token ?? null
-  const id = res?.id ?? res?.uid ?? res?.usuario?.id ?? res?.usuario?.uid ?? null
+  const ok = !!res?.ok;
 
-  // nombres / name
-  const nombres =
-    res?.nombres ??
-    res?.nombre ??
-    res?.usuario?.nombres ??
-    res?.usuario?.nombre ??
-    "Usuario"
+  const id = res?.uid ?? null;
+  const token = res?.token ?? null;
 
-  // mail / email
-  const mail = res?.mail ?? res?.email ?? res?.usuario?.mail ?? res?.usuario?.email ?? ""
+  const email = res?.email ?? "";
+  const rol = res?.userRol ?? "";
 
-  // admin / rol
-  const admin = res?.admin ?? res?.usuario?.admin ?? false
-  const rol = res?.rol ?? res?.usuario?.rol ?? (admin ? "Admin" : "Usuario")
+  const tenantId = res?.tenantId ?? null;
+  const tenantNombre = res?.tenant_nombre ?? "";
 
-  return { ok, id, mail, nombres, admin, rol, token }
+  const expiresAt = res?.exp ? res.exp * 1000 : null;
+
+  return {
+    ok,
+    id,
+    mail: email,
+    nombres: email || "Usuario",
+    rol,
+    tenantId,
+    tenantNombre,
+    token,
+    expiresAt,
+  };
 }
 
 export const loginUser = createAsyncThunk(
   "login/loginUser",
   async (credentials, { rejectWithValue }) => {
     try {
-      const response = await loginApi.login(credentials)
-      const norm = normalizeLoginResponse(response)
+      const response = await loginApi.login(credentials);
+
+      if (response?.seleccionar_tenant) {
+        return {
+          needsTenantSelection: true,
+          tenants: response.tenants || [],
+          pendingCredentials: {
+            email: credentials?.email ?? "",
+            password: credentials?.password ?? "",
+          },
+        };
+      }
+
+      const norm = normalizeLoginResponse(response);
 
       if (!norm.ok || !norm.token || !norm.id) {
         return rejectWithValue({
           message: response?.msg || "Credenciales inválidas o respuesta incompleta",
-          type: "warning",
-        })
+        });
       }
 
-      // Si tu backend NO manda expiresIn, usamos fallback (ej: 7h)
-      const expiresInSec =
-        Number(response?.expiresIn) && Number(response.expiresIn) > 0
-          ? Number(response.expiresIn)
-          : 7 * 60 * 60
-
-      return {
-        id: norm.id,
-        mail: norm.mail,
-        nombres: norm.nombres,
-        admin: norm.admin,
-        rol: norm.rol,
-        token: norm.token,
-        expiresAt: Date.now() + expiresInSec * 1000,
-      }
+      return norm;
     } catch (error) {
-      // si loginApi usa axios, esto funciona
-      if (error?.response) {
-        const { status, data } = error.response
-
-        if (status === 400) {
-          return rejectWithValue({
-            message: data?.msg || "Credenciales inválidas",
-            type: "warning",
-          })
-        }
-
-        if (status === 401) {
-          return rejectWithValue({
-            message: data?.msg || "No autorizado",
-            type: "warning",
-          })
-        }
-
-        if (status >= 500) {
-          return rejectWithValue({
-            message: "Error en el servidor. Intente más tarde",
-            type: "error",
-          })
-        }
-      }
-
       return rejectWithValue({
         message: error?.message || "No se pudo conectar con el servidor",
-        type: "error",
-      })
+      });
     }
   }
-)
+);
+
+export const renewSession = createAsyncThunk(
+  "login/renewSession",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await loginApi.renew();
+      const norm = normalizeLoginResponse(response);
+
+      if (!norm.ok || !norm.token || !norm.id) {
+        return rejectWithValue({
+          message: "No se pudo renovar la sesión",
+        });
+      }
+
+      return norm;
+    } catch (error) {
+      return rejectWithValue({
+        message: error?.message || "Sesión expirada",
+      });
+    }
+  }
+);

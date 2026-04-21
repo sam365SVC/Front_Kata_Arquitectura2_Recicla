@@ -95,8 +95,7 @@
     .sidebar__brandText,
     .sidebar__navLabel,
     .sidebar__infoPanel,
-    .sidebar__footerInfo,
-    .sidebar__footerAction {
+    .sidebar__footerInfo {
       display: none;
     }
 
@@ -112,6 +111,12 @@
     .sidebar__footerUser {
       justify-content: center;
       padding: 10px;
+    }
+
+    .sidebar__footerAction {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
     }
   }
 
@@ -270,15 +275,7 @@
     flex-shrink: 0;
   }
 
-  &__footerUser {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    background: rgba($white, 0.05);
-    border: 1px solid rgba($white, 0.06);
-    border-radius: 14px;
-    padding: 12px;
-  }
+  
 
   &__footerAvatar {
     width: 42px;
@@ -292,43 +289,79 @@
     flex-shrink: 0;
   }
 
-  &__footerInfo {
-    min-width: 0;
-    flex: 1;
+ &__footerUser {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba($white, 0.05);
+  border: 1px solid rgba($white, 0.06);
+  border-radius: 14px;
+  padding: 12px;
+  min-width: 0;
+}
 
-    p {
-      margin: 0;
-      color: $white;
-      font-size: 13px;
-      font-weight: 800;
-    }
+&__footerInfo {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
 
-    span {
-      display: block;
-      margin-top: 2px;
-      color: rgba($white, 0.7);
-      font-size: 11px;
-      font-weight: 700;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    small {
-      display: block;
-      margin-top: 2px;
-      color: rgba($white, 0.5);
-      font-size: 10px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
+  p {
+    margin: 0;
+    color: $white;
+    font-size: 13px;
+    font-weight: 800;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
-  &__footerAction {
+  span {
+    display: block;
+    margin-top: 2px;
     color: rgba($white, 0.7);
-    flex-shrink: 0;
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
+
+  small {
+    display: block;
+    margin-top: 2px;
+    color: rgba($white, 0.5);
+    font-size: 10px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+&__footerAction {
+  width: 34px;
+  height: 34px;
+  min-width: 34px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: rgba($white, 0.72);
+  flex-shrink: 0;
+  @include transition;
+
+  &:hover {
+    background: rgba($white, 0.08);
+    color: $white;
+  }
+
+  &:focus-visible {
+    outline: 2px solid rgba($main-1, 0.8);
+    outline-offset: 2px;
+  }
+}
 }
 
 .main {

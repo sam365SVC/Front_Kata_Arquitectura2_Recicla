@@ -12,58 +12,71 @@
 .group { margin-bottom: 24px; }
 
 .group__title {
-  font-size: 13px; font-weight: 900; color: $black;
-  margin: 0 0 10px; font-family: $font-heading;
-  @include flex(center, flex-start, 8px);
-  span {
-    @include status-badge($main-2, $main-4, $main-3);
-    font-size: 11px;
-  }
+  font-size: 13px; font-weight: 900; color: $black; margin: 0 0 10px;
+  font-family: $font-heading; display: 
+  flex; align-items: center; gap: 8px;
+}
+
+.group__cnt {
+  font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: $radius-pill;
+  background: $main-2; color: $main-4; border: 1px solid $main-3;
 }
 
 // Card orden
 .card {
-  @include card;
-  padding: 16px; margin-bottom: 10px;
-  display: flex; flex-direction: column; gap: 6px;
+  @include card; padding: 16px; margin-bottom: 10px;
+  display: flex; flex-direction: column; gap: 8px;
+  @include transition(box-shadow);
+  &:hover { box-shadow: $shadow-md; }
 
   &__top { @include flex(center, space-between, 8px); }
 
-  &__cliente {
-    font-size: 15px; font-weight: 800; color: $black; margin: 0;
+  &__clienteRow {
+    @include flex(flex-start, flex-start, 6px); color: $text-muted;
   }
 
-  &__dir {
-    font-size: 13px; color: $text-muted; margin: 0;
-    line-height: 1.4;
+  &__cliente { font-size: 14px; font-weight: 800; color: $black; }
+  &__tel     { font-size: 12px; color: $text-muted; }
+
+  &__origenRow {
+    @include flex(flex-start, flex-start, 6px);
+    color: $text-muted; font-size: 12px;
   }
 
-  &__equipos { @include flex(center, flex-start, 6px); flex-wrap: wrap; }
+  &__dir { font-size: 13px; color: $text-body; margin: 0; line-height: 1.4; }
+  &__ref { font-size: 11px; color: $main-4; margin: 2px 0 0; font-style: italic; }
+
+  &__equipos { @include flex(flex-start, flex-start, 6px); color: $text-muted; }
+
+  &__equiposList { display: flex; flex-direction: column; gap: 6px; flex: 1; }
 
   &__ruta {
     font-size: 12px; color: $main-4; font-weight: 700; margin: 0;
-    background: $main-2; padding: 4px 10px; border-radius: $radius-md;
-    display: inline-block; width: fit-content;
+    background: $main-2; padding: 4px 10px; border-radius: $radius-md; display: inline-block;
   }
 
   &__fecha { font-size: 11px; color: $text-muted; margin: 0; }
 }
 
-.code {
-  font-family: $font-mono; font-size: 11px;
-  background: $main-2; color: $main-4;
-  padding: 2px 7px; border-radius: $radius-sm;
-}
-
+//Equipo dentro de la card
 .equipo {
-  font-size: 12px; color: $text-muted;
-  background: $grey-2; border: 1px solid $grey-4;
-  padding: 3px 8px; border-radius: $radius-pill;
+  background: $grey-2; border: 1px solid $grey-4; border-radius: $radius-md;
+  padding: 8px 10px; display: flex; flex-direction: column; gap: 4px;
+
+  &__nombre { font-size: 13px; font-weight: 800; color: $black; @include flex(center, space-between, 8px); }
+  &__desc    { font-size: 11px; color: $text-muted; margin: 0; line-height: 1.4; }
 }
 
-// Vacío y carga 
-.empty, .loading {
-  font-size: 13px; color: $text-muted; padding: 16px 0;
+.condTag { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: $radius-pill; }
+.condTag--success { @include status-badge($status-success-bg, $status-success-text, $status-success-border); }
+.condTag--active  { @include status-badge($status-active-bg,  $status-active-text,  $status-active-border); }
+.condTag--warning { @include status-badge($status-warning-bg, $status-warning-text, $status-warning-border); }
+.condTag--danger  { @include status-badge($status-danger-bg,  $status-danger-text,  $status-danger-border); }
+.condTag--neutral { @include status-badge($status-neutral-bg, $status-neutral-text, $status-neutral-border); }
+
+.code {
+  font-family: $font-mono; font-size: 11px; background: $main-2;
+  color: $main-4; padding: 2px 7px; border-radius: $radius-sm;
 }
 
 // Badges
@@ -76,3 +89,5 @@
 .badge--success { @include status-badge($status-success-bg, $status-success-text, $status-success-border); }
 .badge--danger  { @include status-badge($status-danger-bg,  $status-danger-text,  $status-danger-border); }
 .badge--done    { @include status-badge($status-done-bg,    $status-done-text,    $status-done-border); }
+
+.empty, .loading { font-size: 13px; color: $text-muted; padding: 16px 0; }

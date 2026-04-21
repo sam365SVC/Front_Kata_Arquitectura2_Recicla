@@ -1,40 +1,67 @@
-import { usuariosEmpresaMock } from "../mock/data";
+import { empresasApi } from "../../../lib/api";
 import {
   setUsuariosEmpresa,
   addUsuarioEmpresa,
   updateUsuarioEmpresa,
-  toggleEstadoUsuarioEmpresa,
+  removeUsuarioEmpresa,
   setUsuariosEmpresaLoading,
   setUsuariosEmpresaError,
 } from "./UsuariosEmpresaSlice";
 
-const STORAGE_KEY = "adminEmpresa_usuarios";
+const normalizeText = (value) => String(value || "").trim();
 
-const safeReadStorage = () => {
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY);
+const buildNombreCompleto = (nombre, apellido) =>
+  [nombre, apellido].filter(Boolean).join(" ").trim();
 
-    if (!stored) return usuariosEmpresaMock;
+const mapRolToFrontend = (rol = "") => {
+  const roleMap = {
+    ADMIN_LOGISTICA: "Administrador logística",
+    DESPACHADOR: "Despachador",
+    INSPECTOR: "Inspector",
+    CONDUCTOR: "Conductor",
+    ADMIN_TENANT: "Administrador",
+    SUPERADMIN: "Superadmin",
+    CLIENTE: "Cliente",
+  };
 
-    const parsed = JSON.parse(stored);
-
-    if (!Array.isArray(parsed) || parsed.length === 0) {
-      return usuariosEmpresaMock;
-    }
-
-    return parsed;
-  } catch (error) {
-    return usuariosEmpresaMock;
-  }
+  return roleMap[rol] || rol || "Sin rol";
 };
 
-const safeWriteStorage = (data) => {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-    return true;
-  } catch (error) {
-    return false;
-  }
+const mapRolToBackend = (rol = "") => {
+  const roleMap = {
+    "Administrador logística": "ADMIN_LOGISTICA",
+    Despachador: "DESPACHADOR",
+    Inspector: "INSPECTOR",
+    Conductor: "CONDUCTOR",
+    ADMIN_LOGISTICA: "ADMIN_LOGISTICA",
+    DESPACHADOR: "DESPACHADOR",
+    INSPECTOR: "INSPECTOR",
+    CONDUCTOR: "CONDUCTOR",
+  };
+
+  return roleMap[rol] || rol;
+};
+
+const mapUsuarioEmpresa = (user) => {
+  const id = user?.id || user?.id_usuario || user?.usuario_id || "";
+  const nombre = normalizeText(user?.nombre);
+  const apellido = normalizeText(user?.apellido);
+  const email = normalizeText(user?.email);
+  const rolBackend = normalizeText(user?.rol);
+  const estadoBackend = normalizeText(user?.estado).toLowerCase();
+
+  return {
+    id,
+    nombre: buildNombreCompleto(nombre, apellido) || "Sin nombre",
+    nombreRaw: nombre,
+    apellidoRaw: apellido,
+    email,
+    rol: mapRolToFrontend(rolBackend),
+    rolBackend,
+    estado: estadoBackend === "activo" ? "Activo" : "Inactivo",
+    createdAt: user?.creado_en || user?.created_at || null,
+    raw: user,
+  };
 };
 
 export const fetchUsuariosEmpresa = () => async (dispatch) => {
@@ -42,10 +69,23 @@ export const fetchUsuariosEmpresa = () => async (dispatch) => {
     dispatch(setUsuariosEmpresaLoading(true));
     dispatch(setUsuariosEmpresaError(null));
 
-    const usuarios = safeReadStorage();
-    dispatch(setUsuariosEmpresa(usuarios));
+    const response = await empresasApi.fetchUsuariosEmpresaByTenantId();
+
+    const usuarios = Array.isArray(response?.usuarios)
+      ? response.usuarios
+      : Array.isArray(response)
+      ? response
+      : [];
+
+    const mapped = usuarios.map(mapUsuarioEmpresa);
+
+    dispatch(setUsuariosEmpresa(mapped));
   } catch (error) {
-    dispatch(setUsuariosEmpresaError("No se pudo cargar la lista de usuarios."));
+    dispatch(
+      setUsuariosEmpresaError(
+        error?.message || "No se pudo cargar la lista de usuarios."
+      )
+    );
   } finally {
     dispatch(setUsuariosEmpresaLoading(false));
   }
@@ -56,28 +96,38 @@ export const createUsuarioEmpresa = (payload) => async (dispatch) => {
     dispatch(setUsuariosEmpresaLoading(true));
     dispatch(setUsuariosEmpresaError(null));
 
-    const current = safeReadStorage();
-
-    const nuevoUsuario = {
-      id: `usr-${Date.now()}`,
-      ...payload,
-      createdAt: new Date().toISOString(),
+    const body = {
+      email: normalizeText(payload?.email).toLowerCase(),
+      nombre: normalizeText(payload?.nombre),
+      apellido: normalizeText(payload?.apellido),
+      rol: mapRolToBackend(payload?.rol),
     };
 
-    const updated = [nuevoUsuario, ...current];
-    const ok = safeWriteStorage(updated);
+    const response = await empresasApi.createUsuarioEmpresa(body);
 
-    if (!ok) {
-      throw new Error("No se pudo guardar el usuario.");
-    }
+    const invitacion = response?.invitacion || body;
 
-    dispatch(addUsuarioEmpresa(nuevoUsuario));
-  } catch (error) {
     dispatch(
-      setUsuariosEmpresaError(
-        error?.message || "No se pudo crear el usuario."
+      addUsuarioEmpresa(
+        mapUsuarioEmpresa({
+          id_usuario: `tmp-${Date.now()}`,
+          nombre: invitacion.nombre,
+          apellido: invitacion.apellido,
+          email: invitacion.email,
+          rol: invitacion.rol,
+          estado: "activo",
+          creado_en: new Date().toISOString(),
+        })
       )
     );
+
+    return { ok: true, data: response };
+  } catch (error) {
+    const message = error?.message || "No se pudo invitar al usuario.";
+
+    dispatch(setUsuariosEmpresaError(message));
+
+    return { ok: false, message };
   } finally {
     dispatch(setUsuariosEmpresaLoading(false));
   }
@@ -88,25 +138,32 @@ export const editUsuarioEmpresa = (payload) => async (dispatch) => {
     dispatch(setUsuariosEmpresaLoading(true));
     dispatch(setUsuariosEmpresaError(null));
 
-    const current = safeReadStorage();
+    const body = {
+      nombre: normalizeText(payload?.nombre),
+      apellido: normalizeText(payload?.apellido),
+    };
 
-    const updated = current.map((user) =>
-      user.id === payload.id ? { ...user, ...payload } : user
-    );
+    const response = await empresasApi.updateUsuarioEmpresa(payload.id, body);
 
-    const ok = safeWriteStorage(updated);
+    const usuarioActualizado = response?.usuario || {
+      id_usuario: payload.id,
+      nombre: body.nombre,
+      apellido: body.apellido,
+      email: payload.email,
+      rol: payload.rolBackend || mapRolToBackend(payload.rol),
+      estado: payload.estado === "Activo" ? "activo" : "inactivo",
+      creado_en: payload.createdAt || null,
+    };
 
-    if (!ok) {
-      throw new Error("No se pudo actualizar el usuario.");
-    }
+    dispatch(updateUsuarioEmpresa(mapUsuarioEmpresa(usuarioActualizado)));
 
-    dispatch(updateUsuarioEmpresa(payload));
+    return { ok: true, data: response };
   } catch (error) {
-    dispatch(
-      setUsuariosEmpresaError(
-        error?.message || "No se pudo editar el usuario."
-      )
-    );
+    const message = error?.message || "No se pudo editar el usuario.";
+
+    dispatch(setUsuariosEmpresaError(message));
+
+    return { ok: false, message };
   } finally {
     dispatch(setUsuariosEmpresaLoading(false));
   }
@@ -117,30 +174,17 @@ export const changeEstadoUsuarioEmpresa = (userId) => async (dispatch) => {
     dispatch(setUsuariosEmpresaLoading(true));
     dispatch(setUsuariosEmpresaError(null));
 
-    const current = safeReadStorage();
+    const response = await empresasApi.changeEstadoUsuarioEmpresa(userId);
 
-    const updated = current.map((user) =>
-      user.id === userId
-        ? {
-            ...user,
-            estado: user.estado === "Activo" ? "Inactivo" : "Activo",
-          }
-        : user
-    );
+    dispatch(removeUsuarioEmpresa(userId));
 
-    const ok = safeWriteStorage(updated);
-
-    if (!ok) {
-      throw new Error("No se pudo actualizar el estado.");
-    }
-
-    dispatch(toggleEstadoUsuarioEmpresa(userId));
+    return { ok: true, data: response };
   } catch (error) {
-    dispatch(
-      setUsuariosEmpresaError(
-        error?.message || "No se pudo cambiar el estado del usuario."
-      )
-    );
+    const message = error?.message || "No se pudo desactivar el usuario.";
+
+    dispatch(setUsuariosEmpresaError(message));
+
+    return { ok: false, message };
   } finally {
     dispatch(setUsuariosEmpresaLoading(false));
   }

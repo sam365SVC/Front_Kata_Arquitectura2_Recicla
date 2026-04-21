@@ -1,11 +1,11 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import { empresasApi } from "../../../lib/api";
+import { tipoDispositivoApi } from "../../../lib/api";
 
 export const fetchTiposDispositivoEmpresa = createAsyncThunk(
   "tiposDispositivoEmpresa/fetchTiposDispositivoEmpresa",
   async ({ tenantId, activo } = {}, { rejectWithValue }) => {
     try {
-      const response = await empresasApi.fetchTiposDispositivoEmpresaByTenantId(
+      const response = await tipoDispositivoApi.fetchTiposDispositivoEmpresaByTenantId(
         tenantId,
         activo !== undefined ? { activo } : {}
       );
@@ -27,7 +27,7 @@ export const fetchTipoDispositivoEmpresaById = createAsyncThunk(
   "tiposDispositivoEmpresa/fetchTipoDispositivoEmpresaById",
   async (id, { rejectWithValue }) => {
     try {
-      const response = await empresasApi.fetchTipoDispositivoEmpresaById(id);
+      const response = await tipoDispositivoApi.fetchTipoDispositivoEmpresaById(id);
 
       return response?.data || null;
     } catch (error) {
@@ -42,7 +42,7 @@ export const createTipoDispositivoEmpresa = createAsyncThunk(
   "tiposDispositivoEmpresa/createTipoDispositivoEmpresa",
   async (payload, { rejectWithValue }) => {
     try {
-      const response = await empresasApi.createTipoDispositivoEmpresa(payload);
+      const response = await tipoDispositivoApi.createTipoDispositivoEmpresa(payload);
 
       return {
         item: response?.data || null,
@@ -60,7 +60,7 @@ export const updateTipoDispositivoEmpresa = createAsyncThunk(
   "tiposDispositivoEmpresa/updateTipoDispositivoEmpresa",
   async ({ id, data }, { rejectWithValue }) => {
     try {
-      const response = await empresasApi.updateTipoDispositivoEmpresa(id, data);
+      const response = await tipoDispositivoApi.updateTipoDispositivoEmpresa(id, data);
 
       return {
         item: response?.data || null,
@@ -78,7 +78,7 @@ export const changeEstadoTipoDispositivoEmpresa = createAsyncThunk(
   "tiposDispositivoEmpresa/changeEstadoTipoDispositivoEmpresa",
   async ({ id, activo }, { rejectWithValue }) => {
     try {
-      const response = await empresasApi.changeEstadoTipoDispositivoEmpresa(id, {
+      const response = await tipoDispositivoApi.changeEstadoTipoDispositivoEmpresa(id, {
         activo,
       });
 

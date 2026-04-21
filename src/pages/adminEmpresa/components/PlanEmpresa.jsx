@@ -11,6 +11,8 @@ import {
   FiBarChart2,
   FiClock,
   FiRefreshCw,
+  FiDownload,
+  FiFileText,
 } from "react-icons/fi";
 import styles from "./PlanEmpresa.module.scss";
 import PlanChangeModal from "./PlanChangeModal";
@@ -29,15 +31,35 @@ import {
   clearPlanEmpresaSuccess,
 } from "../slicesPlanEmpresa/PlanEmpresaSlice";
 
-const usoMock = {
-  dispositivos: { usados: 2 },
-  reglas: { usadas: 9 },
-  inspectores: { usados: 2 },
+const normalizeText = (value) =>
+  String(value || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim();
+
+const usoFallback = {
+  dispositivos: { usados: 0 },
+  reglas: { usados: 0 },
+  inspectores: { usados: 0 },
+  cotizaciones: { usados: 0 },
 };
 
 const formatPrice = (precio, moneda = "Bs.") => {
-  if (precio === null || precio === undefined) return "Personalizado";
-  return `${moneda} ${Number(precio).toLocaleString("es-BO")}`;
+  if (precio === null || precio === undefined || precio === "") {
+    return "No definido";
+  }
+
+  const parsed = Number(precio);
+
+  if (Number.isNaN(parsed)) {
+    return `${moneda} ${precio}`;
+  }
+
+  return `${moneda} ${parsed.toLocaleString("es-BO", {
+    minimumFractionDigits: parsed % 1 === 0 ? 0 : 2,
+    maximumFractionDigits: 2,
+  })}`;
 };
 
 const toNumberIfPossible = (value) => {
@@ -51,6 +73,11 @@ const porcentaje = (usados, total) => {
   return Math.min(100, Math.round((Number(usados || 0) / totalNum) * 100));
 };
 
+const formatDisplayValue = (value) => {
+  if (value === null || value === undefined || value === "") return "No definido";
+  return String(value);
+};
+
 const buildSwalClasses = () => ({
   popup: styles.swalPopup,
   title: styles.swalTitle,
@@ -59,7 +86,7 @@ const buildSwalClasses = () => ({
   cancelButton: styles.swalCancel,
 });
 
-const PlanEmpresa = ({ empresaNombre = "Recicla Tech S.R.L." }) => {
+const PlanEmpresa = ({ empresaNombre = "Mi empresa" }) => {
   const dispatch = useDispatch();
 
   const planActual = useSelector(selectPlanEmpresa);
@@ -105,16 +132,65 @@ const PlanEmpresa = ({ empresaNombre = "Recicla Tech S.R.L." }) => {
     dispatch(clearPlanEmpresaSuccess());
   }, [successMessage, dispatch]);
 
+  const planActualCompleto = useMemo(() => {
+    if (!planActual) return null;
+
+    const match = (planesDisponibles || []).find(
+      (plan) =>
+        String(plan.id) === String(planActual.id) ||
+        normalizeText(plan.nombre) === normalizeText(planActual.nombre)
+    );
+
+    if (!match) return planActual;
+
+    return {
+      ...match,
+      ...planActual,
+      precio:
+        planActual.precio !== null && planActual.precio !== undefined
+          ? planActual.precio
+          : match.precio,
+      moneda: planActual.moneda || match.moneda || "Bs.",
+    };
+  }, [planActual, planesDisponibles]);
+
   const beneficios = useMemo(() => {
-    if (!planActual) return [];
+    if (!planActualCompleto) return [];
 
     return [
-      `${planActual.dispositivos} dispositivos en catálogo`,
-      `${planActual.reglas} reglas de cotización`,
-      `${planActual.inspectores} usuarios inspectores`,
-      `Historial de operaciones: ${planActual.historial}`,
-      `Reportes: ${planActual.reportes}`,
+      `${formatDisplayValue(planActualCompleto.dispositivos)} dispositivos en catálogo`,
+      `${formatDisplayValue(planActualCompleto.reglas)} reglas de cotización`,
+      `${formatDisplayValue(planActualCompleto.inspectores)} usuarios inspectores`,
+      `${formatDisplayValue(planActualCompleto.cotizacionesMes)} cotizaciones por mes`,
+      `Historial de operaciones: ${formatDisplayValue(planActualCompleto.historial)}`,
+      `Reportes: ${formatDisplayValue(planActualCompleto.reportes)}`,
+      `Exportación: ${planActualCompleto.puedeExportar ? "Disponible" : "No disponible"}`,
     ];
+  }, [planActualCompleto]);
+
+  const usoActual = useMemo(() => {
+    return {
+      dispositivos: {
+        usados:
+          planActual?.usoActual?.dispositivos ??
+          usoFallback.dispositivos.usados,
+      },
+      reglas: {
+        usados:
+          planActual?.usoActual?.reglas ??
+          usoFallback.reglas.usados,
+      },
+      inspectores: {
+        usados:
+          planActual?.usoActual?.inspectores ??
+          usoFallback.inspectores.usados,
+      },
+      cotizaciones: {
+        usados:
+          planActual?.usoActual?.cotizaciones ??
+          usoFallback.cotizaciones.usados,
+      },
+    };
   }, [planActual]);
 
   const handleRefresh = () => {
@@ -123,11 +199,13 @@ const PlanEmpresa = ({ empresaNombre = "Recicla Tech S.R.L." }) => {
   };
 
   const handleChangePlan = async (planId) => {
-    const selectedPlan = (planesDisponibles || []).find((p) => p.id === planId);
+    const selectedPlan = (planesDisponibles || []).find(
+      (p) => String(p.id) === String(planId)
+    );
 
     if (!selectedPlan) return;
 
-    if (selectedPlan.id === planActual?.id) {
+    if (String(selectedPlan.id) === String(planActualCompleto?.id)) {
       await Swal.fire({
         icon: "info",
         title: "Ya tienes este plan",
@@ -157,11 +235,14 @@ const PlanEmpresa = ({ empresaNombre = "Recicla Tech S.R.L." }) => {
 
     if (!confirm.isConfirmed) return;
 
-    await dispatch(cambiarPlanEmpresa(planId));
+    const result = await dispatch(cambiarPlanEmpresa(planId));
+
+    if (result?.meta?.requestStatus !== "fulfilled") return;
+
     setModalOpen(false);
   };
 
-  if (loading && !planActual) {
+  if (loading && !planActualCompleto) {
     return (
       <section className={styles.wrapper}>
         <div className={styles.hero}>
@@ -180,7 +261,7 @@ const PlanEmpresa = ({ empresaNombre = "Recicla Tech S.R.L." }) => {
     );
   }
 
-  if (!planActual) {
+  if (!planActualCompleto) {
     return (
       <section className={styles.wrapper}>
         <div className={styles.hero}>
@@ -209,6 +290,11 @@ const PlanEmpresa = ({ empresaNombre = "Recicla Tech S.R.L." }) => {
         <div className={styles.hero}>
           <div>
             <span className={styles.hero__eyebrow}>Suscripción actual</span>
+            <h2>Mi plan</h2>
+            <p>
+              Revisa el plan activo de tu empresa, sus beneficios, límites y las
+              opciones disponibles para escalar.
+            </p>
           </div>
 
           <button
@@ -231,16 +317,18 @@ const PlanEmpresa = ({ empresaNombre = "Recicla Tech S.R.L." }) => {
 
               <div>
                 <span className={styles.planBadge}>Plan actual</span>
-                <h3>{planActual.nombre}</h3>
+                <h3>{planActualCompleto.nombre || "Sin plan"}</h3>
                 <p>{empresaNombre}</p>
               </div>
             </div>
 
             <div className={styles.priceBlock}>
-              <strong>{formatPrice(planActual.precio, planActual.moneda)}</strong>
+              <strong>
+                {formatPrice(planActualCompleto.precio, planActualCompleto.moneda)}
+              </strong>
               <span>
-                {planActual.precio === null || planActual.precio === undefined
-                  ? "contáctanos"
+                {planActualCompleto.precio === null || planActualCompleto.precio === undefined
+                  ? "consulta con soporte"
                   : "por mes"}
               </span>
             </div>
@@ -249,15 +337,15 @@ const PlanEmpresa = ({ empresaNombre = "Recicla Tech S.R.L." }) => {
           <div className={styles.currentPlanCard__meta}>
             <div>
               <span>Estado</span>
-              <strong>{planActual.estado || "Activo"}</strong>
+              <strong>{planActualCompleto.estado || "Activo"}</strong>
             </div>
             <div>
               <span>Renovación</span>
-              <strong>{planActual.renovacion || "Sin fecha"}</strong>
+              <strong>{planActualCompleto.renovacion || "Sin fecha"}</strong>
             </div>
             <div>
               <span>Método</span>
-              <strong>{planActual.metodoPago || "No definido"}</strong>
+              <strong>{planActualCompleto.metodoPago || "No definido"}</strong>
             </div>
           </div>
         </div>
@@ -293,7 +381,7 @@ const PlanEmpresa = ({ empresaNombre = "Recicla Tech S.R.L." }) => {
                     <span>Dispositivos en catálogo</span>
                   </div>
                   <strong>
-                    {usoMock.dispositivos.usados}/{planActual.dispositivos}
+                    {usoActual.dispositivos.usados}/{planActualCompleto.dispositivos ?? "—"}
                   </strong>
                 </div>
                 <div className={styles.progressBar}>
@@ -301,8 +389,8 @@ const PlanEmpresa = ({ empresaNombre = "Recicla Tech S.R.L." }) => {
                     className={styles.progressBar__fill}
                     style={{
                       width: `${porcentaje(
-                        usoMock.dispositivos.usados,
-                        toNumberIfPossible(planActual.dispositivos)
+                        usoActual.dispositivos.usados,
+                        toNumberIfPossible(planActualCompleto.dispositivos)
                       )}%`,
                     }}
                   />
@@ -316,7 +404,7 @@ const PlanEmpresa = ({ empresaNombre = "Recicla Tech S.R.L." }) => {
                     <span>Reglas de cotización</span>
                   </div>
                   <strong>
-                    {usoMock.reglas.usadas}/{planActual.reglas}
+                    {usoActual.reglas.usados}/{planActualCompleto.reglas ?? "—"}
                   </strong>
                 </div>
                 <div className={styles.progressBar}>
@@ -324,8 +412,8 @@ const PlanEmpresa = ({ empresaNombre = "Recicla Tech S.R.L." }) => {
                     className={styles.progressBar__fill}
                     style={{
                       width: `${porcentaje(
-                        usoMock.reglas.usadas,
-                        toNumberIfPossible(planActual.reglas)
+                        usoActual.reglas.usados,
+                        toNumberIfPossible(planActualCompleto.reglas)
                       )}%`,
                     }}
                   />
@@ -339,7 +427,7 @@ const PlanEmpresa = ({ empresaNombre = "Recicla Tech S.R.L." }) => {
                     <span>Usuarios inspectores</span>
                   </div>
                   <strong>
-                    {usoMock.inspectores.usados}/{planActual.inspectores}
+                    {usoActual.inspectores.usados}/{planActualCompleto.inspectores ?? "—"}
                   </strong>
                 </div>
                 <div className={styles.progressBar}>
@@ -347,8 +435,31 @@ const PlanEmpresa = ({ empresaNombre = "Recicla Tech S.R.L." }) => {
                     className={styles.progressBar__fill}
                     style={{
                       width: `${porcentaje(
-                        usoMock.inspectores.usados,
-                        toNumberIfPossible(planActual.inspectores)
+                        usoActual.inspectores.usados,
+                        toNumberIfPossible(planActualCompleto.inspectores)
+                      )}%`,
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div className={styles.usageItem}>
+                <div className={styles.usageItem__top}>
+                  <div className={styles.usageItem__label}>
+                    <FiFileText size={15} />
+                    <span>Cotizaciones por mes</span>
+                  </div>
+                  <strong>
+                    {usoActual.cotizaciones.usados}/{planActualCompleto.cotizacionesMes ?? "—"}
+                  </strong>
+                </div>
+                <div className={styles.progressBar}>
+                  <div
+                    className={styles.progressBar__fill}
+                    style={{
+                      width: `${porcentaje(
+                        usoActual.cotizaciones.usados,
+                        toNumberIfPossible(planActualCompleto.cotizacionesMes)
                       )}%`,
                     }}
                   />
@@ -360,7 +471,7 @@ const PlanEmpresa = ({ empresaNombre = "Recicla Tech S.R.L." }) => {
                   <FiClock size={16} />
                   <div>
                     <span>Historial</span>
-                    <strong>{planActual.historial}</strong>
+                    <strong>{planActualCompleto.historial || "No definido"}</strong>
                   </div>
                 </div>
 
@@ -368,7 +479,17 @@ const PlanEmpresa = ({ empresaNombre = "Recicla Tech S.R.L." }) => {
                   <FiBarChart2 size={16} />
                   <div>
                     <span>Reportes</span>
-                    <strong>{planActual.reportes}</strong>
+                    <strong>{planActualCompleto.reportes || "No definido"}</strong>
+                  </div>
+                </div>
+
+                <div className={styles.usageInfoCard}>
+                  <FiDownload size={16} />
+                  <div>
+                    <span>Exportación</span>
+                    <strong>
+                      {planActualCompleto.puedeExportar ? "Disponible" : "No disponible"}
+                    </strong>
                   </div>
                 </div>
               </div>
@@ -402,32 +523,43 @@ const PlanEmpresa = ({ empresaNombre = "Recicla Tech S.R.L." }) => {
               <thead>
                 <tr>
                   <th>Plan</th>
-                  <th>Dispositivos en catálogo</th>
-                  <th>Reglas de cotización</th>
-                  <th>Usuarios inspectores</th>
-                  <th>Historial de operaciones</th>
+                  <th>Dispositivos</th>
+                  <th>Reglas</th>
+                  <th>Inspectores</th>
+                  <th>Cotizaciones/mes</th>
+                  <th>Historial</th>
                   <th>Reportes</th>
+                  <th>Exportación</th>
+                  <th>Precio</th>
                 </tr>
               </thead>
+
               <tbody>
                 {(planesDisponibles || []).map((plan) => (
                   <tr
                     key={plan.id}
-                    className={plan.id === planActual.id ? styles.currentRow : ""}
+                    className={
+                      String(plan.id) === String(planActualCompleto.id)
+                        ? styles.currentRow
+                        : ""
+                    }
                   >
                     <td>
                       <div className={styles.planNameCell}>
                         <strong>{plan.nombre}</strong>
-                        {plan.id === planActual.id && (
+                        {String(plan.id) === String(planActualCompleto.id) && (
                           <span className={styles.currentLabel}>Actual</span>
                         )}
                       </div>
                     </td>
-                    <td>{plan.dispositivos}</td>
-                    <td>{plan.reglas}</td>
-                    <td>{plan.inspectores}</td>
-                    <td>{plan.historial}</td>
-                    <td>{plan.reportes}</td>
+                    <td>{plan.dispositivos ?? "—"}</td>
+                    <td>{plan.reglas ?? "—"}</td>
+                    <td>{plan.inspectores ?? "—"}</td>
+                    <td>{plan.cotizacionesMes ?? "—"}</td>
+                    <td>{plan.historial ?? "—"}</td>
+                    <td>{plan.reportes ?? "—"}</td>
+                    <td>{plan.puedeExportar ? "Sí" : "No"}</td>
+                    <td>{formatPrice(plan.precio, plan.moneda)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -439,7 +571,7 @@ const PlanEmpresa = ({ empresaNombre = "Recicla Tech S.R.L." }) => {
       <PlanChangeModal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
-        currentPlanId={planActual.id}
+        currentPlanId={planActualCompleto.id}
         plans={planesDisponibles}
         onChangePlan={handleChangePlan}
       />
