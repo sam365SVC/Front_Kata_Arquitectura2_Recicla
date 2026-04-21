@@ -5,7 +5,7 @@ import { store } from '../store/index';
 // por ahora con la api del microservicio del core
 //NOTA: CAMBIAR CON LA INTEGRACION DE LOS DEMAS
 const api = axios.create({
-  baseURL: 'http://localhost:3001/api/',
+  baseURL: 'http://localhost:3000/api/',
 });
 const apiFlags = axios.create({
   baseURL: 'http://localhost:3004',
@@ -42,13 +42,7 @@ api.interceptors.request.use((config) => {
 });
 */
 //TRAMPEADA TEMPORAL
-api.interceptors.request.use((config) => {
-  const state = store.getState();
 
-  config.headers['x-token'] = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjozLCJhY2NvdW50IjoiQURNSU4iLCJlbWFpbCI6Iml2b25uZS5jb2xxdWVAdWNiLmVkdS5ibyIsInRlbmFudF9pZCI6OCwidGVuYW50X25hbWUiOiJHYXRvYnl0ZSAiLCJkZXBhcnRtZW50IjoiRmluYW56YXMiLCJwb3NpdGlvbiI6ImJvc3MiLCJpc3MiOiJzMS10ZW5hbnQiLCJleHAiOjE3NzY2Nzk4NDksImlhdCI6MTc3NjU5MzQ0OX0.pOWxkmHRuA_oSQVA0WJ23AtBIckPlDkHkBSih_fINhs";
-  
-  return config;
-});
 
 // response interceptor
 api.interceptors.response.use(
