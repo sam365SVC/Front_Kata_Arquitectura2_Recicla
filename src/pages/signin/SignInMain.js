@@ -502,7 +502,7 @@ const SignInMain = () => {
                       >
                         ¿No tienes una cuenta?{" "}
                         <Link
-                          to="/student-registration"
+                          to="/registro"
                           style={{
                             color: COLORS.olive,
                             fontWeight: 700,
