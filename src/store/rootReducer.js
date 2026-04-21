@@ -25,6 +25,7 @@ import usuariosEmpresaReducer from '../pages/adminEmpresa/slicesUsuariosEmpresa/
 import tiposDispositivoEmpresaReducer from '../pages/adminEmpresa/slicesTiposDispositivoEmpresa/TiposDispositivoEmpresaSlice';
 import inspeccionesReducer from '../pages/inspector/slicesInspecciones/InspeccionesSlice';
 import planesReducer from '../pages/planesPagos/slicesPlanes/PlanSlice';
+import registroSliceReducer from '../pages/registro/registroSlices/RegistroSlice';
 const loginPersistConfig = {
   key: 'login',
   storage,
@@ -53,6 +54,7 @@ export const rootReducer = combineReducers({
   planes :planesReducer,
   planEmpresa: planEmpresaReducer,
   checkout: checkoutReducer,
+  registro: registroSliceReducer,
 });
 
 export default rootReducer;
