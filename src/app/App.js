@@ -156,9 +156,24 @@ function App() {
 
           element={
 
-            <ProtectedRoute allowedRoles={["SUPERADMIN", "ADMIN_TENANT"]}>
+            <ProtectedRoute allowedRoles={["ADMIN_TENANT"]}>
 
               <AdminEmpresa />
+
+            </ProtectedRoute>
+
+          }
+
+        />
+        <Route
+
+          path="/admin-servicio"
+
+          element={
+
+            <ProtectedRoute allowedRoles={["SUPERADMIN"]}>
+
+              <AdminService />
 
             </ProtectedRoute>
 

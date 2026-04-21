@@ -39,9 +39,10 @@ export const registrarTenantThunk = createAsyncThunk(
         apellido: normalizeText(payload?.apellido),
         email: normalizeText(payload?.email).toLowerCase(),
         password: normalizeText(payload?.password),
+        plan: "Free", // Plan fijo para nuevos tenants registrados desde esta página
       };
 
-      const response = await authApi.registrarTenant(body);
+      const response = await authApi.registrarTenantConPlan(body);
       return response;
     } catch (error) {
       return rejectWithValue(

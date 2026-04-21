@@ -6,27 +6,35 @@ import {
   FiLogOut,
   FiUsers,
   FiSettings,
-  FiDollarSign,
-  FiBriefcase,
   FiCreditCard,
 } from "react-icons/fi";
-import { MdOutlineAdminPanelSettings } from "react-icons/md";
+import { MdOutlineBusinessCenter } from "react-icons/md";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 
 import styles from "./AdminServicioWrapper.module.scss";
-import UsuariosServicio from "./components/UsuariosServicio";
-import TiposDispositivoServicio from "./components/TiposDispositivoServicio";
-import IngresosServicio from "./components/IngresosServicio";
-import EmpresasServicio from "./components/EmpresasServicio";
-import GastosServicio from "./components/GastosServicio";
+import UsuariosEmpresa from "./components/UsuariosEmpresa";
+import TiposDispositivoEmpresa from "./components/TiposDispositivoEmpresa";
+import EmpresasService from "./components/EmpresasServicio";
+import IngresosService from "./components/IngresosServicio";
+import GastosService from "./components/GastosServicio";
+
+import { logout } from "../signin/slices/loginSlice";
+import {
+  selectTenantId,
+  selectTenantName,
+  selectUser,
+} from "../signin/slices/loginSelectors";
 
 const NAV_ITEMS = [
   {
-    id: "usuariosServicio",
-    label: "Usuarios del servicio",
+    id: "usuariosEmpresa",
+    label: "Usuarios de la empresa",
     icon: FiUsers,
-    title: "Gestión de usuarios del servicio",
+    title: "Gestión de usuarios",
     description:
-      "Administra los usuarios globales del sistema, accesos y permisos asociados a la plataforma.",
+      "Administra empleados, accesos y usuarios asociados a la empresa.",
   },
   {
     id: "tiposDispositivo",
@@ -34,77 +42,145 @@ const NAV_ITEMS = [
     icon: FiSettings,
     title: "Administración de dispositivos",
     description:
-      "Configura los tipos de dispositivos, reglas de valoración y checklist de inspección disponibles en el sistema.",
+      "Configura qué dispositivos se recepcionan y qué condiciones serán consideradas.",
   },
   {
-    id: "misIngresos",
-    label: "Mis ingresos",
-    icon: FiDollarSign,
-    title: "Ingresos por suscripciones",
-    description:
-      "Consulta los pagos recibidos por planes y suscripciones de las empresas registradas en la plataforma.",
-  },
-  {
-    id: "misEmpresas",
+
+    id: "empresas",
+
     label: "Mis empresas",
-    icon: FiBriefcase,
-    title: "Empresas registradas",
+
+    icon: MdOutlineBusinessCenter,
+
+    title: "Gestión de empresas",
+
     description:
-      "Visualiza y administra las empresas clientes que usan el servicio, su estado y su plan activo.",
+
+      "Administra los tenants registrados en la plataforma.",
+
   },
+
   {
-    id: "misGastos",
-    label: "Mis gastos",
+
+    id: "ingresos",
+
+    label: "Mis ingresos",
+
     icon: FiCreditCard,
-    title: "Gastos por operación",
+
+    title: "Ingresos por suscripciones",
+
     description:
-      "Revisa los pagos realizados a clientes por dispositivos recepcionados y completados dentro del sistema.",
+
+      "Visualiza pagos, planes y métricas de ingresos del sistema.",
+
+  },
+
+  {
+
+    id: "gastos",
+
+    label: "Mis gastos",
+
+    icon: FiSettings,
+
+    title: "Gastos operativos",
+
+    description:
+
+      "Controla los pagos realizados a clientes por dispositivos.",
+
   },
 ];
 
 const renderContent = (tab, props) => {
   switch (tab) {
-    case "usuariosServicio":
-      return <UsuariosServicio {...props} />;
+    case "usuariosEmpresa":
+      return <UsuariosEmpresa {...props} />;
 
     case "tiposDispositivo":
-      return <TiposDispositivoServicio {...props} />;
+      return <TiposDispositivoEmpresa {...props} />;
 
-    case "misIngresos":
-      return <IngresosServicio {...props} />;
+    case "empresas":
+      return <EmpresasService {...props} />;
 
-    case "misEmpresas":
-      return <EmpresasServicio {...props} />;
+    case "ingresos":
+      return <IngresosService {...props} />;
 
-    case "misGastos":
-      return <GastosServicio {...props} />;
+    case "gastos":
+      return <GastosService {...props} />;
 
     default:
-      return <UsuariosServicio {...props} />;
+      return <UsuariosEmpresa {...props} />;
   }
 };
 
-const AdminServicioWrapper = ({
-  servicioNombre = "Reecicla SaaS",
-  adminNombre = "Administrador General",
-  adminEmail = "admin@reecicla.com",
-  tenantId = "1",
+const getInitials = (name = "") => {
+  if (!name.trim()) return "AE";
+
+  return name
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase();
+};
+
+const getDisplayNameFromEmail = (email = "") => {
+  if (!email || !email.includes("@")) return "Administrador";
+
+  const localPart = email.split("@")[0];
+
+  return localPart
+    .split(/[._-]/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+};
+
+const AdminEmpresaWrapper = ({
+  empresaNombre: empresaNombreProp,
+  adminNombre: adminNombreProp,
+  adminEmail: adminEmailProp,
+  tenantId: tenantIdProp,
 }) => {
-  const [activeTab, setActiveTab] = useState("usuariosServicio");
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  const user = useSelector(selectUser);
+  const tenantIdState = useSelector(selectTenantId);
+  const tenantNameState = useSelector(selectTenantName);
+
+  const [activeTab, setActiveTab] = useState("usuariosEmpresa");
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  const userEmail =
+    adminEmailProp || user?.mail || user?.email || "sin-correo@empresa.com";
+
+  const userName =
+    adminNombreProp ||
+    user?.nombres ||
+    [user?.nombre, user?.apellido].filter(Boolean).join(" ") ||
+    getDisplayNameFromEmail(userEmail);
+
+  const empresaNombre =
+    empresaNombreProp ||
+    tenantNameState ||
+    user?.tenantNombre ||
+    "Mi empresa";
+
+  const adminNombre = userName;
+  const adminEmail = userEmail;
+  const tenantId = tenantIdProp || tenantIdState || user?.tenantId || "";
 
   const activeItem = useMemo(
     () => NAV_ITEMS.find((item) => item.id === activeTab) || NAV_ITEMS[0],
     [activeTab]
   );
 
-  const iniciales = adminNombre
-    .split(" ")
-    .slice(0, 2)
-    .map((p) => p[0])
-    .join("")
-    .toUpperCase();
+  const iniciales = useMemo(() => getInitials(adminNombre), [adminNombre]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -120,6 +196,38 @@ const AdminServicioWrapper = ({
   const handleNav = (id) => {
     setActiveTab(id);
     setMobileOpen(false);
+  };
+
+  const handleLogout = async () => {
+    const result = await Swal.fire({
+      title: "¿Cerrar sesión?",
+      text: "Tendrás que volver a iniciar sesión para acceder al panel.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Sí, salir",
+      cancelButtonText: "Cancelar",
+      confirmButtonColor: "#78793F",
+      cancelButtonColor: "#B0B0B0",
+      background: "#fffef8",
+      color: "#2f2f2f",
+      reverseButtons: true,
+    });
+
+    if (!result.isConfirmed) return;
+
+    dispatch(logout());
+
+    await Swal.fire({
+      title: "Sesión cerrada",
+      text: "Has salido correctamente.",
+      icon: "success",
+      timer: 1200,
+      showConfirmButton: false,
+      background: "#fffef8",
+      color: "#2f2f2f",
+    });
+
+    navigate("/signin", { replace: true });
   };
 
   const sidebarClass = [
@@ -161,19 +269,21 @@ const AdminServicioWrapper = ({
         <aside className={sidebarClass}>
           <div className={styles.sidebar__brand}>
             <div className={styles.sidebar__brandIcon}>
-              <MdOutlineAdminPanelSettings size={22} />
+              <MdOutlineBusinessCenter size={22} />
             </div>
 
             <div className={styles.sidebar__brandText}>
               <h1>Admin Servicio</h1>
-              <p>Panel SaaS</p>
+              <p>Gestión global del sistema</p>
             </div>
           </div>
 
           <button
             className={styles.sidebar__toggleBtn}
             onClick={() => setCollapsed((prev) => !prev)}
-            aria-label={collapsed ? "Expandir" : "Colapsar"}
+            aria-label={
+              collapsed ? "Expandir menú lateral" : "Colapsar menú lateral"
+            }
             type="button"
           >
             {collapsed ? (
@@ -190,7 +300,7 @@ const AdminServicioWrapper = ({
 
           <nav
             className={styles.sidebar__nav}
-            aria-label="Navegación del administrador del servicio"
+            aria-label="Navegación del administrador de empresa"
           >
             {NAV_ITEMS.map((item) => {
               const Icon = item.icon;
@@ -224,14 +334,20 @@ const AdminServicioWrapper = ({
               <div className={styles.sidebar__footerAvatar}>{iniciales}</div>
 
               <div className={styles.sidebar__footerInfo}>
-                <p>{adminNombre}</p>
-                <span>{servicioNombre}</span>
-                <small>{adminEmail}</small>
+                <p title={adminNombre}>{adminNombre}</p>
+                <span title={empresaNombre}>{empresaNombre}</span>
+                <small title={adminEmail}>{adminEmail}</small>
               </div>
 
-              <div className={styles.sidebar__footerAction}>
+              <button
+                type="button"
+                className={styles.sidebar__footerAction}
+                onClick={handleLogout}
+                aria-label="Cerrar sesión"
+                title="Cerrar sesión"
+              >
                 <FiLogOut size={15} />
-              </div>
+              </button>
             </div>
           </div>
         </aside>
@@ -240,7 +356,7 @@ const AdminServicioWrapper = ({
           <div className={styles.contentBody}>
             {renderContent(activeTab, {
               tenantId,
-              servicioNombre,
+              empresaNombre,
               adminNombre,
               adminEmail,
             })}
@@ -251,4 +367,4 @@ const AdminServicioWrapper = ({
   );
 };
 
-export default AdminServicioWrapper;
+export default AdminEmpresaWrapper;

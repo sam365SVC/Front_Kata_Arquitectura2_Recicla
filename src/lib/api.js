@@ -129,6 +129,11 @@ export const authApi = {
       .post("/empleados/activar", data)
       .then((res) => res.data)
       .catch(handleError),
+  getAllTenants: (params = {}) =>
+  apiAuth
+    .get("/tenants", { params })
+    .then((res) => res.data)
+    .catch(handleError),
 };
 
 // alias viejo

@@ -92,7 +92,11 @@
     width: 46px;
     height: 46px;
     border-radius: 14px;
-    background: linear-gradient(135deg, rgba($main-2, 0.85), rgba($main-3, 0.45));
+    background: linear-gradient(
+      135deg,
+      rgba($main-2, 0.85),
+      rgba($main-3, 0.45)
+    );
     color: $main-5;
     @include flex-center;
     flex-shrink: 0;
@@ -224,7 +228,7 @@
 
 .table {
   width: 100%;
-  min-width: 1100px;
+  min-width: 920px;
   border-collapse: separate;
   border-spacing: 0;
 
@@ -302,6 +306,10 @@
     font-size: 14px;
     font-weight: 900;
     margin-bottom: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 220px;
   }
 
   span {
@@ -309,6 +317,10 @@
     color: $black-2;
     font-size: 12px;
     font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 220px;
   }
 }
 
@@ -316,6 +328,7 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
+  min-width: 0;
 
   span {
     @include flex(center, flex-start, 8px);
@@ -323,6 +336,10 @@
     font-size: 13px;
     font-weight: 700;
     line-height: 1.4;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 
     svg {
       color: $main-1;
@@ -342,6 +359,7 @@
   font-size: 12px;
   font-weight: 900;
   border: 1px solid rgba($main-3, 0.35);
+  white-space: nowrap;
 }
 
 .badge {
@@ -354,6 +372,7 @@
   font-size: 12px;
   font-weight: 900;
   border: 1px solid transparent;
+  white-space: nowrap;
 }
 
 .badgeActive {
@@ -389,10 +408,16 @@
   @include flex-center;
   gap: 8px;
   transition: all 0.18s ease;
+  white-space: nowrap;
 
-  &:hover {
+  &:hover:not(:disabled) {
     transform: translateY(-1px);
     background: $grey-2;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.65;
   }
 }
 
@@ -401,18 +426,19 @@
   color: #b64949;
   border-color: rgba(208, 101, 101, 0.24);
 
-  &:hover {
+  &:hover:not(:disabled) {
     background: rgba(208, 101, 101, 0.14);
   }
 }
 
-.actionSuccess {
-  background: rgba(84, 145, 88, 0.12);
-  color: #3f7d43;
-  border-color: rgba(84, 145, 88, 0.24);
+.actionDisabled {
+  background: rgba($grey-4, 0.35);
+  color: rgba($black-2, 0.65);
+  border-color: rgba($black, 0.08);
 
   &:hover {
-    background: rgba(84, 145, 88, 0.18);
+    transform: none;
+    background: rgba($grey-4, 0.35);
   }
 }
 
@@ -433,6 +459,7 @@
     font-size: 14px;
   }
 }
+
 .swalPopup {
   border-radius: 24px !important;
   padding: 1.4rem 1.2rem 1.2rem !important;
