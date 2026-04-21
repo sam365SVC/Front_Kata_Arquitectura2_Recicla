@@ -270,6 +270,13 @@ export const cotizacionesApi = {
       .then((res) => res.data)
       .catch(handleError),
 
+  fetchCotizacionesByTenantId: (tenantId) =>
+    apiCore
+      .get("/solicitudes-cotizacion", { params: { tenantId } })
+      .then((res) => res.data)
+      .catch(handleError),
+
+      
   fetchCotizacionesByClienteId: (tenantId, clienteId) =>
     apiCore
       .get("/solicitudes-cotizacion", { params: { tenantId, clienteId } })
@@ -574,6 +581,52 @@ export const pagoApi = {
       })
       .then(res => res.data)
       .catch(handleError),
+    
+  confirmarPagoPorCotizacion: (idSuscripcion, data) =>
+  api
+    .put(`/pagos/confirmar/suscripcion/${idSuscripcion}`, {
+      tipo: data.tipo,
+      razon_social: data.razon_social,
+      nit_ci: data.nit_ci,
+    })
+    .then(res => res.data)
+    .catch(handleError),
+    
+  confirmarCotizacionId: (idSuscripcion) =>
+    api
+      .get(`/suscripcion-pagos/${idSuscripcion}`)
+      .then(res => res.data)
+      .catch(handleError),
+    
+  confirmarPagoCotizacion: (idSuscripcion, data) =>
+    api
+      .put(`/suscripcion-pagos/${idSuscripcion}`, data)
+        .then(res => res.data)
+        .catch(handleError),
+    
+  createCotizacion: (data) =>
+    api
+      .post('/suscripcion-pagos/new', {
+        user_id: data.user_id,
+        servicio_id: data.servicio_id,
+        meses: data.meses,
+        precio_unitario: data.precio_unitario,
+        moneda: data.moneda,
+      })
+      .then(res => res.data)
+      .catch(handleError),
+
+  createFacturaRecibo: (data) =>
+    api
+      .post('/factura-recibo/new', {
+        pago_id_pago: data.pago_id_pago,
+        tipo: data.tipo,
+        numero: data.numero,
+        razon_social: data.razon_social,
+        nit_ci: data.nit_ci,
+      })
+      .then(res => res.data)
+      .catch(handleError),
 
   confirmarPagoPorSuscripcion: (idSuscripcion, data) =>
   api
@@ -584,6 +637,17 @@ export const pagoApi = {
     })
     .then(res => res.data)
     .catch(handleError),
+
+  fetchByTenant: (tenantId) =>
+    api
+      .get("/cotizacion-pagos", { params: { tenant_id: tenantId } })
+      .then((res) => res.data)
+      .catch(handleError),
+
+  fetchById: (id) =>
+    api
+      .get(`/cotizacion-pagos/${id}`)
+      .then((res) => res.data)
     
 };
 
