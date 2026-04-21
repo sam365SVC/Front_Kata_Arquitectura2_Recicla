@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { FaFilePdf, FaFileExcel, FaChartPie, FaMobileAlt, FaRecycle, FaClipboardCheck, FaDownload } from 'react-icons/fa';
 import Swal from 'sweetalert2';
 import { Chart, registerables } from 'chart.js';
-
+import styles from "./ReportesReecicla.module.scss";
 import {
   fetchDatosReportes,
   generarReporte,
@@ -36,9 +36,9 @@ const StatCard = ({ label, value, color }) => {
     default: 'inherit',
   };
   return (
-    <div style={styles.statCard}>
-      <div style={styles.statLabel}>{label}</div>
-      <div style={{ ...styles.statValue, color: colorMap[color] || colorMap.default }}>
+    <div className={styles.statCard}>
+      <div className={styles.statLabel}>{label}</div>
+      <div className={{ ...styles.statValue, color: colorMap[color] || colorMap.default }}>
         {value ?? '—'}
       </div>
     </div>
@@ -64,18 +64,18 @@ const ReporteCard = ({ icon, titulo, descripcion, mutation, onGenerar, loading }
   };
 
   return (
-    <div style={styles.repCard}>
-      <div style={styles.repIcon}>{icon}</div>
+    <div className={styles.repCard}>
+      <div className={styles.repIcon}>{icon}</div>
       <div>
-        <div style={styles.repTitulo}>{titulo}</div>
-        <div style={styles.repDesc}>{descripcion}</div>
+        <div className={styles.repTitulo}>{titulo}</div>
+        <div className={styles.repDesc}>{descripcion}</div>
       </div>
-      <div style={styles.btnRow}>
-        <button style={styles.btnPDF} onClick={handlePDF} disabled={loading || loadingPDF}>
+      <div className={styles.btnRow}>
+        <button className={styles.btnPDF} onClick={handlePDF} disabled={loading || loadingPDF}>
           <FaFilePdf size={12} />
           {loadingPDF ? 'Generando...' : 'PDF'}
         </button>
-        <button style={styles.btnExcel} onClick={handleExcel} disabled={loading || loadingExcel}>
+        <button className={styles.btnExcel} onClick={handleExcel} disabled={loading || loadingExcel}>
           <FaFileExcel size={12} />
           {loadingExcel ? 'Generando...' : 'Excel'}
         </button>
@@ -261,20 +261,23 @@ const ReportesReecicla = () => {
   // ── Render ────────────────────────────────────────────────────────────────
 
   return (
-    <div style={styles.container}>
+    <div className={styles.container}>
       {/* Header */}
-      <div style={styles.header}>
-        <div>
-          <h1 style={styles.h1}>Reportes Reecicla</h1>
-          <p style={styles.subtitle}>Estadísticas de cotizaciones e inspecciones</p>
+      <div className={styles.header}>
+        <div className={styles.hero}>
+          <div>
+            <span className={styles.hero__eyebrow}>Reportes</span>
+            <h2>Reportes Recicla</h2>
+            <p>Visualiza estadísticas y genera reportes en PDF o Excel</p>
+          </div>
         </div>
-        <button style={styles.btnRefresh} onClick={cargarDatos} disabled={loading}>
+        <button className={styles.btnRefresh} onClick={cargarDatos} disabled={loading}>
           {loading ? 'Cargando...' : 'Actualizar datos'}
         </button>
       </div>
 
       {/* Estadísticas */}
-      <div style={styles.statsGrid}>
+      <div className={styles.statsGrid}>
         <StatCard label="Total cotizaciones" value={resumen?.total}       color="blue"  />
         <StatCard label="Aceptadas"          value={resumen?.aceptadas}   color="green" />
         <StatCard label="Pendientes"         value={resumen?.pendientes}  color="amber" />
@@ -283,73 +286,73 @@ const ReportesReecicla = () => {
       </div>
 
       {/* Gráficos */}
-      <div style={styles.chartsRow}>
+      <div className={styles.chartsRow}>
         {/* Donut estados */}
-        <div style={styles.chartCard}>
-          <div style={styles.chartTitle}>
-            <FaChartPie size={14} style={{ marginRight: 6, color: '#185FA5' }} />
+        <div className={styles.chartCard}>
+          <div className={styles.chartTitle}>
+            <FaChartPie size={14} className={{ marginRight: 6, color: '#185FA5' }} />
             Estado de cotizaciones
           </div>
-          <div style={styles.legend}>
+          <div className={styles.legend}>
             {[['#185FA5', 'Aceptadas'], ['#BA7517', 'Pendientes'], ['#A32D2D', 'Rechazadas']].map(([c, l]) => (
-              <span key={l} style={styles.legendItem}>
-                <span style={{ ...styles.legendDot, background: c }} />
+              <span key={l} className={styles.legendItem}>
+                <span className={{ ...styles.legendDot, background: c }} />
                 {l}
               </span>
             ))}
           </div>
-          <div style={{ position: 'relative', height: 220 }}>
+          <div className={{ position: 'relative', height: 220 }}>
             <canvas ref={chartEstadosRef} role="img" aria-label="Gráfico donut de estados de cotizaciones" />
           </div>
         </div>
 
         {/* Barras dispositivos */}
-        <div style={styles.chartCard}>
-          <div style={styles.chartTitle}>
-            <FaMobileAlt size={14} style={{ marginRight: 6, color: '#1D9E75' }} />
+        <div className={styles.chartCard}>
+          <div className={styles.chartTitle}>
+            <FaMobileAlt size={14} className={{ marginRight: 6, color: '#1D9E75' }} />
             Dispositivos más cotizados
           </div>
-          <div style={styles.legend}>
+          <div className={styles.legend}>
             {['#1D9E75', '#185FA5', '#BA7517', '#A32D2D', '#533AB7'].map((c, i) => (
               dispositivos[i] && (
-                <span key={c} style={styles.legendItem}>
-                  <span style={{ ...styles.legendDot, background: c }} />
+                <span key={c} className={styles.legendItem}>
+                  <span className={{ ...styles.legendDot, background: c }} />
                   {dispositivos[i].nombre}
                 </span>
               )
             ))}
           </div>
-          <div style={{ position: 'relative', height: 220 }}>
+          <div className={{ position: 'relative', height: 220 }}>
             <canvas ref={chartDispRef} role="img" aria-label="Gráfico de dispositivos más cotizados" />
           </div>
         </div>
       </div>
 
       {/* Filtros de fecha */}
-      <div style={styles.filtersBar}>
-        <span style={styles.filtersLabel}>Período del reporte</span>
-        <label style={styles.filterLabel}>
+      <div className={styles.filtersBar}>
+        <span className={styles.filtersLabel}>Período del reporte</span>
+        <label className={styles.filterLabel}>
           Desde&nbsp;
           <input
             type="date"
             value={fechaDesde}
             onChange={(e) => setFechaDesde(e.target.value)}
-            style={styles.dateInput}
+            className={styles.dateInput}
           />
         </label>
-        <label style={styles.filterLabel}>
+        <label className={styles.filterLabel}>
           Hasta&nbsp;
           <input
             type="date"
             value={fechaHasta}
             onChange={(e) => setFechaHasta(e.target.value)}
-            style={styles.dateInput}
+            className={styles.dateInput}
           />
         </label>
       </div>
 
       {/* Cards de reportes */}
-      <div style={styles.repGrid}>
+      <div className={styles.repGrid}>
         <ReporteCard
           icon={<FaRecycle color="#0F6E56" size={18} />}
           titulo="Flujo de trabajo"
@@ -359,7 +362,7 @@ const ReportesReecicla = () => {
           loading={loadingReporte}
         />
         <ReporteCard
-          icon={<span style={{ fontSize: 18, color: '#185FA5' }}>$</span>}
+          icon={<span className={{ fontSize: 18, color: '#185FA5' }}>$</span>}
           titulo="Cotizaciones"
           descripcion="Detalle de cotizaciones aceptadas, pendientes y rechazadas con montos"
           mutation="generarReporteCotizaciones"
@@ -378,12 +381,12 @@ const ReportesReecicla = () => {
 
       {/* Último reporte generado */}
       {ultimoReporte && (
-        <div style={styles.ultimoReporte}>
-          <div style={styles.ultimoTitulo}>
-            <FaDownload size={13} style={{ marginRight: 6 }} />
+        <div className={styles.ultimoReporte}>
+          <div className={styles.ultimoTitulo}>
+            <FaDownload size={13} className={{ marginRight: 6 }} />
             Último reporte generado
           </div>
-          <div style={styles.ultimoInfo}>
+          <div className={styles.ultimoInfo}>
             <strong>{ultimoReporte.fileName}</strong>
             {' · '}
             {ultimoReporte.metadata?.totalRegistros ?? '?'} registros
@@ -394,7 +397,7 @@ const ReportesReecicla = () => {
             href={`${GQL_BASE}${ultimoReporte.downloadUrl}`}
             target="_blank"
             rel="noreferrer"
-            style={styles.downloadLink}
+            className={styles.downloadLink}
           >
             Descargar {ultimoReporte.formato}
           </a>
@@ -404,40 +407,6 @@ const ReportesReecicla = () => {
   );
 };
 
-// ─── Estilos ──────────────────────────────────────────────────────────────────
 
-const styles = {
-  container:    { padding: '1.5rem', fontFamily: 'inherit', color: 'inherit', maxWidth: 1100 },
-  header:       { display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '1.75rem', flexWrap: 'wrap', gap: '1rem' },
-  h1:           { fontSize: 22, fontWeight: 500, margin: 0, display: 'flex', alignItems: 'center' },
-  subtitle:     { fontSize: 14, color: '#888', marginTop: 4 },
-  btnRefresh:   { fontSize: 13, padding: '6px 14px', border: '0.5px solid #ccc', borderRadius: 8, background: 'transparent', cursor: 'pointer' },
-  statsGrid:    { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 12, marginBottom: '1.75rem' },
-  statCard:     { background: 'rgba(0,0,0,0.04)', borderRadius: 8, padding: '1rem' },
-  statLabel:    { fontSize: 12, color: '#888', marginBottom: 6 },
-  statValue:    { fontSize: 22, fontWeight: 500 },
-  chartsRow:    { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem', marginBottom: '1.75rem' },
-  chartCard:    { background: 'white', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: 12, padding: '1rem 1.25rem' },
-  chartTitle:   { fontSize: 14, fontWeight: 500, marginBottom: '0.75rem', display: 'flex', alignItems: 'center' },
-  legend:       { display: 'flex', flexWrap: 'wrap', gap: 10, marginBottom: 10 },
-  legendItem:   { display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: '#666' },
-  legendDot:    { width: 10, height: 10, borderRadius: 2, flexShrink: 0 },
-  filtersBar:   { background: 'rgba(0,0,0,0.03)', borderRadius: 8, padding: '0.875rem 1rem', display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap', marginBottom: '1.25rem' },
-  filtersLabel: { fontSize: 13, fontWeight: 500 },
-  filterLabel:  { fontSize: 13, color: '#888', display: 'flex', alignItems: 'center', gap: 6 },
-  dateInput:    { fontSize: 13, padding: '4px 8px', borderRadius: 6, border: '0.5px solid #ccc', background: 'white' },
-  repGrid:      { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '1.5rem' },
-  repCard:      { background: 'white', border: '0.5px solid rgba(0,0,0,0.1)', borderRadius: 12, padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: 12 },
-  repIcon:      { width: 38, height: 38, borderRadius: 8, background: 'rgba(0,0,0,0.04)', display: 'flex', alignItems: 'center', justifyContent: 'center' },
-  repTitulo:    { fontSize: 14, fontWeight: 500, marginBottom: 4 },
-  repDesc:      { fontSize: 12, color: '#888', lineHeight: 1.5 },
-  btnRow:       { display: 'flex', gap: 8, marginTop: 'auto' },
-  btnPDF:       { fontSize: 12, padding: '6px 12px', borderRadius: 6, border: '0.5px solid #A32D2D', background: 'transparent', cursor: 'pointer', color: '#A32D2D', display: 'flex', alignItems: 'center', gap: 4 },
-  btnExcel:     { fontSize: 12, padding: '6px 12px', borderRadius: 6, border: '0.5px solid #3B6D11', background: 'transparent', cursor: 'pointer', color: '#3B6D11', display: 'flex', alignItems: 'center', gap: 4 },
-  ultimoReporte:{ background: 'rgba(29,158,117,0.06)', border: '0.5px solid rgba(29,158,117,0.3)', borderRadius: 8, padding: '0.875rem 1rem' },
-  ultimoTitulo: { fontSize: 13, fontWeight: 500, marginBottom: 4, color: '#0F6E56', display: 'flex', alignItems: 'center' },
-  ultimoInfo:   { fontSize: 13, color: '#555', marginBottom: 6 },
-  downloadLink: { fontSize: 13, color: '#185FA5' },
-};
 
 export default ReportesReecicla;
