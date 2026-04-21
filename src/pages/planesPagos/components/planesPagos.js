@@ -2,9 +2,6 @@ import React, { useEffect, useState } from "react";
 import PlanCard from "./PlanCard";
 import "./planesPagos.scss";
 
-import { fetchPlanes } from "../mock/data";
-
-
 import { useDispatch, useSelector } from "react-redux";
 import { planesSlice } from "../slicesPlanes/PlanSlice";
 import { obtenerPlanesThunk } from "../slicesPlanes/PlanThunk";

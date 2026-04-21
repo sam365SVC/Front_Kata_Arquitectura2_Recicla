@@ -288,6 +288,70 @@ export const cotizacionesApi = {
       .then((res) => res.data)
       .catch(handleError),
 
+export const pagoApi = {
+  fetchPagos: () =>
+    api.get('/pagos').then((res) => res.data).catch(handleError),
+
+  fetchPagoById: (id) =>
+    api.get(`/pagos/${id}`).then((res) => res.data).catch(handleError),
+
+  createPago: (data) =>
+    api
+      .post('/pagos/new', {
+        ...data,
+        metodo: normalizarMetodoPago(data?.metodo),
+      })
+      .then((res) => res.data)
+      .catch(handleError),
+  
+    // SUSCRIPCIONES    
+  confirmarSuscripcionId: (idSuscripcion) =>
+    api
+      .get(`/suscripcion-pagos/${idSuscripcion}`)
+      .then(res => res.data)
+      .catch(handleError),
+    
+  confirmarPagoSuscripcion: (idSuscripcion, data) =>
+    api
+      .put(`/suscripcion-pagos/${idSuscripcion}`, data)
+        .then(res => res.data)
+        .catch(handleError),
+    
+  createSuscripcion: (data) =>
+    api
+      .post('/suscripcion-pagos/new', {
+        user_id: data.user_id,
+        servicio_id: data.servicio_id,
+        meses: data.meses,
+        precio_unitario: data.precio_unitario,
+        moneda: data.moneda,
+        nombre_plan: data.nombre_plan,
+      })
+      .then(res => res.data)
+      .catch(handleError),
+
+  createFacturaRecibo: (data) =>
+    api
+      .post('/factura-recibo/new', {
+        pago_id_pago: data.pago_id_pago,
+        tipo: data.tipo,
+        numero: data.numero,
+        razon_social: data.razon_social,
+        nit_ci: data.nit_ci,
+      })
+      .then(res => res.data)
+      .catch(handleError),
+
+  confirmarPagoPorSuscripcion: (idSuscripcion, data) =>
+  api
+    .put(`/pagos/confirmar/suscripcion/${idSuscripcion}`, {
+      tipo: data.tipo,
+      razon_social: data.razon_social,
+      nit_ci: data.nit_ci,
+    })
+    .then(res => res.data)
+    .catch(handleError),
+    
   rechazarCotizacionInicial: (idSolicitud, estado) =>
     apiCore
       .patch(`/solicitudes-cotizacion/${idSolicitud}/estado`, { estado })

@@ -1,10 +1,9 @@
 import { createSlice } from "@reduxjs/toolkit";
-import {
-  crearSuscripcionThunk,
-} from "./SuscripcionThunk";
+import { crearSuscripcionThunk } from "./SuscripcionThunk";
 
 const initialState = {
   suscripcionActual: null,
+  nombre_plan: "", // <-- Nuevo campo en el estado
 
   metodoSeleccionado: "QR",
   tipoComprobante: "RECIBO",
@@ -43,18 +42,6 @@ const limpiarEstadoTemporalPago = (state) => {
   state.successMessage = null;
 };
 
-const actualizarSuscripcionSiExiste = (state, action) => {
-  const suscripcion =
-    action.payload?.suscripcion ||
-    action.payload?.data ||
-    action.payload ||
-    null;
-
-  if (suscripcion) {
-    state.suscripcionActual = suscripcion;
-  }
-};
-
 const suscripcionSlice = createSlice({
   name: "checkout",
   initialState,
@@ -63,6 +50,11 @@ const suscripcionSlice = createSlice({
     setsuscripcionActual: (state, action) => {
       state.suscripcionActual = action.payload || null;
       limpiarEstadoTemporalPago(state);
+    },
+
+    // Reducer para capturar el nombre del plan antes de crear la suscripción
+    setNombrePlan: (state, action) => {
+      state.nombre_plan = action.payload;
     },
 
     clearCheckout: () => initialState,
@@ -103,7 +95,6 @@ const suscripcionSlice = createSlice({
 
   extraReducers: (builder) => {
     builder
-
       // =========================
       // SUSCRIPCIÓN
       // =========================
@@ -114,17 +105,22 @@ const suscripcionSlice = createSlice({
       .addCase(crearSuscripcionThunk.fulfilled, (state, action) => {
         state.loading = false;
         state.suscripcionActual = action.payload;
+        // Si la respuesta trae el nombre, lo actualizamos también
+        if (action.payload?.nombre_plan) {
+          state.nombre_plan = action.payload.nombre_plan;
+        }
         state.successMessage = "Suscripción creada correctamente";
       })
       .addCase(crearSuscripcionThunk.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || "No se pudo crear la suscripción";
-      })
+      });
   },
 });
 
 export const {
   setsuscripcionActual,
+  setNombrePlan, // Exportado
   clearCheckout,
   setMetodoSeleccionado,
   setTipoComprobante,

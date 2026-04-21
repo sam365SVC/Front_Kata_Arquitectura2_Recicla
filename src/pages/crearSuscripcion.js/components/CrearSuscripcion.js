@@ -1,34 +1,66 @@
-import React, { useState } from "react";
+
+import React, { useState, useEffect } from "react";
 import { FiArrowLeft, FiCheckCircle } from "react-icons/fi";
 import axios from "axios";
 import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
 import { Link, useParams } from 'react-router-dom';
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
-import {
-  crearSuscripcionThunk,  
-} from "../slicesSuscripcion/SuscripcionThunk";
-
-import {
-  suscripcionSlice,
-} from "../slicesSuscripcion/SuscripcionSlice";
+import {crearSuscripcionThunk} from "../slicesSuscripcion/SuscripcionThunk";
+import {obtenerPlanesThunk} from "../slicesPlanes/PlanThunk";
 
 const CrearSuscripcion = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { id } = useParams();
-  
+  const { id } = useParams(); // id del plan seleccionado desde la URL
+
+  const [planSeleccionado, setPlanSeleccionado] = useState(null); 
+  const [nombrePlan, setNombrePlan] = useState("");               
 
   const [form, setForm] = useState({
     user_id: 1,
     servicio_id: 2,
     meses: 1,
-    precio_unitario: 50,
+    precio_unitario: 0,
     moneda: "BOB",
   });
 
   const [loading, setLoading] = useState(false);
+
+  // Al montar, carga los planes y busca el que coincide con el id de la URL
+  useEffect(() => {
+    const cargarPlan = async () => {
+      try {
+        const planes = await dispatch(obtenerPlanesThunk()).unwrap();
+
+        const plan = planes.find((p) => p.id_plan === parseInt(id));
+
+        if (plan) {
+          setPlanSeleccionado(plan);
+          setNombrePlan(plan.nombre); // 👈 guardas el nombre aquí
+          setForm((prev) => ({
+            ...prev,
+            precio_unitario: parseFloat(plan.precio),
+          }));
+        } else {
+          Swal.fire({
+            icon: "warning",
+            title: "Plan no encontrado",
+            text: "No se encontró el plan seleccionado.",
+          });
+        }
+      } catch (error) {
+        Swal.fire({
+          icon: "error",
+          title: "Error al cargar planes",
+          text: error || "No se pudieron obtener los planes",
+        });
+      }
+    };
+
+    cargarPlan();
+  }, [id]);
 
   const handleChange = (field, value) => {
     setForm((prev) => ({
@@ -47,6 +79,7 @@ const CrearSuscripcion = () => {
           meses: form.meses,
           precio_unitario: form.precio_unitario,
           moneda: form.moneda,
+          nombre_plan: nombrePlan
         })
       ).unwrap();
 
@@ -78,7 +111,8 @@ const CrearSuscripcion = () => {
 
           <div className="sub-header">
             <h2>Crear suscripción</h2>
-            <p>Selecciona los datos de tu plan</p>
+            {/* Muestra el nombre del plan si ya cargó */}
+            <p>{nombrePlan ? `Plan seleccionado: ${nombrePlan}` : "Cargando plan..."}</p>
           </div>
 
           <div className="sub-form">
@@ -87,20 +121,18 @@ const CrearSuscripcion = () => {
               <label>Meses</label>
               <input
                 type="number"
+                min={1}
                 value={form.meses}
                 onChange={(e) => handleChange("meses", e.target.value)}
               />
             </div>
 
             <div className="sub-field">
-              <label>Precio unitario</label>
+              <label>Precio unitario (por mes)</label>
               <input
                 type="number"
                 value={form.precio_unitario}
-                onChange={(e) =>
-                  handleChange("precio_unitario", e.target.value)
-                }
-                readOnly="readOnly"
+                readOnly
               />
             </div>
 
@@ -125,7 +157,7 @@ const CrearSuscripcion = () => {
             <button
               className="sub-btn"
               onClick={handleCrear}
-              disabled={loading}
+              disabled={loading || !planSeleccionado}
             >
               {loading ? "Creando..." : "Crear y pagar"}
             </button>
