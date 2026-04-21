@@ -123,7 +123,7 @@ const SelectorPills = ({
   );
 };
 
-const UsuarioEmpresaModal = ({
+const UsuarioServicioModal = ({
   open,
   mode = "create",
   userData = null,
@@ -525,4 +525,4 @@ const UsuarioEmpresaModal = ({
   );
 };
 
-export default UsuarioEmpresaModal;
+export default UsuarioServicioModal;

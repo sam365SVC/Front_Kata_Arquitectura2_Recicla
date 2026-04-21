@@ -55,6 +55,7 @@ import Inspector from './inspector';
 import CrearSuscripcion from './crearSuscripcion.js';
 import RegistroPage from './registro/index.js';
 import RegistroEmpleado from './registroEmpleado/index.js';
+import AdminService from './adminSaas/AdminServiceWrapper.jsx';
 
 export {
   Home,
@@ -109,5 +110,6 @@ export {
   CrearSuscripcion,
   RegistroPage,
   RegistroEmpleado,
+  AdminService
 };
 

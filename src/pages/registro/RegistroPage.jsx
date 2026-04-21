@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   FiUser,
@@ -15,62 +15,87 @@ import {
 
 import Breadcrumb from "../../components/Breadcrumb";
 import RightArrow from "../../components/SVG";
-import signInImg from "../../assets/img/contact/signin1.png";
 import "./Registro.scss";
 
-const rules = {
-  "c-nombre": (v) => (v.trim().length < 2 ? "Mínimo 2 caracteres" : ""),
-  "c-apellido": (v) => (v.trim().length < 2 ? "Mínimo 2 caracteres" : ""),
-  "c-email": (v) =>
-    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) ? "" : "Correo inválido",
-  "c-telefono": (v) => {
-    const c = v.replace(/\s/g, "");
-    return !c
-      ? "Requerido"
-      : !/^\+?[0-9]{7,15}$/.test(c)
-      ? "Formato: +591 71111111"
-      : "";
-  },
-  "c-direccion": (v) => (v.trim().length < 5 ? "Mínimo 5 caracteres" : ""),
-  "c-metodo_pago": (v) => (!v ? "Selecciona un método" : ""),
-  "e-nombre_empresa": (v) =>
-    v.trim().length < 2 ? "Mínimo 2 caracteres" : "",
-  "e-email_contacto": (v) =>
-    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) ? "" : "Correo inválido",
-  "e-telefono": (v) => {
-    const c = v.replace(/\s/g, "");
-    return !c
-      ? "Requerido"
-      : !/^\+?[0-9]{7,15}$/.test(c)
-      ? "Formato: +591 70000000"
-      : "";
-  },
-  "e-nombre": (v) => (v.trim().length < 2 ? "Mínimo 2 caracteres" : ""),
-  "e-apellido": (v) => (v.trim().length < 2 ? "Mínimo 2 caracteres" : ""),
-  "e-email": (v) =>
-    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) ? "" : "Correo inválido",
-  password: (v) => {
-    if (v.length < 8) return "Debe tener al menos 8 caracteres";
-    if (!/[A-Z]/.test(v)) return "Debe incluir una mayúscula";
-    if (!/[0-9]/.test(v)) return "Debe incluir un número";
-    return "";
-  },
-  confirm_password: (v, fields) =>
-    v !== fields.password ? "No coinciden" : "",
-};
-
 const PAGO_OPTIONS = [
-  { value: "", label: "Selecciona un método" },
-  { value: "tarjeta", label: "Tarjeta de crédito/débito" },
+  { value: "", label: "Seleccione método de pago *" },
+  { value: "tarjeta", label: "Tarjeta de Crédito/Débito" },
+  { value: "transferencia", label: "Transferencia Bancaria" },
   { value: "efectivo", label: "Efectivo" },
-  { value: "transferencia", label: "Transferencia bancaria" },
-  { value: "qr", label: "Pago por QR" },
 ];
 
-function getPwStrength(v) {
-  const checks = [v.length >= 8, /[A-Z]/.test(v), /[0-9]/.test(v)];
-  return checks.filter(Boolean).length;
-}
+const rules = {
+  "c-nombre": (v) => (!v ? "El nombre es obligatorio" : ""),
+  "c-apellido": (v) => (!v ? "El apellido es obligatorio" : ""),
+  "c-email": (v) =>
+    !v ? "El correo es obligatorio" : !/\S+@\S+\.\S+/.test(v) ? "Correo inválido" : "",
+  "c-telefono": (v) => (!v ? "El teléfono es obligatorio" : ""),
+  "c-direccion": (v) => (!v ? "La dirección es obligatoria" : ""),
+  "c-metodo_pago": (v) => (!v ? "Seleccione un método de pago" : ""),
+
+  "e-nombre_empresa": (v) => (!v ? "El nombre de la empresa es obligatorio" : ""),
+  "e-email_contacto": (v) =>
+    !v ? "El email de contacto es obligatorio" : !/\S+@\S+\.\S+/.test(v) ? "Correo inválido" : "",
+  "e-telefono": (v) => (!v ? "El teléfono es obligatorio" : ""),
+  "e-nombre": (v) => (!v ? "El nombre del administrador es obligatorio" : ""),
+  "e-apellido": (v) => (!v ? "El apellido del administrador es obligatorio" : ""),
+  "e-email": (v) =>
+    !v ? "El email del administrador es obligatorio" : !/\S+@\S+\.\S+/.test(v) ? "Correo inválido" : "",
+
+  password: (v) => {
+    if (!v) return "La contraseña es obligatoria";
+    if (v.length < 8) return "Mínimo 8 caracteres";
+    if (!/[A-Z]/.test(v)) return "Debe contener al menos 1 mayúscula";
+    if (!/[0-9]/.test(v)) return "Debe contener al menos 1 número";
+    return "";
+  },
+
+  confirm_password: (v, fields) => {
+    if (!v) return "Confirme su contraseña";
+    if (v !== fields.password) return "Las contraseñas no coinciden";
+    return "";
+  },
+};
+
+const getError = (field, fields) => {
+  const value = fields[field];
+  const rule = rules[field];
+  if (!rule) return "";
+  return field === "confirm_password" ? rule(value, fields) : rule(value);
+};
+
+const getPwStrength = (password) => {
+  if (!password) return 0;
+  let strength = 0;
+  if (password.length >= 8) strength++;
+  if (/[A-Z]/.test(password)) strength++;
+  if (/[0-9]/.test(password)) strength++;
+  return strength;
+};
+
+const getPwBarColor = (strength) => {
+  if (strength === 0) return "#d9d9d9";
+  if (strength === 1) return "#ff8a65";
+  if (strength === 2) return "#f4c542";
+  return "#67c26f";
+};
+
+const CustomField = ({ icon: Icon, error, right, children, isSelect = false }) => {
+  return (
+    <div className={`registro-field ${error ? "registro-field--error" : ""}`}>
+      <div
+        className={`registro-field__control ${
+          isSelect ? "registro-field__control--select" : ""
+        }`}
+      >
+        {Icon && <Icon className="registro-field__icon" />}
+        {children}
+        {right && <div className="registro-field__right">{right}</div>}
+      </div>
+      {error && <div className="registro-field-error">{error}</div>}
+    </div>
+  );
+};
 
 const RegistroPage = () => {
   const [type, setType] = useState("cliente");
@@ -78,7 +103,6 @@ const RegistroPage = () => {
   const [success, setSuccess] = useState(false);
   const [showPw, setShowPw] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const [touched, setTouched] = useState({});
   const [generalError, setGeneralError] = useState("");
 
   const [fields, setFields] = useState({
@@ -98,23 +122,19 @@ const RegistroPage = () => {
     confirm_password: "",
   });
 
-  const set = (id, value) => {
+  const setField = (id, value) => {
     setFields((prev) => ({ ...prev, [id]: value }));
-    setTouched((prev) => ({ ...prev, [id]: true }));
     if (generalError) setGeneralError("");
   };
 
-  const getError = (id) => {
-    if (!touched[id]) return "";
-    const rule = rules[id];
-    if (!rule) return "";
-    return id === "confirm_password"
-      ? rule(fields[id], fields)
-      : rule(fields[id]);
-  };
+  const pwStrength = useMemo(() => getPwStrength(fields.password), [fields.password]);
+  const pwBarColor = useMemo(() => getPwBarColor(pwStrength), [pwStrength]);
 
-  const activeFields = useMemo(
-    () =>
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setGeneralError("");
+
+    const fieldsToValidate =
       type === "cliente"
         ? [
             "c-nombre",
@@ -135,86 +155,26 @@ const RegistroPage = () => {
             "e-email",
             "password",
             "confirm_password",
-          ],
-    [type]
-  );
+          ];
 
-  const pwStrength = getPwStrength(fields.password);
-  const pwBarColor =
-    pwStrength === 1
-      ? "#c0392b"
-      : pwStrength === 2
-      ? "#d4a820"
-      : pwStrength === 3
-      ? "#5a8a3a"
-      : "#e0e0d0";
+    const hasError = fieldsToValidate.some((field) => getError(field, fields));
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    const newTouched = {};
-    activeFields.forEach((id) => {
-      newTouched[id] = true;
-    });
-    setTouched((prev) => ({ ...prev, ...newTouched }));
-
-    const hasErrors = activeFields.some((id) => {
-      const rule = rules[id];
-      if (!rule) return false;
-      return id === "confirm_password"
-        ? rule(fields[id], fields)
-        : rule(fields[id]);
-    });
-
-    if (hasErrors) {
-      setGeneralError("Revisa los campos marcados antes de continuar.");
+    if (hasError) {
+      setGeneralError("Por favor corrige los errores en el formulario");
       return;
     }
 
     setLoading(true);
 
-    const payload =
-      type === "cliente"
-        ? {
-            tenantId: 1,
-            tipoCuenta: "cliente",
-            nombre: fields["c-nombre"].trim(),
-            apellido: fields["c-apellido"].trim(),
-            email: fields["c-email"].trim(),
-            telefono: fields["c-telefono"].trim(),
-            direccion: fields["c-direccion"].trim(),
-            metodoPagoPreferido: fields["c-metodo_pago"],
-            password: fields.password,
-          }
-        : {
-            tenantId: 1,
-            tipoCuenta: "empresa",
-            plan: "free",
-            empresa: {
-              nombre: fields["e-nombre_empresa"].trim(),
-              emailContacto: fields["e-email_contacto"].trim(),
-              telefono: fields["e-telefono"].trim(),
-            },
-            administrador: {
-              nombre: fields["e-nombre"].trim(),
-              apellido: fields["e-apellido"].trim(),
-              email: fields["e-email"].trim(),
-              password: fields.password,
-            },
-          };
-
-    console.log("Payload listo para backend:", payload);
-
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 1200));
       setSuccess(true);
-    }, 1000);
+    } catch (err) {
+      setGeneralError("Ocurrió un error al registrar. Inténtalo nuevamente.");
+    } finally {
+      setLoading(false);
+    }
   };
-
-  const renderError = (id) =>
-    getError(id) ? (
-      <div className="registro-field-error">{getError(id)}</div>
-    ) : null;
 
   if (success) {
     return (
@@ -223,48 +183,27 @@ const RegistroPage = () => {
 
         <div className="it-signup-area pt-120 pb-120">
           <div className="container">
-            <div className="it-signup-bg p-relative">
+            <div className="it-signup-bg">
               <div className="row">
                 <div className="col-xl-8 col-lg-10 mx-auto">
-                  <div className="it-signup-wrap">
+                  <div className="it-signup-wrap text-center">
                     <div className="registro-success-box">
                       <div className="success-icon">✓</div>
-
-                      <h3>
-                        {type === "cliente"
-                          ? "¡Cuenta creada!"
-                          : "¡Empresa registrada!"}
-                      </h3>
-
+                      <h3>{type === "cliente" ? "¡Cuenta creada!" : "¡Empresa registrada!"}</h3>
                       <p>
                         {type === "cliente"
-                          ? "Tu cuenta fue creada correctamente y ya está lista para usarse."
-                          : "Tu empresa fue registrada correctamente con la configuración inicial predeterminada."}
+                          ? "Tu cuenta ya está lista para usar."
+                          : "Tu empresa fue registrada con plan Free."}
                       </p>
 
                       <div className="success-tag">
-                        {type === "cliente"
-                          ? "Tenant asignado automáticamente: 1"
-                          : "Plan inicial: Free"}
+                        {type === "cliente" ? "Tenant: 1" : "Plan: Free"}
                       </div>
 
-                      <div className="registro-note" style={{ maxWidth: 460, margin: "0 auto 24px" }}>
-                        <FiInfo />
-                        <span>
-                          {type === "cliente"
-                            ? "El tenant fue asignado automáticamente con valor 1."
-                            : "La empresa fue creada con tenant 1 y plan inicial Free por defecto."}
-                        </span>
-                      </div>
-
-                      <div className="it-signup-btn d-sm-flex justify-content-center align-items-center">
-                        <Link to="/sign-in" className="ed-btn-theme">
-                          Ir a iniciar sesión
-                          <i>
-                            <RightArrow />
-                          </i>
-                        </Link>
-                      </div>
+                      <Link to="/sign-in" className="ed-btn-theme mt-4">
+                        Ir a Iniciar Sesión
+                        <RightArrow />
+                      </Link>
                     </div>
                   </div>
                 </div>
@@ -283,504 +222,258 @@ const RegistroPage = () => {
       <div className="it-signup-area pt-120 pb-120">
         <div className="container">
           <div className="it-signup-bg p-relative">
-            <div className="it-signup-thumb d-none d-lg-block">
-              <img src={signInImg} alt="Registro" />
-            </div>
-
             <div className="row">
-              <div className="col-xl-6 col-lg-6">
-                <form onSubmit={handleSubmit}>
-                  <div className="it-signup-wrap">
-                    <h4 className="it-signup-title">
+              <div className="col-xl-7 col-lg-8 mx-auto">
+                <form onSubmit={handleSubmit} className="it-signup-wrap">
+                  <h4 className="it-signup-title">
+                    {type === "cliente" ? "Crear cuenta personal" : "Registrar empresa"}
+                  </h4>
+
+                  <div className="registro-type-switch">
+                    <button
+                      type="button"
+                      className={type === "cliente" ? "active" : ""}
+                      onClick={() => setType("cliente")}
+                    >
+                      Cliente
+                    </button>
+                    <button
+                      type="button"
+                      className={type === "empresa" ? "active" : ""}
+                      onClick={() => setType("empresa")}
+                    >
+                      Empresa
+                    </button>
+                  </div>
+
+                  <div className="registro-note">
+                    <FiInfo />
+                    <span>
                       {type === "cliente"
-                        ? "Crear cuenta"
-                        : "Registrar empresa"}
-                    </h4>
+                        ? "El tenant se asigna automáticamente."
+                        : "Se crea con tenant 1 y plan Free por defecto."}
+                    </span>
+                  </div>
 
-                    <div className="registro-type-switch">
-                      <button
-                        type="button"
-                        className={type === "cliente" ? "active" : ""}
-                        onClick={() => setType("cliente")}
-                      >
-                        Cliente
-                      </button>
+                  {type === "cliente" && (
+                    <>
+                      <div className="registro-section-title">Información personal</div>
+                      <div className="registro-row">
+                        <CustomField icon={FiUser} error={getError("c-nombre", fields)}>
+                          <input
+                            type="text"
+                            placeholder="Nombre *"
+                            value={fields["c-nombre"]}
+                            onChange={(e) => setField("c-nombre", e.target.value)}
+                          />
+                        </CustomField>
 
-                      <button
-                        type="button"
-                        className={type === "empresa" ? "active" : ""}
-                        onClick={() => setType("empresa")}
-                      >
-                        Empresa
-                      </button>
-                    </div>
+                        <CustomField icon={FiUser} error={getError("c-apellido", fields)}>
+                          <input
+                            type="text"
+                            placeholder="Apellido *"
+                            value={fields["c-apellido"]}
+                            onChange={(e) => setField("c-apellido", e.target.value)}
+                          />
+                        </CustomField>
+                      </div>
 
-                    <div className="registro-note">
-                      <FiInfo />
-                      <span>
-                        {type === "cliente"
-                          ? "El tenant se asigna automáticamente como 1."
-                          : "La empresa se registra con tenant 1 y plan inicial Free por defecto."}
-                      </span>
-                    </div>
+                      <div className="registro-section-title">Contacto</div>
 
-                    <div className="it-signup-input-wrap">
-                      {type === "cliente" && (
-                        <>
-                          <div className="registro-section-title">
-                            Información personal
-                          </div>
-
-                          <div className="registro-row">
-                            <div className="it-signup-input" style={{ position: "relative" }}>
-                              <FiUser
-                                style={{
-                                  position: "absolute",
-                                  left: 16,
-                                  top: "50%",
-                                  transform: "translateY(-50%)",
-                                  color: "#78793F",
-                                  zIndex: 2,
-                                }}
-                              />
-                              <input
-                                type="text"
-                                placeholder="Nombre *"
-                                value={fields["c-nombre"]}
-                                onChange={(e) => set("c-nombre", e.target.value)}
-                              />
-                              {renderError("c-nombre")}
-                            </div>
-
-                            <div className="it-signup-input" style={{ position: "relative" }}>
-                              <FiUser
-                                style={{
-                                  position: "absolute",
-                                  left: 16,
-                                  top: "50%",
-                                  transform: "translateY(-50%)",
-                                  color: "#78793F",
-                                  zIndex: 2,
-                                }}
-                              />
-                              <input
-                                type="text"
-                                placeholder="Apellido *"
-                                value={fields["c-apellido"]}
-                                onChange={(e) => set("c-apellido", e.target.value)}
-                              />
-                              {renderError("c-apellido")}
-                            </div>
-                          </div>
-
-                          <div className="registro-section-title">Contacto</div>
-
-                          <div className="it-signup-input" style={{ position: "relative" }}>
-                            <FiMail
-                              style={{
-                                position: "absolute",
-                                left: 16,
-                                top: "50%",
-                                transform: "translateY(-50%)",
-                                color: "#78793F",
-                                zIndex: 2,
-                              }}
-                            />
-                            <input
-                              type="email"
-                              placeholder="Correo Electrónico *"
-                              value={fields["c-email"]}
-                              onChange={(e) =>
-                                set("c-email", e.target.value.toLowerCase())
-                              }
-                            />
-                            {renderError("c-email")}
-                          </div>
-
-                          <div className="registro-row">
-                            <div className="it-signup-input" style={{ position: "relative" }}>
-                              <FiPhone
-                                style={{
-                                  position: "absolute",
-                                  left: 16,
-                                  top: "50%",
-                                  transform: "translateY(-50%)",
-                                  color: "#78793F",
-                                  zIndex: 2,
-                                }}
-                              />
-                              <input
-                                type="text"
-                                placeholder="Teléfono *"
-                                value={fields["c-telefono"]}
-                                onChange={(e) => set("c-telefono", e.target.value)}
-                              />
-                              {renderError("c-telefono")}
-                            </div>
-
-                            <div className="it-signup-input" style={{ position: "relative" }}>
-                              <FiCreditCard
-                                style={{
-
-                                    position: "absolute",
-
-                                    left: 16,
-
-                                    top: "50%",
-
-                                    transform: "translateY(-50%)",
-
-                                    color: "#78793F",
-
-                                    zIndex: 2,
-
-                                    fontSize: "18px"
-
-                                }}
-                              />
-                              <select
-                                value={fields["c-metodo_pago"]}
-                                onChange={(e) =>
-                                  set("c-metodo_pago", e.target.value)
-                                }
-                              >
-                                {PAGO_OPTIONS.map((o) => (
-                                  <option key={o.value} value={o.value}>
-                                    {o.label}
-                                  </option>
-                                ))}
-                              </select>
-                              {renderError("c-metodo_pago")}
-                            </div>
-                          </div>
-
-                          <div className="it-signup-input" style={{ position: "relative" }}>
-                            <FiMapPin
-                              style={{
-
-                                    position: "absolute",
-
-                                    left: 16,
-
-                                    top: "50%",
-
-                                    transform: "translateY(-50%)",
-
-                                    color: "#78793F",
-
-                                    zIndex: 2,
-
-                                    fontSize: "18px"
-
-                                }}
-                            />
-                            <input
-                              type="text"
-                              placeholder="Dirección *"
-                              value={fields["c-direccion"]}
-                              onChange={(e) =>
-                                set("c-direccion", e.target.value)
-                              }
-                            />
-                            {renderError("c-direccion")}
-                          </div>
-                        </>
-                      )}
-
-                      {type === "empresa" && (
-                        <>
-                          <div className="registro-section-title">Empresa</div>
-
-                          <div className="it-signup-input" style={{ position: "relative" }}>
-                            <FiHome
-                              style={{
-
-                                    position: "absolute",
-
-                                    left: 16,
-
-                                    top: "50%",
-
-                                    transform: "translateY(-50%)",
-
-                                    color: "#78793F",
-
-                                    zIndex: 2,
-
-                                    fontSize: "18px"
-
-                                }}
-                            />
-                            <input
-                              type="text"
-                              placeholder="Nombre de la empresa *"
-                              value={fields["e-nombre_empresa"]}
-                              onChange={(e) =>
-                                set("e-nombre_empresa", e.target.value)
-                              }
-                            />
-                            {renderError("e-nombre_empresa")}
-                          </div>
-
-                          <div className="registro-row">
-                            <div className="it-signup-input" style={{ position: "relative" }}>
-                              <FiMail
-                                style={{
-
-                                    position: "absolute",
-
-                                    left: 16,
-
-                                    top: "50%",
-
-                                    transform: "translateY(-50%)",
-
-                                    color: "#78793F",
-
-                                    zIndex: 2,
-
-                                    fontSize: "18px"
-
-                                }}
-                              />
-                              <input
-                                type="email"
-                                placeholder="Email de contacto *"
-                                value={fields["e-email_contacto"]}
-                                onChange={(e) =>
-                                  set(
-                                    "e-email_contacto",
-                                    e.target.value.toLowerCase()
-                                  )
-                                }
-                              />
-                              {renderError("e-email_contacto")}
-                            </div>
-
-                            <div className="it-signup-input" style={{ position: "relative" }}>
-                              <FiPhone
-                                style={{
-                                  position: "absolute",
-                                  left: 16,
-                                  top: "50%",
-                                  transform: "translateY(-50%)",
-                                  color: "#78793F",
-                                  zIndex: 2,
-                                  fontSize: "18px"
-                                }}
-                              />
-                              <input
-                                type="text"
-                                placeholder="Teléfono *"
-                                value={fields["e-telefono"]}
-                                onChange={(e) =>
-                                  set("e-telefono", e.target.value)
-                                }
-                              />
-                              {renderError("e-telefono")}
-                            </div>
-                          </div>
-
-                          <div className="registro-section-title">
-                            Administrador
-                          </div>
-
-                          <div className="registro-row">
-                            <div className="it-signup-input" style={{ position: "relative" }}>
-                              <FiUser
-                                style={{
-                                  position: "absolute",
-                                  left: 16,
-                                  top: "50%",
-                                  transform: "translateY(-50%)",
-                                  color: "#78793F",
-                                  zIndex: 2,
-                                  fontSize: "18px"
-                                }}
-                              />
-                              <input
-                                type="text"
-                                placeholder="Nombre *"
-                                value={fields["e-nombre"]}
-                                onChange={(e) => set("e-nombre", e.target.value)}
-                              />
-                              {renderError("e-nombre")}
-                            </div>
-
-                            <div className="it-signup-input" style={{ position: "relative" }}>
-                              <FiUser
-                                style={{
-                                  position: "absolute",
-                                  left: 16,
-                                  top: "50%",
-                                  transform: "translateY(-50%)",
-                                  color: "#78793F",
-                                  zIndex: 2,
-                                  fontSize: "18px"
-                                }}
-                              />
-                              <input
-                                type="text"
-                                placeholder="Apellido *"
-                                value={fields["e-apellido"]}
-                                onChange={(e) =>
-                                  set("e-apellido", e.target.value)
-                                }
-                              />
-                              {renderError("e-apellido")}
-                            </div>
-                          </div>
-
-                          <div className="it-signup-input" style={{ position: "relative" }}>
-                            <FiMail
-                              style={{
-                                position: "absolute",
-                                left: 16,
-                                top: "50%",
-                                transform: "translateY(-50%)",
-                                color: "#78793F",
-                                zIndex: 2,
-                                fontSize: "18px"
-                              }}
-                            />
-                            <input
-                              type="email"
-                              placeholder="Email del administrador *"
-                              value={fields["e-email"]}
-                              onChange={(e) =>
-                                set("e-email", e.target.value.toLowerCase())
-                              }
-                            />
-                            {renderError("e-email")}
-                          </div>
-                        </>
-                      )}
-
-                      <div className="registro-section-title">Seguridad</div>
+                      <CustomField icon={FiMail} error={getError("c-email", fields)}>
+                        <input
+                          type="email"
+                          placeholder="Correo electrónico *"
+                          value={fields["c-email"]}
+                          onChange={(e) => setField("c-email", e.target.value.toLowerCase())}
+                        />
+                      </CustomField>
 
                       <div className="registro-row">
-                        <div>
-                          <div className="it-signup-input" style={{ position: "relative" }}>
-                            <FiLock
-                              style={{
-                                position: "absolute",
-                                left: 16,
-                                top: "50%",
-                                transform: "translateY(-50%)",
-                                color: "#78793F",
-                                zIndex: 2,
-                                fontSize: "18px"
-                              }}
-                            />
-                            <input
-                              type={showPw ? "text" : "password"}
-                              placeholder="Contraseña *"
-                              value={fields.password}
-                              style={{ paddingRight: "46px" }}
-                              onChange={(e) => set("password", e.target.value)}
-                            />
-                            <span
-                              onClick={() => setShowPw(!showPw)}
-                              style={{
-                                position: "absolute",
-                                right: 16,
-                                top: "50%",
-                                transform: "translateY(-50%)",
-                                cursor: "pointer",
-                                color: "#78793F",
-                                zIndex: 2,
-                                fontSize: "18px"
-                              }}
-                            >
-                              {showPw ? <FiEyeOff /> : <FiEye />}
-                            </span>
-                          </div>
+                        <CustomField icon={FiPhone} error={getError("c-telefono", fields)}>
+                          <input
+                            type="text"
+                            placeholder="Teléfono *"
+                            value={fields["c-telefono"]}
+                            onChange={(e) => setField("c-telefono", e.target.value)}
+                          />
+                        </CustomField>
 
-                          <div className="registro-password-bar">
-                            <span
-                              style={{
-                                width: `${pwStrength * 33.33}%`,
-                                background: pwBarColor,
-                              }}
-                            />
-                          </div>
-
-                          <div className="registro-password-help">
-                            Debe tener al menos 8 caracteres, una mayúscula y
-                            un número.
-                          </div>
-
-                          {renderError("password")}
-                        </div>
-
-                        <div>
-                          <div className="it-signup-input" style={{ position: "relative" }}>
-                            <FiLock
-                              style={{
-                                position: "absolute",
-                                left: 16,
-                                top: "50%",
-                                transform: "translateY(-50%)",
-                                color: "#78793F",
-                                zIndex: 2,
-                                fontSize: "18px"
-                              }}
-                            />
-                            <input
-                              type={showConfirm ? "text" : "password"}
-                              placeholder="Confirmar contraseña *"
-                              value={fields.confirm_password}
-                              style={{ paddingRight: "46px" }}
-                              onChange={(e) =>
-                                set("confirm_password", e.target.value)
-                              }
-                            />
-                            <span
-                              onClick={() => setShowConfirm(!showConfirm)}
-                              style={{
-                                position: "absolute",
-                                right: 16,
-                                top: "50%",
-                                transform: "translateY(-50%)",
-                                cursor: "pointer",
-                                color: "#78793F",
-                                zIndex: 2,
-                                fontSize: "18px"
-                              }}
-                            >
-                              {showConfirm ? <FiEyeOff /> : <FiEye />}
-                            </span>
-                          </div>
-
-                          {renderError("confirm_password")}
-                        </div>
+                        <CustomField
+                          icon={FiCreditCard}
+                          error={getError("c-metodo_pago", fields)}
+                          isSelect
+                        >
+                          <select
+                            value={fields["c-metodo_pago"]}
+                            onChange={(e) => setField("c-metodo_pago", e.target.value)}
+                            required
+                          >
+                            {PAGO_OPTIONS.map((o) => (
+                              <option key={o.value} value={o.value} disabled={!o.value}>
+                                {o.label}
+                              </option>
+                            ))}
+                          </select>
+                        </CustomField>
                       </div>
-                    </div>
 
-                    {generalError && (
-                      <div className="registro-general-error">
-                        {generalError}
+                      <CustomField icon={FiMapPin} error={getError("c-direccion", fields)}>
+                        <input
+                          type="text"
+                          placeholder="Dirección *"
+                          value={fields["c-direccion"]}
+                          onChange={(e) => setField("c-direccion", e.target.value)}
+                        />
+                      </CustomField>
+                    </>
+                  )}
+
+                  {type === "empresa" && (
+                    <>
+                      <div className="registro-section-title">Datos de la empresa</div>
+
+                      <CustomField icon={FiHome} error={getError("e-nombre_empresa", fields)}>
+                        <input
+                          type="text"
+                          placeholder="Nombre de la empresa *"
+                          value={fields["e-nombre_empresa"]}
+                          onChange={(e) => setField("e-nombre_empresa", e.target.value)}
+                        />
+                      </CustomField>
+
+                      <div className="registro-row">
+                        <CustomField icon={FiMail} error={getError("e-email_contacto", fields)}>
+                          <input
+                            type="email"
+                            placeholder="Email de contacto *"
+                            value={fields["e-email_contacto"]}
+                            onChange={(e) => setField("e-email_contacto", e.target.value.toLowerCase())}
+                          />
+                        </CustomField>
+
+                        <CustomField icon={FiPhone} error={getError("e-telefono", fields)}>
+                          <input
+                            type="text"
+                            placeholder="Teléfono *"
+                            value={fields["e-telefono"]}
+                            onChange={(e) => setField("e-telefono", e.target.value)}
+                          />
+                        </CustomField>
                       </div>
-                    )}
 
-                    <div className="it-signup-btn d-sm-flex justify-content-between align-items-center mb-40">
-                      <button
-                        type="submit"
-                        className="ed-btn-theme"
-                        disabled={loading}
+                      <div className="registro-section-title">Administrador</div>
+
+                      <div className="registro-row">
+                        <CustomField icon={FiUser} error={getError("e-nombre", fields)}>
+                          <input
+                            type="text"
+                            placeholder="Nombre *"
+                            value={fields["e-nombre"]}
+                            onChange={(e) => setField("e-nombre", e.target.value)}
+                          />
+                        </CustomField>
+
+                        <CustomField icon={FiUser} error={getError("e-apellido", fields)}>
+                          <input
+                            type="text"
+                            placeholder="Apellido *"
+                            value={fields["e-apellido"]}
+                            onChange={(e) => setField("e-apellido", e.target.value)}
+                          />
+                        </CustomField>
+                      </div>
+
+                      <CustomField icon={FiMail} error={getError("e-email", fields)}>
+                        <input
+                          type="email"
+                          placeholder="Email del administrador *"
+                          value={fields["e-email"]}
+                          onChange={(e) => setField("e-email", e.target.value.toLowerCase())}
+                        />
+                      </CustomField>
+                    </>
+                  )}
+
+                  <div className="registro-section-title">Seguridad</div>
+
+                  <div className="registro-row">
+                    <div>
+                      <CustomField
+                        icon={FiLock}
+                        error={getError("password", fields)}
+                        right={
+                          <button
+                            type="button"
+                            className="toggle-password"
+                            onClick={() => setShowPw(!showPw)}
+                          >
+                            {showPw ? <FiEyeOff /> : <FiEye />}
+                          </button>
+                        }
                       >
-                        {loading ? "Registrando..." : "Crear cuenta"}
-                        <i>
-                          <RightArrow />
-                        </i>
-                      </button>
+                        <input
+                          type={showPw ? "text" : "password"}
+                          placeholder="Contraseña *"
+                          value={fields.password}
+                          onChange={(e) => setField("password", e.target.value)}
+                        />
+                      </CustomField>
+
+                      <div className="registro-password-bar">
+                        <span
+                          style={{
+                            width: `${pwStrength * 33.33}%`,
+                            background: pwBarColor,
+                          }}
+                        />
+                      </div>
+
+                      <div className="registro-password-help">
+                        Mínimo 8 caracteres, 1 mayúscula y 1 número
+                      </div>
                     </div>
 
-                    <div className="it-signup-text">
-                      <span>
-                        ¿Ya tienes cuenta? <Link to="/sign-in">Inicia sesión</Link>
-                      </span>
+                    <div>
+                      <CustomField
+                        icon={FiLock}
+                        error={getError("confirm_password", fields)}
+                        right={
+                          <button
+                            type="button"
+                            className="toggle-password"
+                            onClick={() => setShowConfirm(!showConfirm)}
+                          >
+                            {showConfirm ? <FiEyeOff /> : <FiEye />}
+                          </button>
+                        }
+                      >
+                        <input
+                          type={showConfirm ? "text" : "password"}
+                          placeholder="Confirmar contraseña *"
+                          value={fields.confirm_password}
+                          onChange={(e) => setField("confirm_password", e.target.value)}
+                        />
+                      </CustomField>
                     </div>
+                  </div>
+
+                  {generalError && (
+                    <div className="registro-general-error">{generalError}</div>
+                  )}
+
+                  <div className="it-signup-btn d-flex justify-content-center mt-4">
+                    <button type="submit" className="ed-btn-theme" disabled={loading}>
+                      {loading ? "Registrando..." : "Crear cuenta"}
+                      <RightArrow />
+                    </button>
+                  </div>
+
+                  <div className="it-signup-text text-center mt-4">
+                    ¿Ya tienes cuenta?{" "}
+                    <Link to="/sign-in">
+                      <strong>Inicia sesión</strong>
+                    </Link>
                   </div>
                 </form>
               </div>

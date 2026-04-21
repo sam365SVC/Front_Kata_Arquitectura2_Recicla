@@ -59,7 +59,8 @@ import {
   AdminEmpresa,
   Inspector,
   RegistroPage,
-  RegistroEmpleado
+  RegistroEmpleado,
+  AdminService
 } from '../pages';
 
 function App() {
@@ -141,6 +142,7 @@ function App() {
         <Route path="/inspector" element={<Inspector />} />
         <Route path="/registro" element={<RegistroPage  />} />
         <Route path="/registro-empleado" element={<RegistroEmpleado />} />
+        <Route path="/admin-servicio" element={<AdminService />} />
       </Routes>
     </div>
   );

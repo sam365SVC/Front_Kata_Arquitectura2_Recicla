@@ -11,10 +11,10 @@ import {
   FiShield,
 } from "react-icons/fi";
 import styles from "./UsuariosEmpresa.module.scss";
-import UsuarioEmpresaModal from "./UsuarioEmpresaModal";
+import UsuarioServicioModal from "./UsuarioServicioModal";
 import { usuariosEmpresaMock } from "../mock/data";
 
-const STORAGE_KEY = "adminEmpresa_usuarios";
+const STORAGE_KEY = "adminServicio_usuarios";
 
 const normalizeText = (value) =>
   String(value || "")
@@ -473,7 +473,7 @@ const UsuariosEmpresa = () => {
         </div>
       </div>
 
-      <UsuarioEmpresaModal
+      <UsuarioServicioModal
         open={modalOpen}
         mode={modalMode}
         userData={selectedUser}

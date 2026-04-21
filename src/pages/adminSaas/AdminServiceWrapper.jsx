@@ -6,23 +6,27 @@ import {
   FiLogOut,
   FiUsers,
   FiSettings,
+  FiDollarSign,
+  FiBriefcase,
   FiCreditCard,
 } from "react-icons/fi";
-import { MdOutlineBusinessCenter } from "react-icons/md";
+import { MdOutlineAdminPanelSettings } from "react-icons/md";
 
-import styles from "./AdminEmpresaWrapper.module.scss";
-import UsuariosEmpresa from "./components/UsuariosEmpresa";
-import TiposDispositivoEmpresa from "./components/TiposDispositivoEmpresa";
-import PlanEmpresa from "./components/PlanEmpresa";
+import styles from "./AdminServicioWrapper.module.scss";
+import UsuariosServicio from "./components/UsuariosServicio";
+import TiposDispositivoServicio from "./components/TiposDispositivoServicio";
+import IngresosServicio from "./components/IngresosServicio";
+import EmpresasServicio from "./components/EmpresasServicio";
+import GastosServicio from "./components/GastosServicio";
 
 const NAV_ITEMS = [
   {
-    id: "usuariosEmpresa",
-    label: "Usuarios de la empresa",
+    id: "usuariosServicio",
+    label: "Usuarios del servicio",
     icon: FiUsers,
-    title: "Gestión de usuarios",
+    title: "Gestión de usuarios del servicio",
     description:
-      "Administra empleados, accesos, roles y usuarios asociados a la empresa.",
+      "Administra los usuarios globales del sistema, accesos y permisos asociados a la plataforma.",
   },
   {
     id: "tiposDispositivo",
@@ -30,41 +34,63 @@ const NAV_ITEMS = [
     icon: FiSettings,
     title: "Administración de dispositivos",
     description:
-      "Configura qué dispositivos se recepcionan y qué condiciones serán consideradas.",
+      "Configura los tipos de dispositivos, reglas de valoración y checklist de inspección disponibles en el sistema.",
   },
   {
-    id: "miPlan",
-    label: "Mi plan",
-    icon: FiCreditCard,
-    title: "Plan y suscripción",
+    id: "misIngresos",
+    label: "Mis ingresos",
+    icon: FiDollarSign,
+    title: "Ingresos por suscripciones",
     description:
-      "Revisa tu plan actual, sus beneficios, límites y las opciones de cambio disponibles.",
+      "Consulta los pagos recibidos por planes y suscripciones de las empresas registradas en la plataforma.",
+  },
+  {
+    id: "misEmpresas",
+    label: "Mis empresas",
+    icon: FiBriefcase,
+    title: "Empresas registradas",
+    description:
+      "Visualiza y administra las empresas clientes que usan el servicio, su estado y su plan activo.",
+  },
+  {
+    id: "misGastos",
+    label: "Mis gastos",
+    icon: FiCreditCard,
+    title: "Gastos por operación",
+    description:
+      "Revisa los pagos realizados a clientes por dispositivos recepcionados y completados dentro del sistema.",
   },
 ];
 
 const renderContent = (tab, props) => {
   switch (tab) {
-    case "usuariosEmpresa":
-      return <UsuariosEmpresa {...props} />;
+    case "usuariosServicio":
+      return <UsuariosServicio {...props} />;
 
     case "tiposDispositivo":
-      return <TiposDispositivoEmpresa {...props} />;
+      return <TiposDispositivoServicio {...props} />;
 
-    case "miPlan":
-      return <PlanEmpresa {...props} />;
+    case "misIngresos":
+      return <IngresosServicio {...props} />;
+
+    case "misEmpresas":
+      return <EmpresasServicio {...props} />;
+
+    case "misGastos":
+      return <GastosServicio {...props} />;
 
     default:
-      return <UsuariosEmpresa {...props} />;
+      return <UsuariosServicio {...props} />;
   }
 };
 
-const AdminEmpresaWrapper = ({
-  empresaNombre = "Recicla Tech S.R.L.",
-  adminNombre = "Carlos Mendoza",
-  adminEmail = "admin@recicla.com",
+const AdminServicioWrapper = ({
+  servicioNombre = "Reecicla SaaS",
+  adminNombre = "Administrador General",
+  adminEmail = "admin@reecicla.com",
   tenantId = "1",
 }) => {
-  const [activeTab, setActiveTab] = useState("usuariosEmpresa");
+  const [activeTab, setActiveTab] = useState("usuariosServicio");
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -111,13 +137,14 @@ const AdminEmpresaWrapper = ({
           className={styles.mobileBar__toggle}
           onClick={() => setMobileOpen(true)}
           aria-label="Abrir menú"
+          type="button"
         >
           <FiMenu size={18} />
         </button>
 
         <div className={styles.mobileBar__info}>
           <h2>
-            Admin <span>Empresa</span>
+            Admin <span>Servicio</span>
           </h2>
           <p>{activeItem.label}</p>
         </div>
@@ -134,12 +161,12 @@ const AdminEmpresaWrapper = ({
         <aside className={sidebarClass}>
           <div className={styles.sidebar__brand}>
             <div className={styles.sidebar__brandIcon}>
-              <MdOutlineBusinessCenter size={22} />
+              <MdOutlineAdminPanelSettings size={22} />
             </div>
 
             <div className={styles.sidebar__brandText}>
-              <h1>Admin Empresa</h1>
-              <p>Panel administrativo</p>
+              <h1>Admin Servicio</h1>
+              <p>Panel SaaS</p>
             </div>
           </div>
 
@@ -147,6 +174,7 @@ const AdminEmpresaWrapper = ({
             className={styles.sidebar__toggleBtn}
             onClick={() => setCollapsed((prev) => !prev)}
             aria-label={collapsed ? "Expandir" : "Colapsar"}
+            type="button"
           >
             {collapsed ? (
               <FiChevronRight size={13} />
@@ -162,7 +190,7 @@ const AdminEmpresaWrapper = ({
 
           <nav
             className={styles.sidebar__nav}
-            aria-label="Navegación del administrador de empresa"
+            aria-label="Navegación del administrador del servicio"
           >
             {NAV_ITEMS.map((item) => {
               const Icon = item.icon;
@@ -197,7 +225,7 @@ const AdminEmpresaWrapper = ({
 
               <div className={styles.sidebar__footerInfo}>
                 <p>{adminNombre}</p>
-                <span>{empresaNombre}</span>
+                <span>{servicioNombre}</span>
                 <small>{adminEmail}</small>
               </div>
 
@@ -212,7 +240,7 @@ const AdminEmpresaWrapper = ({
           <div className={styles.contentBody}>
             {renderContent(activeTab, {
               tenantId,
-              empresaNombre,
+              servicioNombre,
               adminNombre,
               adminEmail,
             })}
@@ -223,4 +251,4 @@ const AdminEmpresaWrapper = ({
   );
 };
 
-export default AdminEmpresaWrapper;
+export default AdminServicioWrapper;
