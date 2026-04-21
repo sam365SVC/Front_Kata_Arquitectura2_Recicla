@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import {
   FiEye,
   FiEyeOff,
@@ -9,7 +9,8 @@ import {
   FiMapPin,
   FiHome,
   FiInfo,
-  FiShield
+  FiShield,
+  FiBriefcase
 } from "react-icons/fi";
 import { Link } from "react-router-dom";
 import Swal from "sweetalert2";
@@ -20,8 +21,20 @@ import { useDispatch, useSelector } from "react-redux";
 import {
   registrarClienteThunk,
   registrarTenantThunk,
+  fetchTenantsDisponibles
 } from "./registroSlices/RegistroThunk";
 import { clearRegistroState } from "./registroSlices/RegistroSlice";
+import {
+
+  selectRegistroLoading,
+
+  selectRegistroError,
+
+  selectTenantsDisponibles,
+
+  selectTenantsDisponiblesLoading,
+
+} from "./registroSlices/RegistroSelectors";
 
 
 
@@ -41,6 +54,8 @@ const passwordHasNumber = /\d/;
 const cardShadow = "0 20px 50px rgba(73, 80, 21, 0.10)";
 
 const RegistroMain = () => {
+
+  
   const [tipoRegistro, setTipoRegistro] = useState("cliente");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -53,6 +68,25 @@ const RegistroMain = () => {
   const registroError = useSelector((state) => state.registro.error);
   const registroSuccess = useSelector((state) => state.registro.success);
 
+  const tenantsDisponibles = useSelector(selectTenantsDisponibles);
+  const tenantsLoading = useSelector(selectTenantsDisponiblesLoading);
+
+ useEffect(() => {
+  console.log("DISPARANDO FETCH TENANTS");
+  dispatch(fetchTenantsDisponibles({ page: 1, limit: 10 }));
+}, [dispatch]);
+    console.log("tenantsDisponibles:", tenantsDisponibles);
+    console.log("tenantsLoading:", tenantsLoading);
+
+    const fullState = useSelector((state) => state);
+console.log("CLAVES DEL STATE:", Object.keys(fullState));
+const registroState = useSelector((state) => state.registro);
+console.log("REGISTRO STATE:", registroState);
+   
+
+console.log("TENANTS DESDE REGISTRO ITEMS:", registroState?.items);
+
+
   const [clienteData, setClienteData] = useState({
     nombre: "",
     apellido: "",
@@ -61,7 +95,7 @@ const RegistroMain = () => {
     direccion: "",
     password: "",
     confirmPassword: "",
-    tenant_id: 6, // ID de tenant fijo para clientes registrados desde esta página
+    tenant_id: "", // ID de tenant fijo para clientes registrados desde esta página
   });
 
   const [empresaData, setEmpresaData] = useState({
@@ -75,6 +109,20 @@ const RegistroMain = () => {
     confirmPassword: "",
      // ID de tenant fijo para empresas registradas desde esta página
   });
+
+  useEffect(() => {
+    if (!clienteData.tenant_id && tenantsDisponibles.length > 0) {
+      setClienteData((prev) => ({
+        ...prev,
+        tenant_id: tenantsDisponibles[0].id,
+      }));
+    }
+  }, [tenantsDisponibles, clienteData.tenant_id]);
+
+  useEffect(() => {
+  console.log("disparando fetchTenantsDisponibles...");
+  dispatch(fetchTenantsDisponibles({ page: 1, limit: 10 }));
+}, [dispatch]);
 
   const currentData = tipoRegistro === "cliente" ? clienteData : empresaData;
 
@@ -205,6 +253,7 @@ const RegistroMain = () => {
           confirmPassword:
             !clienteData.confirmPassword.trim() ||
             clienteData.confirmPassword !== clienteData.password,
+          tenant_id: !clienteData.tenant_id,
         }
       : {
           nombreEmpresa: !empresaData.nombreEmpresa.trim(),
@@ -252,7 +301,7 @@ const RegistroMain = () => {
         telefono: clienteData.telefono,
         direccion: clienteData.direccion,
         password: clienteData.password,
-        tenant_id: 6, // ID de tenant fijo para clientes registrados desde esta página  
+        tenant_id: Number(clienteData.tenant_id), // ID de tenant fijo para clientes registrados desde esta página
       })
     );
   } else {
@@ -326,31 +375,77 @@ const RegistroMain = () => {
 };
 
   const renderInput = ({
-    label,
-    value,
-    onChange,
-    placeholder,
-    type = "text",
-    error,
-    icon,
-    rightButton,
-  }) => (
-    <div style={{ marginBottom: "18px" }}>
-      <label
-        style={{
-          display: "block",
-          fontSize: "14px",
-          fontWeight: 700,
-          color: COLORS.text,
-          marginBottom: "8px",
-        }}
-      >
-        {label}
-      </label>
+  label,
+  value,
+  onChange,
+  placeholder,
+  type = "text",
+  error,
+  icon,
+  rightButton,
+  options = [],
+}) => (
+  <div style={{ marginBottom: "18px" }}>
+    <label
+      style={{
+        display: "block",
+        fontSize: "14px",
+        fontWeight: 700,
+        color: COLORS.text,
+        marginBottom: "8px",
+      }}
+    >
+      {label}
+    </label>
 
-      <div style={{ position: "relative" }}>
-        {icon}
+    <div style={{ position: "relative" }}>
+      {icon}
 
+      {type === "select" ? (
+        <>
+          <select
+            value={value}
+            onChange={onChange}
+            style={{
+              width: "100%",
+              height: "56px",
+              borderRadius: "14px",
+              border: `1px solid ${error ? COLORS.error : COLORS.oliveBorder}`,
+              background: "#fff",
+              color: value ? COLORS.text : "#8a8a8a",
+              padding: "0 46px 0 44px",
+              outline: "none",
+              fontSize: "15px",
+              appearance: "none",
+              WebkitAppearance: "none",
+              MozAppearance: "none",
+              cursor: "pointer",
+              lineHeight: "56px",
+            }}
+          >
+            {options.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+
+          <span
+            style={{
+              position: "absolute",
+              right: 14,
+              top: "50%",
+              transform: "translateY(-50%)",
+              pointerEvents: "none",
+              color: COLORS.olive,
+              fontSize: "12px",
+              fontWeight: 700,
+            }}
+          >
+            ▼
+          </span>
+        </>
+      ) : (
         <input
           type={type}
           placeholder={placeholder}
@@ -362,28 +457,30 @@ const RegistroMain = () => {
             borderRadius: "14px",
             border: `1px solid ${error ? COLORS.error : COLORS.oliveBorder}`,
             background: "#fff",
+            color: COLORS.text,
             padding: `0 ${rightButton ? "48px" : "16px"} 0 44px`,
             outline: "none",
             fontSize: "15px",
           }}
         />
-
-        {rightButton}
-      </div>
-
-      {error && (
-        <div
-          style={{
-            marginTop: "8px",
-            color: COLORS.error,
-            fontSize: "13px",
-          }}
-        >
-          {error}
-        </div>
       )}
+
+      {rightButton}
     </div>
-  );
+
+    {error && (
+      <div
+        style={{
+          marginTop: "8px",
+          color: COLORS.error,
+          fontSize: "13px",
+        }}
+      >
+        {error}
+      </div>
+    )}
+  </div>
+);
 
   return (
     <main
@@ -637,6 +734,35 @@ const RegistroMain = () => {
                                   transform: "translateY(-50%)",
                                   color: COLORS.olive,
                                   fontSize: "18px",
+                                }}
+                              />
+                            ),
+                          })}
+                           {renderInput({
+                            label: "Empresa a la que quiere registrarse",
+                            value: clienteData.tenant_id,
+                            onChange: (e) => updateField("tenant_id", e.target.value),
+                            error: errors.tenant_id,
+                            type: "select",
+                            options: [
+                              { value: "", label: "Selecciona una empresa *" },
+                              ...tenantsDisponibles
+                                .filter((t) => !t.yaPertenece)
+                                .map((t) => ({
+                                  value: t.id,
+                                  label: `${t.nombre} — ${t.plan}`,
+                                })),
+                            ],
+                            icon: (
+                              <FiBriefcase
+                                style={{
+                                  position: "absolute",
+                                  left: 14,
+                                  top: "50%",
+                                  transform: "translateY(-50%)",
+                                  color: COLORS.olive,
+                                  fontSize: "18px",
+                                  zIndex: 2,
                                 }}
                               />
                             ),

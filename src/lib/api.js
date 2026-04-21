@@ -143,6 +143,11 @@ export const authApi = {
       .get("/tenants", { params })
       .then((res) => res.data)
       .catch(handleError),
+  listarTenants: (params = {}) =>
+    apiAuth
+      .get("/clientes/tenants-disponibles", { params })
+      .then((res) => res.data)
+      .catch(handleError),
 };
 
 // alias viejo

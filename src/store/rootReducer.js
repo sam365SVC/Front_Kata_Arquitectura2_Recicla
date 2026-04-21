@@ -28,6 +28,7 @@ import planesReducer from '../pages/planesPagos/slicesPlanes/PlanSlice';
 import registroSliceReducer from '../pages/registro/registroSlices/RegistroSlice';
 import activarEmpleadoReducer from '../pages/registroEmpleado/empleadoSlices/RegistroEmpleadoSlices';
 import tenantReducer from '../pages/adminSaas/slicesEmpresas/EmpresaSlices';
+
 const loginPersistConfig = {
   key: 'login',
   storage,
