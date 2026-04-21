@@ -15,24 +15,22 @@ const extractErrorMessage = (error) => {
   );
 };
 
-const createOrReusePago = async ({ idSuscripcion, metodo, monto }) => {
+const createOrReusePago = async ({ idSuscripcion, metodo, monto, tipoPago }) => {
   try {
     return await pagoApi.createPago({
-      suscripcion_pago_id: idSuscripcion,
+      referencia_id: idSuscripcion,  
       metodo,
       monto,
+      tipo_pago: tipoPago,          
     });
   } catch (error) {
-
     const message = extractErrorMessage(error).toLowerCase();
-
     if (
       message.includes("ya existe") ||
       message.includes("reutilizado")
     ) {
       return { ok: true, reused: true };
     }
-
     throw error;
   }
 };
@@ -40,7 +38,7 @@ const createOrReusePago = async ({ idSuscripcion, metodo, monto }) => {
 export const iniciarPagoQrThunk = createAsyncThunk(
   "checkout/iniciarPagoQr",
   async (
-    { idSuscripcion, total, moneda = "BOB", gloss },
+    { idSuscripcion, total, moneda = "BOB", gloss ,tipoPago},
     { rejectWithValue }
   ) => {
     try {
@@ -49,6 +47,7 @@ export const iniciarPagoQrThunk = createAsyncThunk(
         idSuscripcion,
         metodo: "QR",
         monto: total,
+        tipoPago
       });
 
       const response = await qrApi.generarQR({
@@ -101,7 +100,7 @@ export const confirmarPagoThunk = createAsyncThunk(
 export const simularPagoTarjetaThunk = createAsyncThunk(
   "checkout/simularPagoTarjeta",
   async (
-    { idSuscripcion, total, tipo, razonSocial, nitCi },
+    { idSuscripcion, total, tipo, razonSocial, nitCi  ,tipoPago},
     { rejectWithValue }
   ) => {
     try {
@@ -109,6 +108,7 @@ export const simularPagoTarjetaThunk = createAsyncThunk(
         idSuscripcion,
         metodo: "TARJETA",
         monto: total,
+        tipoPago
       });
 
       await sleep(2500);
@@ -127,7 +127,7 @@ export const simularPagoTarjetaThunk = createAsyncThunk(
 export const simularPagoTransferenciaThunk = createAsyncThunk(
   "checkout/simularPagoTransferencia",
   async (
-    { idSuscripcion, total, tipo, razonSocial, nitCi },
+    { idSuscripcion, total, tipo, razonSocial, nitCi  ,tipoPago},
     { rejectWithValue }
   ) => {
     try {
@@ -135,6 +135,7 @@ export const simularPagoTransferenciaThunk = createAsyncThunk(
         idSuscripcion,
         metodo: "TRANSFERENCIA",
         monto: total,
+        tipoPago,
       });
 
       await sleep(4000);
@@ -153,7 +154,7 @@ export const simularPagoTransferenciaThunk = createAsyncThunk(
 export const pagarConSaldoThunk = createAsyncThunk(
   "checkout/pagarConSaldo",
   async (
-    { idSuscripcion, tipo, razonSocial, nitCi },
+    { idSuscripcion, tipo, razonSocial, nitCi  ,tipoPago},
     { rejectWithValue }
   ) => {
     try {
@@ -161,6 +162,7 @@ export const pagarConSaldoThunk = createAsyncThunk(
         idSuscripcion,
         metodo: "SALDO",
         monto: 0,
+        tipoPago        
       });
 
       return await pagoApi.confirmarPagoSuscripcion(idSuscripcion, {

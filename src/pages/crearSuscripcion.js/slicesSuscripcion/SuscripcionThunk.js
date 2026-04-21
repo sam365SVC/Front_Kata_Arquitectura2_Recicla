@@ -18,7 +18,7 @@ const extractErrorMessage = (error) => {
 export const crearSuscripcionThunk = createAsyncThunk(
   "checkout/crearSuscripcion",
   async (
-    { user_id, servicio_id, meses, precio_unitario, moneda = "BOB" },
+    { user_id, servicio_id, meses, precio_unitario, moneda = "BOB" ,nombre_plan},
     { rejectWithValue }
   ) => {
     try {
@@ -28,6 +28,7 @@ export const crearSuscripcionThunk = createAsyncThunk(
         meses,
         precio_unitario,
         moneda,
+        nombre_plan,
       });
 
       // Opcional: devolver directamente la suscripción limpia
