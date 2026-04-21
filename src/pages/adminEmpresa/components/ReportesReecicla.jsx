@@ -296,7 +296,10 @@ const ReportesReecicla = () => {
           <div className={styles.legend}>
             {[['#185FA5', 'Aceptadas'], ['#BA7517', 'Pendientes'], ['#A32D2D', 'Rechazadas']].map(([c, l]) => (
               <span key={l} className={styles.legendItem}>
-                <span className={{ ...styles.legendDot, background: c }} />
+                <span 
+                  className={styles.legendDot} 
+                  style={{ background: c }} 
+                />
                 {l}
               </span>
             ))}
@@ -316,7 +319,10 @@ const ReportesReecicla = () => {
             {['#1D9E75', '#185FA5', '#BA7517', '#A32D2D', '#533AB7'].map((c, i) => (
               dispositivos[i] && (
                 <span key={c} className={styles.legendItem}>
-                  <span className={{ ...styles.legendDot, background: c }} />
+                  <span 
+                    className={styles.legendDot} 
+                    style={{ background: c }} 
+                  />
                   {dispositivos[i].nombre}
                 </span>
               )

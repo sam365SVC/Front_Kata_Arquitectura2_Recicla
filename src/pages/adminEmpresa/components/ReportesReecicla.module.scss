@@ -29,6 +29,7 @@
     background: rgba($main-2, 0.6);
     font-size: 12px;
     font-weight: 900;
+    color: #8A7D4C;
   }
 }
 
@@ -39,8 +40,9 @@
   gap: 12px;
 }
 
-.card {
-  background: rgba(0, 0, 0, 0.04);
+.statCard {
+  background: white;
+  border: 1px solid rgba(0,0,0,0.08); // opcional, para que no se vea plano
   border-radius: 10px;
   padding: 14px;
 }
@@ -58,6 +60,7 @@
 
 /* ================= CHARTS ================= */
 .chartsRow {
+  margin-top: 20px;
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 18px;
