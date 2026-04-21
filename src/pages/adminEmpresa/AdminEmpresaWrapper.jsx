@@ -7,6 +7,7 @@ import {
   FiUsers,
   FiSettings,
   FiCreditCard,
+  FiBarChart,
 } from "react-icons/fi";
 import { MdOutlineBusinessCenter } from "react-icons/md";
 import { useDispatch, useSelector } from "react-redux";
@@ -17,6 +18,7 @@ import styles from "./AdminEmpresaWrapper.module.scss";
 import UsuariosEmpresa from "./components/UsuariosEmpresa";
 import TiposDispositivoEmpresa from "./components/TiposDispositivoEmpresa";
 import PlanEmpresa from "./components/PlanEmpresa";
+import ReportesReecicla from "./components/ReportesReecicla";
 
 import { logout } from "../signin/slices/loginSlice";
 import {
@@ -50,6 +52,14 @@ const NAV_ITEMS = [
     description:
       "Revisa tu plan actual, sus beneficios, límites y opciones disponibles.",
   },
+  {
+    id: "reportes",
+    label: "Reportes",
+    icon: FiBarChart,
+    title: "Reportes",
+    description:
+      "Observa en graficas, estadisticas y rangos sobre tu negocio",
+  },
 ];
 
 const renderContent = (tab, props) => {
@@ -62,6 +72,9 @@ const renderContent = (tab, props) => {
 
     case "miPlan":
       return <PlanEmpresa {...props} />;
+    
+    case "reportes":
+      return <ReportesReecicla {...props} />;
 
     default:
       return <UsuariosEmpresa {...props} />;

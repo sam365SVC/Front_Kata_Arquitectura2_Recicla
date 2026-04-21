@@ -1,0 +1,55 @@
+@use '../styles/variables' as *;
+
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.hero {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 18px;
+
+  h2 {
+    font-size: 30px;
+    font-family: $font-heading;
+  }
+
+  p {
+    font-size: 14px;
+    color: $black-2;
+  }
+
+  &__eyebrow {
+    padding: 7px 12px;
+    border-radius: 999px;
+    background: rgba($main-2, 0.6);
+    font-size: 12px;
+    font-weight: 900;
+  }
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.card {
+  background: white;
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+}
+
+.cardTitle {
+  font-size: 14px;
+  color: $black-2;
+}
+
+.cardValue {
+  font-size: 22px;
+  font-weight: bold;
+}
