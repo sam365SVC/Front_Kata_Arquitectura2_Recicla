@@ -573,31 +573,7 @@ export const pagoApi = {
       .catch(handleError),
 };
 
-export const qrApi = {
-  generarQR: (data) =>
-    apiPagos.post("/qr/generar", data).then((res) => res.data).catch(handleError),
 
-  verificarPagoQR: (data) =>
-    apiPagos.post("/qr/verificar", data).then((res) => res.data).catch(handleError),
-};
-
-export const certificadosApi = {
-  enviarCertificadoPorMatricula: (idMatricula) =>
-    apiPagos
-      .post("/certificados/enviar", { id_matricula: idMatricula })
-      .then((res) => res.data)
-      .catch(handleError),
-};
-export const comprobantesApi = {
-  enviarComprobantePorPago: ({ idSuscripcionPago, email }) =>
-    apiPagos
-      .post("/comprobantes/enviar", {
-        id_suscripcion_pago: idSuscripcionPago,
-        user_email: email,
-      })
-      .then((res) => res.data)
-      .catch(handleError),
-};
 // =========================
 // ORCHESTRATION
 // =========================
@@ -623,130 +599,7 @@ export const adminApi = {
       .catch(handleError),
 };
 
-// =========================
-// TEMPORALES PARA NO ROMPER
-// =========================
-export const pagoApi = {
-  fetchPagos: () =>
-    api.get('/pagos').then((res) => res.data).catch(handleError),
 
-  fetchPagoById: (id) =>
-    api.get(`/pagos/${id}`).then((res) => res.data).catch(handleError),
-
-  createPago: (data) =>
-    api
-      .post('/pagos/new', {
-        ...data,
-        metodo: normalizarMetodoPago(data?.metodo),
-      })
-      .then((res) => res.data)
-      .catch(handleError),
-  
-    // SUSCRIPCIONES    
-  confirmarSuscripcionId: (idSuscripcion) =>
-    api
-      .get(`/suscripcion-pagos/${idSuscripcion}`)
-      .then(res => res.data)
-      .catch(handleError),
-    
-  confirmarPagoSuscripcion: (idSuscripcion, data) =>
-    api
-      .put(`/suscripcion-pagos/${idSuscripcion}`, data)
-        .then(res => res.data)
-        .catch(handleError),
-    
-  createSuscripcion: (data) =>
-    api
-      .post('/suscripcion-pagos/new', {
-        user_id: data.user_id,
-        servicio_id: data.servicio_id,
-        meses: data.meses,
-        precio_unitario: data.precio_unitario,
-        moneda: data.moneda,
-      })
-      .then(res => res.data)
-      .catch(handleError),
-
-  createFacturaRecibo: (data) =>
-    api
-      .post('/factura-recibo/new', {
-        pago_id_pago: data.pago_id_pago,
-        tipo: data.tipo,
-        numero: data.numero,
-        razon_social: data.razon_social,
-        nit_ci: data.nit_ci,
-      })
-      .then(res => res.data)
-      .catch(handleError),
-    
-  confirmarPagoPorCotizacion: (idSuscripcion, data) =>
-  api
-    .put(`/pagos/confirmar/suscripcion/${idSuscripcion}`, {
-      tipo: data.tipo,
-      razon_social: data.razon_social,
-      nit_ci: data.nit_ci,
-    })
-    .then(res => res.data)
-    .catch(handleError),
-    
-  confirmarCotizacionId: (idSuscripcion) =>
-    api
-      .get(`/suscripcion-pagos/${idSuscripcion}`)
-      .then(res => res.data)
-      .catch(handleError),
-    
-  confirmarPagoCotizacion: (idSuscripcion, data) =>
-    api
-      .put(`/suscripcion-pagos/${idSuscripcion}`, data)
-        .then(res => res.data)
-        .catch(handleError),
-    
-  createCotizacion: (data) =>
-    api
-      .post('/suscripcion-pagos/new', {
-        user_id: data.user_id,
-        servicio_id: data.servicio_id,
-        meses: data.meses,
-        precio_unitario: data.precio_unitario,
-        moneda: data.moneda,
-      })
-      .then(res => res.data)
-      .catch(handleError),
-
-  createFacturaRecibo: (data) =>
-    api
-      .post('/factura-recibo/new', {
-        pago_id_pago: data.pago_id_pago,
-        tipo: data.tipo,
-        numero: data.numero,
-        razon_social: data.razon_social,
-        nit_ci: data.nit_ci,
-      })
-      .then(res => res.data)
-      .catch(handleError),
-
-  confirmarPagoPorSuscripcion: (idSuscripcion, data) =>
-  api
-    .put(`/pagos/confirmar/suscripcion/${idSuscripcion}`, {
-      tipo: data.tipo,
-      razon_social: data.razon_social,
-      nit_ci: data.nit_ci,
-    })
-    .then(res => res.data)
-    .catch(handleError),
-
-  fetchByTenant: (tenantId) =>
-    api
-      .get("/cotizacion-pagos", { params: { tenant_id: tenantId } })
-      .then((res) => res.data)
-      .catch(handleError),
-
-  fetchById: (id) =>
-    api
-      .get(`/cotizacion-pagos/${id}`)
-      .then((res) => res.data)
-    
-};
 
 export const qrApi = {
   generarQR: (data) =>
@@ -773,7 +626,7 @@ export const comprobantesApi = {
       })
       .then((res) => res.data)
       .catch(handleError),
-
+};
 export const internalApi = {
   cambiarPlanTenant: (tenantId, data) =>
     apiInternal
