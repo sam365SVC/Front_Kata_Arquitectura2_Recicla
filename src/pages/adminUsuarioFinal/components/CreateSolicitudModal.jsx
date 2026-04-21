@@ -150,62 +150,221 @@ const subirImagenesSolicitud = async (archivos) => {
 
 
 // Paso 1: Cliente 
-const Paso1 = ({ data, onChange, errors }) => (
+const Paso1 = ({ data, onChange, errors }) => {
+
+  const [tenants, setTenants] = useState([]);
+
+  const [loadingTenants, setLoadingTenants] = useState(false);
+
+  // 🔹 cargar empresas (tenants)
+
+  useEffect(() => {
+
+    const fetchTenants = async () => {
+
+      try {
+
+        setLoadingTenants(true);
+
+        const res = await empresasServicioApi.fetchEmpresas();
+
+        setTenants(res?.data || []);
+
+      } catch (err) {
+
+        console.error("Error cargando tenants", err);
+
+      } finally {
+
+        setLoadingTenants(false);
+
+      }
+
+    };
+
+    fetchTenants();
+
+  }, []);
+
+  return (
+
     <div className={styles.stepContent}>
-        <div className={styles.tip}>
+
+      <div className={styles.tip}>
+
         <FiInfo size={15} />
+
         <span>Revisa y ajusta tus datos de contacto si es necesario.</span>
-        </div>
 
-        <div className={`${styles.formGroup} ${errors.nombre ? styles["formGroup--error"] : ""}`}>
+      </div>
+
+      {/* ================== SELECT EMPRESA ================== */}
+
+      <div className={`${styles.formGroup} ${errors.tenantId ? styles["formGroup--error"] : ""}`}>
+
         <label className={styles.formGroup__label}>
-            <FiUser size={13} /> Nombre completo
-            <span className={styles.formGroup__req}> *</span>
+
+          <FiBuilding size={13} /> Empresa
+
+          <span className={styles.formGroup__req}> *</span>
+
         </label>
-        <input
-            type="text"
-            placeholder="Ej: María García López"
-            value={data.nombre}
-            onChange={(e) => onChange("nombre", e.target.value)}
-        />
-        {errors.nombre && (
-            <span className={styles.formGroup__errMsg}><FiAlertTriangle size={12}/> {errors.nombre}</span>
-        )}
+
+        <div className={styles.selectWrapper}>
+
+          <select
+
+            value={data.tenantId || ""}
+
+            onChange={(e) => onChange("tenantId", e.target.value)}
+
+            disabled={loadingTenants}
+
+          >
+
+            <option value="">
+
+              {loadingTenants ? "Cargando empresas..." : "Seleccione una empresa"}
+
+            </option>
+
+            {tenants.map((t) => (
+
+              <option key={t.tenantId} value={t.tenantId}>
+
+                {t.nombreEmpresa || `Empresa ${t.tenantId}`}
+
+              </option>
+
+            ))}
+
+          </select>
+
         </div>
 
-        <div className={styles.formRow}>
+        {errors.tenantId && (
+
+          <span className={styles.formGroup__errMsg}>
+
+            <FiAlertTriangle size={12} /> {errors.tenantId}
+
+          </span>
+
+        )}
+
+      </div>
+
+      {/* ================== NOMBRE ================== */}
+
+      <div className={`${styles.formGroup} ${errors.nombre ? styles["formGroup--error"] : ""}`}>
+
+        <label className={styles.formGroup__label}>
+
+          <FiUser size={13} /> Nombre completo
+
+          <span className={styles.formGroup__req}> *</span>
+
+        </label>
+
+        <input
+
+          type="text"
+
+          placeholder="Ej: María García López"
+
+          value={data.nombre}
+
+          onChange={(e) => onChange("nombre", e.target.value)}
+
+        />
+
+        {errors.nombre && (
+
+          <span className={styles.formGroup__errMsg}>
+
+            <FiAlertTriangle size={12}/> {errors.nombre}
+
+          </span>
+
+        )}
+
+      </div>
+
+      {/* ================== EMAIL + TELEFONO ================== */}
+
+      <div className={styles.formRow}>
+
         <div className={`${styles.formGroup} ${errors.email ? styles["formGroup--error"] : ""}`}>
-            <label className={styles.formGroup__label}>
+
+          <label className={styles.formGroup__label}>
+
             Correo electrónico<span className={styles.formGroup__req}> *</span>
-            </label>
-            <input
+
+          </label>
+
+          <input
+
             type="email"
+
             placeholder="tu@email.com"
+
             value={data.email}
+
             onChange={(e) => onChange("email", e.target.value)}
-            />
-            {errors.email && (
-            <span className={styles.formGroup__errMsg}><FiAlertTriangle size={12}/> {errors.email}</span>
-            )}
+
+          />
+
+          {errors.email && (
+
+            <span className={styles.formGroup__errMsg}>
+
+              <FiAlertTriangle size={12}/> {errors.email}
+
+            </span>
+
+          )}
+
         </div>
 
         <div className={`${styles.formGroup} ${errors.telefono ? styles["formGroup--error"] : ""}`}>
-            <label className={styles.formGroup__label}>
+
+          <label className={styles.formGroup__label}>
+
             Teléfono<span className={styles.formGroup__req}> *</span>
-            </label>
-            <input
+
+          </label>
+
+          <input
+
             type="tel"
+
             placeholder="+591 7XXXXXXX"
+
             value={data.telefono}
+
             onChange={(e) => onChange("telefono", e.target.value)}
-            />
-            {errors.telefono && (
-            <span className={styles.formGroup__errMsg}><FiAlertTriangle size={12}/> {errors.telefono}</span>
-            )}
+
+          />
+
+          {errors.telefono && (
+
+            <span className={styles.formGroup__errMsg}>
+
+              <FiAlertTriangle size={12}/> {errors.telefono}
+
+            </span>
+
+          )}
+
         </div>
-        </div>
+
+      </div>
+
     </div>
-);
+
+  );
+
+};
 
 // Paso 2: Equipo
 
