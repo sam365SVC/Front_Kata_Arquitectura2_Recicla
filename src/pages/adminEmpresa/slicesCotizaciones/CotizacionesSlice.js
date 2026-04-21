@@ -12,7 +12,7 @@ const cotizacionPagosSlice = createSlice({
   initialState,
   reducers: {
     clearPagos: (state) => {
-      state.pagos = [];
+      state.cotizaciones = [];
       state.error = null;
     },
   },
@@ -24,23 +24,26 @@ const cotizacionPagosSlice = createSlice({
       })
       .addCase(fetchPagosByTenant.fulfilled, (state, action) => {
         state.loading = false;
-        // Soporta { pagos: [] } o directamente []
-        state.pagos = Array.isArray(action.payload)
+        state.cotizaciones = Array.isArray(action.payload)
           ? action.payload
-          : action.payload?.data ?? action.payload?.data ?? [];
+          : action.payload?.data ?? [];
       })
       .addCase(fetchPagosByTenant.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload || "Error al cargar pagos";
+        state.error = action.payload || "Error al cargar cotizaciones";
       });
   },
 });
 
 export const { clearPagos } = cotizacionPagosSlice.actions;
 
-// ─── Selectores ───────────────────────────────────────────────────────────────
-export const selectCotizaciones        = (state) => state.cotizacionPagos?.pagos   ?? [];
-export const selectPagosLoading = (state) => state.cotizacionPagos?.loading ?? false;
-export const selectPagosError   = (state) => state.cotizacionPagos?.error   ?? null;
+export const selectCotizaciones = (state) =>
+  state.cotizacionPagos?.cotizaciones ?? [];
+
+export const selectPagosLoading = (state) =>
+  state.cotizacionPagos?.loading ?? false;
+
+export const selectPagosError = (state) =>
+  state.cotizacionPagos?.error ?? null;
 
 export default cotizacionPagosSlice.reducer;

@@ -16,16 +16,14 @@ import {
   FiAlertCircle,
 } from "react-icons/fi";
 
-import { fetchPagosByTenant } from "../slicesCotizaciones/CotizacionesThunk"; // ajusta ruta
+import { fetchPagosByTenant } from "../slicesCotizaciones/CotizacionesThunk";
 import {
   selectCotizaciones,
   selectPagosLoading,
   selectPagosError,
-} from "../slicesCotizaciones/CotizacionesSlice"; // ajusta ruta
+} from "../slicesCotizaciones/CotizacionesSlice";
 
 import styles from "./PagosEmpresa.module.scss";
-
-// ─── Utils ────────────────────────────────────────────────────────────────────
 
 const fmtFecha = (fecha) =>
   fecha
@@ -37,39 +35,40 @@ const fmtFecha = (fecha) =>
     : "—";
 
 const fmtMonto = (monto, moneda = "BOB") =>
-  `${moneda === "BOB" ? "Bs." : moneda} ${Number(monto || 0).toLocaleString("es-BO", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })}`;
+  `${moneda === "BOB" ? "Bs." : moneda} ${Number(monto || 0).toLocaleString(
+    "es-BO",
+    {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }
+  )}`;
 
-// ─── Normaliza el campo monto desde la estructura real de la API ──────────────
-// La API devuelve montoFinal y montoInicial; usamos montoFinal si existe.
-const getMonto = (pago) =>
-  pago.montoFinal ?? pago.monto_final ?? pago.montoInicial ?? pago.monto_inicial ?? 0;
+const getMontoInicial = (cot) =>
+  cot?.montoInicial ?? cot?.monto_inicial ?? 0;
 
-const getMoneda = (pago) => pago.moneda ?? "BOB";
+const getMontoFinal = (cot) =>
+  cot?.montoFinal ?? cot?.monto_final ?? null;
 
-// Normaliza el estado al formato del badge (minúsculas)
-const normalizeEstado = (estado = "") => estado.toLowerCase().replace(/_/g, "_");
+const getMoneda = (cot) => cot?.moneda ?? "BOB";
 
-// ─── Badge de estado ──────────────────────────────────────────────────────────
+const normalizeEstado = (estado = "") =>
+  String(estado).toLowerCase().replace(/_/g, "_");
 
 const ESTADO_MAP = {
-  // estados del pago en sí
-  pagado:           { mod: "success", label: "Pagado" },
-  pendiente:        { mod: "warning", label: "Pendiente" },
-  anulado:          { mod: "danger",  label: "Anulado"  },
-  // estados de la cotización que aún no son pago
-  final_generada:   { mod: "info",    label: "Final generada" },
+  pagada: { mod: "success", label: "Pagada" },
+  pendiente: { mod: "warning", label: "Pendiente" },
+  anulado: { mod: "danger", label: "Anulado" },
+  final_generada: { mod: "info", label: "Final generada" },
   preliminar_generada: { mod: "info", label: "Preliminar generada" },
   preliminar_aceptada: { mod: "warning", label: "Preliminar aceptada" },
-  aprobada:         { mod: "success", label: "Aprobada" },
-  rechazada:        { mod: "danger",  label: "Rechazada" },
-  finalizada:       { mod: "success", label: "Finalizada" },
+  aprobada: { mod: "success", label: "Aprobada" },
+  rechazada: { mod: "danger", label: "Rechazada" },
+  finalizada: { mod: "success", label: "Finalizada" },
+  final_aceptada: { mod: "success", label: "Final aceptada" },
 };
 
 const EstadoBadge = ({ estado }) => {
-  const key   = normalizeEstado(estado);
+  const key = normalizeEstado(estado);
   const entry = ESTADO_MAP[key] ?? { mod: "default", label: estado };
   return (
     <span className={`${styles.estadoBadge} ${styles[`estadoBadge--${entry.mod}`]}`}>
@@ -78,90 +77,108 @@ const EstadoBadge = ({ estado }) => {
   );
 };
 
-// ─── Componente principal ─────────────────────────────────────────────────────
+const yaEstaPagada = (cotizacion) => {
+  const estado = normalizeEstado(cotizacion?.estado);
+  return estado === "pagada";
+};
+
+const puedePagar = (cotizacion) => {
+  const estado = normalizeEstado(cotizacion?.estado);
+  return estado === "aprobada" || estado === "final_aceptada";
+};
 
 const PagosEmpresa = () => {
   const dispatch = useDispatch();
 
-  const pagos = useSelector(selectCotizaciones);
-  console.log("pagos desde selector", pagos);
   const cotizaciones = useSelector(selectCotizaciones);
-  console.log("cotizaciones desde selector", cotizaciones);
   const loading = useSelector(selectPagosLoading);
-  const error   = useSelector(selectPagosError);
+  const error = useSelector(selectPagosError);
 
-  const [busqueda,    setBusqueda]    = useState("");
+  const [busqueda, setBusqueda] = useState("");
   const [filtroEstado, setFiltroEstado] = useState("");
-  const [filtroMetodo, setFiltroMetodo] = useState("");
-  const [detalle,     setDetalle]     = useState(null);
+  const [detalle, setDetalle] = useState(null);
 
   const cargar = useCallback(() => {
-    console.log("cargar ");
     dispatch(fetchPagosByTenant());
   }, [dispatch]);
 
-  useEffect(() => { cargar(); }, [cargar]);
+  useEffect(() => {
+    cargar();
+  }, [cargar]);
 
-  // ─── Filtrado ───────────────────────────────────────────────────────────────
-  const pagosFiltrados = useMemo(() => {
-    let lista = [...pagos];
+  const cotizacionesFiltradas = useMemo(() => {
+    let lista = [...cotizaciones];
 
-    console.log("lista",lista);
-    return lista;
     if (busqueda.trim()) {
       const q = busqueda.toLowerCase();
-      lista = lista.filter(
-        (p) =>
-          (p._id ?? "").toLowerCase().includes(q) ||
-          (p.solicitudCotizacionId ?? p.solicitud_cotizacion_id ?? "").toLowerCase().includes(q) ||
-          (p.clienteNombre ?? p.cliente_nombre ?? "").toLowerCase().includes(q) ||
-          (p.clienteEmail ?? p.cliente_email ?? "").toLowerCase().includes(q)
-      );
+      lista = lista.filter((c) => {
+        const cliente = c.cliente || {};
+        const tipo = c.tipoDispositivoId || {};
+        const datosEquipo = c.datosEquipo || {};
+
+        return (
+          String(c._id || "").toLowerCase().includes(q) ||
+          String(cliente.nombre || "").toLowerCase().includes(q) ||
+          String(cliente.email || "").toLowerCase().includes(q) ||
+          String(tipo.nombre || "").toLowerCase().includes(q) ||
+          String(datosEquipo.marca || "").toLowerCase().includes(q) ||
+          String(datosEquipo.modelo || "").toLowerCase().includes(q)
+        );
+      });
     }
 
     if (filtroEstado) {
       lista = lista.filter(
-        (p) => normalizeEstado(p.estado) === filtroEstado
+        (c) => normalizeEstado(c.estado) === filtroEstado
       );
     }
 
-    if (filtroMetodo) {
-      const m = filtroMetodo.toUpperCase();
-      lista = lista.filter(
-        (p) => (p.metodoPago ?? p.metodo_pago ?? "").toUpperCase() === m
-      );
-    }
-  }, [pagos, busqueda, filtroEstado, filtroMetodo]);
+    return lista;
+  }, [cotizaciones, busqueda, filtroEstado]);
 
-  // ─── Resumen ────────────────────────────────────────────────────────────────
   const resumen = useMemo(() => {
-    const pagados   = pagos.filter((p) => normalizeEstado(p.estado) === "pagado");
-    const pendientes = pagos.filter((p) => normalizeEstado(p.estado) === "pendiente");
-    const anulados   = pagos.filter((p) => normalizeEstado(p.estado) === "anulado");
+    const pagadas = cotizaciones.filter((c) => yaEstaPagada(c));
+    const pendientesPago = cotizaciones.filter((c) => puedePagar(c));
+    const rechazadas = cotizaciones.filter(
+      (c) => normalizeEstado(c.estado) === "rechazada"
+    );
 
     return {
-      total:         pagos.length,
-      totalPagado:   pagados.reduce((acc, p) => acc + Number(getMonto(p)), 0),
-      totalPendiente:pendientes.reduce((acc, p) => acc + Number(getMonto(p)), 0),
-      totalAnulado:  anulados.reduce((acc, p) => acc + Number(getMonto(p)), 0),
+      total: cotizaciones.length,
+      totalPagado: pagadas.reduce(
+        (acc, c) => acc + Number(getMontoFinal(c) ?? getMontoInicial(c)),
+        0
+      ),
+      totalPendiente: pendientesPago.reduce(
+        (acc, c) => acc + Number(getMontoFinal(c) ?? getMontoInicial(c)),
+        0
+      ),
+      totalAnulado: rechazadas.reduce(
+        (acc, c) => acc + Number(getMontoFinal(c) ?? getMontoInicial(c)),
+        0
+      ),
     };
-  }, [pagos]);
+  }, [cotizaciones]);
 
-  const hayFiltros = busqueda || filtroEstado || filtroMetodo;
+  const hayFiltros = busqueda || filtroEstado;
 
   const limpiarFiltros = () => {
     setBusqueda("");
     setFiltroEstado("");
-    setFiltroMetodo("");
   };
 
-  // ─── Render ─────────────────────────────────────────────────────────────────
+  const handlePagar = (cotizacion) => {
+    console.log("Ir a pagar:", cotizacion);
+    // aquí luego puedes navegar o abrir modal
+    // navigate(`/cliente/pago/${cotizacion._id}`)
+  };
+
   return (
     <div className={styles.page}>
       <div className={styles.pageHeader}>
         <div>
           <h1>Mis Gastos</h1>
-          <p>Pagos realizados a clientes por dispositivos recepcionados y procesados.</p>
+          <p>Cotizaciones de la empresa y pagos realizados a clientes.</p>
         </div>
         <button
           type="button"
@@ -175,12 +192,11 @@ const PagosEmpresa = () => {
         </button>
       </div>
 
-      {/* ── Stats ── */}
       <div className={styles.stats}>
         <div className={`${styles.statCard} ${styles["statCard--total"]}`}>
           <div className={styles.statCard__icon}><FiClipboard size={18} /></div>
           <div className={styles.statCard__value}>{resumen.total}</div>
-          <div className={styles.statCard__label}>Total de egresos</div>
+          <div className={styles.statCard__label}>Total de cotizaciones</div>
         </div>
         <div className={`${styles.statCard} ${styles["statCard--paid"]}`}>
           <div className={styles.statCard__icon}><FiDollarSign size={18} /></div>
@@ -190,22 +206,21 @@ const PagosEmpresa = () => {
         <div className={`${styles.statCard} ${styles["statCard--pending"]}`}>
           <div className={styles.statCard__icon}><FiCalendar size={18} /></div>
           <div className={styles.statCard__value}>{fmtMonto(resumen.totalPendiente)}</div>
-          <div className={styles.statCard__label}>Pendiente</div>
+          <div className={styles.statCard__label}>Por pagar</div>
         </div>
         <div className={`${styles.statCard} ${styles["statCard--cancelled"]}`}>
           <div className={styles.statCard__icon}><FiTrendingDown size={18} /></div>
           <div className={styles.statCard__value}>{fmtMonto(resumen.totalAnulado)}</div>
-          <div className={styles.statCard__label}>Anulado</div>
+          <div className={styles.statCard__label}>Rechazadas</div>
         </div>
       </div>
 
-      {/* ── Filtros ── */}
       <div className={styles.filters}>
         <div className={styles.searchWrap}>
           <FiSearch size={15} className={styles.searchWrap__icon} />
           <input
             type="text"
-            placeholder="Buscar por ID, solicitud, cliente o email..."
+            placeholder="Buscar por ID, cliente, dispositivo..."
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
           />
@@ -214,23 +229,12 @@ const PagosEmpresa = () => {
         <div className={styles.filterSelect}>
           <select value={filtroEstado} onChange={(e) => setFiltroEstado(e.target.value)}>
             <option value="">Todos los estados</option>
-            <option value="pagado">Pagado</option>
-            <option value="pendiente">Pendiente</option>
-            <option value="anulado">Anulado</option>
-            <option value="final_generada">Final generada</option>
+            <option value="preliminar_generada">Preliminar generada</option>
+            <option value="preliminar_aceptada">Preliminar aceptada</option>
             <option value="aprobada">Aprobada</option>
+            <option value="final_aceptada">Final aceptada</option>
+            <option value="pagada">Pagada</option>
             <option value="rechazada">Rechazada</option>
-            <option value="finalizada">Finalizada</option>
-          </select>
-        </div>
-
-        <div className={styles.filterSelect}>
-          <select value={filtroMetodo} onChange={(e) => setFiltroMetodo(e.target.value)}>
-            <option value="">Todos los métodos</option>
-            <option value="TRANSFERENCIA">Transferencia</option>
-            <option value="QR">QR</option>
-            <option value="TARJETA">Tarjeta</option>
-            <option value="EFECTIVO">Efectivo</option>
           </select>
         </div>
 
@@ -241,12 +245,11 @@ const PagosEmpresa = () => {
         )}
       </div>
 
-      {/* ── Tabla ── */}
       <div className={styles.tableWrap}>
         {loading ? (
           <div className={styles.loading}>
             <div className={styles.loading__spinner} />
-            <p>Cargando pagos...</p>
+            <p>Cargando cotizaciones...</p>
           </div>
         ) : error ? (
           <div className={styles.errorState}>
@@ -257,14 +260,14 @@ const PagosEmpresa = () => {
               Reintentar
             </button>
           </div>
-        ) : pagosFiltrados.length === 0 ? (
+        ) : cotizacionesFiltradas.length === 0 ? (
           <div className={styles.empty}>
             <FiFilter size={26} />
-            <h3>{hayFiltros ? "Sin resultados" : "Sin pagos registrados"}</h3>
+            <h3>{hayFiltros ? "Sin resultados" : "Sin cotizaciones registradas"}</h3>
             <p>
               {hayFiltros
-                ? "No se encontraron pagos con los filtros aplicados."
-                : "Aún no hay pagos registrados para este tenant."}
+                ? "No se encontraron cotizaciones con los filtros aplicados."
+                : "Aún no hay cotizaciones registradas para este tenant."}
             </p>
           </div>
         ) : (
@@ -272,78 +275,98 @@ const PagosEmpresa = () => {
             <thead>
               <tr>
                 <th>ID</th>
-                <th>Solicitud</th>
                 <th>Cliente</th>
+                <th>Dispositivo</th>
                 <th>Monto inicial</th>
                 <th>Monto final</th>
                 <th>Fecha</th>
                 <th>Estado</th>
-                <th>Método</th>
                 <th>Acción</th>
               </tr>
             </thead>
             <tbody>
-              {pagosFiltrados.map((pago) => (
-                <tr key={pago._id}>
-                  <td>
-                    <span className={styles.idCell}>{pago._id}</span>
-                  </td>
-                  <td>
-                    <span className={styles.idCell}>
-                      {pago.solicitudCotizacionId ?? pago.solicitud_cotizacion_id ?? "—"}
-                    </span>
-                  </td>
-                  <td>
-                    <div>
-                      <div>{pago.clienteNombre ?? pago.cliente_nombre ?? "—"}</div>
-                      <div className={styles.subtext}>
-                        {pago.clienteEmail ?? pago.cliente_email ?? ""}
+              {cotizacionesFiltradas.map((cotizacion) => {
+                const cliente = cotizacion.cliente || {};
+                const tipo = cotizacion.tipoDispositivoId || {};
+                const datosEquipo = cotizacion.datosEquipo || {};
+
+                return (
+                  <tr key={cotizacion._id}>
+                    <td>
+                      <span className={styles.idCell}>{cotizacion._id}</span>
+                    </td>
+
+                    <td>
+                      <div>
+                        <div>{cliente.nombre || "—"}</div>
+                        <div className={styles.subtext}>{cliente.email || ""}</div>
                       </div>
-                    </div>
-                  </td>
-                  <td className={styles.amountCell}>
-                    {fmtMonto(pago.montoInicial ?? pago.monto_inicial, getMoneda(pago))}
-                  </td>
-                  <td className={styles.amountCell}>
-                    {pago.montoFinal ?? pago.monto_final
-                      ? fmtMonto(pago.montoFinal ?? pago.monto_final, getMoneda(pago))
-                      : <span className={styles["montoCell--null"]}>Pendiente</span>}
-                  </td>
-                  <td>{fmtFecha(pago.createdAt ?? pago.fecha)}</td>
-                  <td>
-                    <EstadoBadge estado={pago.estado} />
-                  </td>
-                  <td className={styles.metodoCell}>
-                    {pago.metodoPago ?? pago.metodo_pago ?? "—"}
-                  </td>
-                  <td>
-                    <button
-                      type="button"
-                      className={styles.btnView}
-                      onClick={() => setDetalle(pago)}
-                    >
-                      <FiEye size={14} />
-                      Ver
-                    </button>
-                  </td>
-                </tr>
-              ))}
+                    </td>
+
+                    <td>
+                      <div>
+                        <div>{tipo.nombre || "—"}</div>
+                        <div className={styles.subtext}>
+                          {[datosEquipo.marca, datosEquipo.modelo].filter(Boolean).join(" ")}
+                        </div>
+                      </div>
+                    </td>
+
+                    <td className={styles.amountCell}>
+                      {fmtMonto(getMontoInicial(cotizacion), getMoneda(cotizacion))}
+                    </td>
+
+                    <td className={styles.amountCell}>
+                      {getMontoFinal(cotizacion) != null
+                        ? fmtMonto(getMontoFinal(cotizacion), getMoneda(cotizacion))
+                        : <span className={styles["montoCell--null"]}>Pendiente</span>}
+                    </td>
+
+                    <td>{fmtFecha(cotizacion.updatedAt || cotizacion.createdAt)}</td>
+
+                    <td>
+                      <EstadoBadge estado={cotizacion.estado} />
+                    </td>
+
+                    <td>
+                      {puedePagar(cotizacion) ? (
+                        <button
+                          type="button"
+                          className={styles.btnPay}
+                          onClick={() => handlePagar(cotizacion)}
+                        >
+                          <FiCreditCard size={14} />
+                          Pagar
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          className={styles.btnView}
+                          onClick={() => setDetalle(cotizacion)}
+                        >
+                          <FiEye size={14} />
+                          Ver detalle
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         )}
       </div>
 
-      {/* ── Drawer detalle ── */}
       {detalle && (
         <div className={styles.drawerOverlay} onClick={() => setDetalle(null)}>
           <aside
             className={styles.drawer}
             onClick={(e) => e.stopPropagation()}
-            aria-label="Detalle del pago"
+            aria-label="Detalle de la cotización"
           >
             <div className={styles.drawer__header}>
               <div>
-                <p className={styles.drawer__eyebrow}>Detalle de pago</p>
+                <p className={styles.drawer__eyebrow}>Detalle de cotización</p>
                 <h3>{detalle._id}</h3>
               </div>
               <button
@@ -356,113 +379,51 @@ const PagosEmpresa = () => {
             </div>
 
             <div className={styles.drawer__body}>
-              {/* Bloque financiero */}
               <div className={styles.detailCard}>
                 <div className={styles.detailRow}>
                   <span><FiCalendar size={14} /> Fecha</span>
-                  <strong>{fmtFecha(detalle.createdAt ?? detalle.fecha)}</strong>
+                  <strong>{fmtFecha(detalle.updatedAt || detalle.createdAt)}</strong>
                 </div>
                 <div className={styles.detailRow}>
                   <span><FiClipboard size={14} /> Estado</span>
                   <strong><EstadoBadge estado={detalle.estado} /></strong>
                 </div>
                 <div className={styles.detailRow}>
-                  <span><FiCreditCard size={14} /> Método</span>
-                  <strong>{detalle.metodoPago ?? detalle.metodo_pago ?? "—"}</strong>
-                </div>
-                <div className={styles.detailRow}>
                   <span><FiDollarSign size={14} /> Monto inicial</span>
-                  <strong>
-                    {fmtMonto(detalle.montoInicial ?? detalle.monto_inicial, getMoneda(detalle))}
-                  </strong>
+                  <strong>{fmtMonto(getMontoInicial(detalle), getMoneda(detalle))}</strong>
                 </div>
                 <div className={styles.detailRow}>
                   <span><FiDollarSign size={14} /> Monto final</span>
                   <strong>
-                    {detalle.montoFinal ?? detalle.monto_final
-                      ? fmtMonto(detalle.montoFinal ?? detalle.monto_final, getMoneda(detalle))
+                    {getMontoFinal(detalle) != null
+                      ? fmtMonto(getMontoFinal(detalle), getMoneda(detalle))
                       : "Pendiente"}
                   </strong>
                 </div>
-                <div className={styles.detailRow}>
-                  <span><FiClipboard size={14} /> Moneda</span>
-                  <strong>{getMoneda(detalle)}</strong>
-                </div>
               </div>
 
-              {/* Bloque cliente / cotización */}
               <div className={styles.detailCard}>
                 <div className={styles.detailRow}>
                   <span><FiUser size={14} /> Cliente</span>
-                  <strong>{detalle.clienteNombre ?? detalle.cliente_nombre ?? "—"}</strong>
+                  <strong>{detalle.cliente?.nombre || "—"}</strong>
                 </div>
                 <div className={styles.detailRow}>
                   <span><FiUser size={14} /> Email</span>
-                  <strong>{detalle.clienteEmail ?? detalle.cliente_email ?? "—"}</strong>
+                  <strong>{detalle.cliente?.email || "—"}</strong>
                 </div>
                 <div className={styles.detailRow}>
                   <span><FiPackage size={14} /> Tipo dispositivo</span>
-                  <strong>{detalle.tipoDispositivoId ?? detalle.tipo_dispositivo_id ?? "—"}</strong>
+                  <strong>{detalle.tipoDispositivoId?.nombre || "—"}</strong>
                 </div>
                 <div className={styles.detailRow}>
-                  <span><FiClipboard size={14} /> ID solicitud</span>
+                  <span><FiClipboard size={14} /> Modelo</span>
                   <strong>
-                    {detalle.solicitudCotizacionId ?? detalle.solicitud_cotizacion_id ?? "—"}
+                    {[detalle.datosEquipo?.marca, detalle.datosEquipo?.modelo]
+                      .filter(Boolean)
+                      .join(" ") || "—"}
                   </strong>
                 </div>
               </div>
-
-              {/* Aceptación */}
-              <div className={styles.detailCard}>
-                <div className={styles.detailRow}>
-                  <span>¿Aceptó preliminar?</span>
-                  <strong>
-                    {detalle.clienteAceptoPreliminar != null
-                      ? detalle.clienteAceptoPreliminar ? "Sí" : "No"
-                      : "—"}
-                  </strong>
-                </div>
-                {detalle.fechaAceptacionPreliminar && (
-                  <div className={styles.detailRow}>
-                    <span>Fecha aceptación preliminar</span>
-                    <strong>{fmtFecha(detalle.fechaAceptacionPreliminar)}</strong>
-                  </div>
-                )}
-                <div className={styles.detailRow}>
-                  <span>¿Aceptó final?</span>
-                  <strong>
-                    {detalle.clienteAceptoFinal != null
-                      ? detalle.clienteAceptoFinal ? "Sí" : "No"
-                      : "—"}
-                  </strong>
-                </div>
-                {detalle.fechaAceptacionFinal && (
-                  <div className={styles.detailRow}>
-                    <span>Fecha aceptación final</span>
-                    <strong>{fmtFecha(detalle.fechaAceptacionFinal)}</strong>
-                  </div>
-                )}
-              </div>
-
-              {/* Motivo ajuste / observación */}
-              {(detalle.motivoAjuste || detalle.motivo_ajuste) && (
-                <div className={styles.detailNote}>
-                  <p>Motivo de ajuste</p>
-                  <span>{detalle.motivoAjuste ?? detalle.motivo_ajuste}</span>
-                </div>
-              )}
-
-              {/* Reglas aplicadas si las hay */}
-              {Array.isArray(detalle.reglasAplicadas) && detalle.reglasAplicadas.length > 0 && (
-                <div className={styles.detailNote}>
-                  <p>Reglas aplicadas</p>
-                  <ul>
-                    {detalle.reglasAplicadas.map((r, i) => (
-                      <li key={i}>{typeof r === "string" ? r : JSON.stringify(r)}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
             </div>
           </aside>
         </div>
