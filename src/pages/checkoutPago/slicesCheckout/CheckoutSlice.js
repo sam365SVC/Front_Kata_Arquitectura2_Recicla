@@ -5,6 +5,7 @@ import {
   confirmarPagoThunk,
   simularPagoTarjetaThunk,
   simularPagoTransferenciaThunk,
+  pagarConSaldoThunk,
   confirmarSuscripcionThunk,
   intentarEnviarComprobante,
 } from "./CheckoutThunk";
@@ -22,6 +23,7 @@ const initialState = {
 
   pago: null,
   factura: null,
+  planChange: null,
 
   loading: false,
   verificandoQR: false,
@@ -32,6 +34,7 @@ const initialState = {
 
   error: null,
   successMessage: null,
+  comprobanteMessage: null,
 };
 
 const limpiarEstadoTemporalPago = (state) => {
@@ -39,6 +42,7 @@ const limpiarEstadoTemporalPago = (state) => {
   state.qrStatus = null;
   state.pago = null;
   state.factura = null;
+  state.planChange = null;
   state.loading = false;
   state.verificandoQR = false;
   state.procesandoTarjeta = false;
@@ -47,11 +51,13 @@ const limpiarEstadoTemporalPago = (state) => {
   state.pagoConfirmado = false;
   state.error = null;
   state.successMessage = null;
+  state.comprobanteMessage = null;
 };
 
 const actualizarSuscripcionSiExiste = (state, action) => {
   const suscripcion =
     action.payload?.suscripcion ||
+    action.payload?.data?.suscripcion ||
     action.payload?.data ||
     null;
 
@@ -75,6 +81,7 @@ const checkoutSlice = createSlice({
       state.metodoSeleccionado = action.payload || "QR";
       state.error = null;
       state.successMessage = null;
+      state.comprobanteMessage = null;
       state.qrData = null;
       state.qrStatus = null;
       state.verificandoQR = false;
@@ -98,6 +105,7 @@ const checkoutSlice = createSlice({
 
     clearCheckoutSuccess: (state) => {
       state.successMessage = null;
+      state.comprobanteMessage = null;
     },
 
     resetCheckoutFlow: (state) => {
@@ -107,6 +115,9 @@ const checkoutSlice = createSlice({
 
   extraReducers: (builder) => {
     builder
+      // =========================
+      // INICIAR QR
+      // =========================
       .addCase(iniciarPagoQrThunk.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -135,6 +146,9 @@ const checkoutSlice = createSlice({
         state.error = action.payload || "No se pudo generar el QR";
       })
 
+      // =========================
+      // VERIFICAR QR
+      // =========================
       .addCase(verificarQrThunk.pending, (state) => {
         state.verificandoQR = true;
       })
@@ -147,6 +161,9 @@ const checkoutSlice = createSlice({
         state.error = action.payload || "No se pudo verificar el QR";
       })
 
+      // =========================
+      // CONFIRMAR PAGO
+      // =========================
       .addCase(confirmarPagoThunk.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -156,8 +173,11 @@ const checkoutSlice = createSlice({
         state.pagoConfirmado = true;
         state.pago = action.payload?.pago || null;
         state.factura = action.payload?.factura || null;
+        state.planChange = action.payload?.planChange || null;
         state.successMessage =
-          action.payload?.message || "Pago confirmado correctamente";
+          action.payload?.successMessage ||
+          action.payload?.message ||
+          "Pago confirmado correctamente";
 
         actualizarSuscripcionSiExiste(state, action);
       })
@@ -166,6 +186,9 @@ const checkoutSlice = createSlice({
         state.error = action.payload || "No se pudo confirmar el pago";
       })
 
+      // =========================
+      // TARJETA
+      // =========================
       .addCase(simularPagoTarjetaThunk.pending, (state) => {
         state.loading = true;
         state.procesandoTarjeta = true;
@@ -177,8 +200,11 @@ const checkoutSlice = createSlice({
         state.pagoConfirmado = true;
         state.pago = action.payload?.pago || null;
         state.factura = action.payload?.factura || null;
+        state.planChange = action.payload?.planChange || null;
         state.successMessage =
-          action.payload?.message || "Pago con tarjeta confirmado correctamente";
+          action.payload?.successMessage ||
+          action.payload?.message ||
+          "Pago con tarjeta confirmado correctamente";
 
         actualizarSuscripcionSiExiste(state, action);
       })
@@ -188,6 +214,9 @@ const checkoutSlice = createSlice({
         state.error = action.payload || "No se pudo procesar el pago con tarjeta";
       })
 
+      // =========================
+      // TRANSFERENCIA
+      // =========================
       .addCase(simularPagoTransferenciaThunk.pending, (state) => {
         state.loading = true;
         state.procesandoTransferencia = true;
@@ -199,8 +228,11 @@ const checkoutSlice = createSlice({
         state.pagoConfirmado = true;
         state.pago = action.payload?.pago || null;
         state.factura = action.payload?.factura || null;
+        state.planChange = action.payload?.planChange || null;
         state.successMessage =
-          action.payload?.message || "Transferencia confirmada correctamente";
+          action.payload?.successMessage ||
+          action.payload?.message ||
+          "Transferencia confirmada correctamente";
 
         actualizarSuscripcionSiExiste(state, action);
       })
@@ -210,19 +242,68 @@ const checkoutSlice = createSlice({
         state.error = action.payload || "No se pudo procesar la transferencia";
       })
 
-      //suscripciones
+      // =========================
+      // SALDO
+      // =========================
+      .addCase(pagarConSaldoThunk.pending, (state) => {
+        state.loading = true;
+        state.procesandoSaldo = true;
+        state.error = null;
+      })
+      .addCase(pagarConSaldoThunk.fulfilled, (state, action) => {
+        state.loading = false;
+        state.procesandoSaldo = false;
+        state.pagoConfirmado = true;
+        state.pago = action.payload?.pago || null;
+        state.factura = action.payload?.factura || null;
+        state.planChange = action.payload?.planChange || null;
+        state.successMessage =
+          action.payload?.successMessage ||
+          action.payload?.message ||
+          "Pago con saldo confirmado correctamente";
+
+        actualizarSuscripcionSiExiste(state, action);
+      })
+      .addCase(pagarConSaldoThunk.rejected, (state, action) => {
+        state.loading = false;
+        state.procesandoSaldo = false;
+        state.error = action.payload || "No se pudo procesar el pago con saldo";
+      })
+
+      // =========================
+      // CONSULTAR SUSCRIPCIÓN
+      // =========================
       .addCase(confirmarSuscripcionThunk.pending, (state) => {
         state.loading = true;
+        state.error = null;
       })
       .addCase(confirmarSuscripcionThunk.fulfilled, (state, action) => {
         state.loading = false;
-        state.suscripcion = action.payload.suscripcion;
+        state.suscripcionActual =
+          action.payload?.suscripcion ||
+          action.payload?.data?.suscripcion ||
+          action.payload?.data ||
+          null;
       })
       .addCase(confirmarSuscripcionThunk.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload;
+        state.error = action.payload || "No se pudo obtener la suscripción";
+      })
+
+      // =========================
+      // ENVIAR COMPROBANTE
+      // =========================
+      .addCase(intentarEnviarComprobante.pending, (state) => {
+        state.comprobanteMessage = null;
+      })
+      .addCase(intentarEnviarComprobante.fulfilled, (state, action) => {
+        state.comprobanteMessage =
+          action.payload?.message || "Comprobante enviado correctamente";
+      })
+      .addCase(intentarEnviarComprobante.rejected, (state) => {
+        state.comprobanteMessage =
+          "El pago fue exitoso, pero no se pudo enviar el comprobante.";
       });
-      
   },
 });
 
@@ -238,7 +319,7 @@ export const {
   resetCheckoutFlow,
 } = checkoutSlice.actions;
 
-export const selectCheckoutsuscripcionActual = (state) =>
+export const selectCheckoutSuscripcionActual = (state) =>
   state?.checkout?.suscripcionActual ?? null;
 
 export const selectCheckoutMetodoSeleccionado = (state) =>
@@ -265,6 +346,9 @@ export const selectCheckoutPago = (state) =>
 export const selectCheckoutFactura = (state) =>
   state?.checkout?.factura ?? null;
 
+export const selectCheckoutPlanChange = (state) =>
+  state?.checkout?.planChange ?? null;
+
 export const selectCheckoutLoading = (state) =>
   Boolean(state?.checkout?.loading);
 
@@ -288,5 +372,8 @@ export const selectCheckoutError = (state) =>
 
 export const selectCheckoutSuccess = (state) =>
   state?.checkout?.successMessage ?? null;
+
+export const selectCheckoutComprobanteMessage = (state) =>
+  state?.checkout?.comprobanteMessage ?? null;
 
 export default checkoutSlice.reducer;

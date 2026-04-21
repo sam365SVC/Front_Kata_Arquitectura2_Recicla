@@ -93,6 +93,8 @@ export const apiLogistics = createApi("/logistics");
 export const apiFlags = createApi("/flags");
 export const apiOrchestration = createApi("/orchestration");
 export const apiAdmin = createApi("/admin");
+export const apiPagos = createApi("/pagos");
+export const apiInternal = createApi("/internal");
 
 // default temporal para módulos viejos
 const api = apiLogistics;
@@ -375,10 +377,7 @@ export const empresasApi = {
       .catch(handleError),
 
   fetchUsuariosEmpresaByTenantId: () =>
-    apiAuth
-      .get("/usuarios")
-      .then((res) => res.data)
-      .catch(handleError),
+    apiAuth.get("/usuarios").then((res) => res.data).catch(handleError),
 
   createUsuario: (data) =>
     apiAuth
@@ -490,6 +489,99 @@ export const flagsApi = {
 };
 
 // =========================
+// PAGOS / BILLING
+// =========================
+export const pagoApi = {
+  fetchPagos: () =>
+    apiPagos.get("/pagos").then((res) => res.data).catch(handleError),
+
+  fetchPagoById: (id) =>
+    apiPagos.get(`/pagos/${id}`).then((res) => res.data).catch(handleError),
+
+  createPago: (data) =>
+    apiPagos
+      .post("/pagos/new", {
+        ...data,
+        metodo: normalizarMetodoPago(data?.metodo),
+      })
+      .then((res) => res.data)
+      .catch(handleError),
+
+  confirmarSuscripcionId: (idSuscripcion) =>
+    apiPagos
+      .get(`/suscripciones/${idSuscripcion}`)
+      .then((res) => res.data)
+      .catch(handleError),
+
+  confirmarPagoSuscripcion: (idSuscripcion, data) =>
+    apiPagos
+      .put(`/suscripciones/${idSuscripcion}`, data)
+      .then((res) => res.data)
+      .catch(handleError),
+
+  createSuscripcion: (data) =>
+  apiPagos
+    .post("/suscripciones/new", {
+      user_id: data.user_id,
+      servicio_id: data.servicio_id,
+      meses: data.meses,
+      precio_unitario: data.precio_unitario,
+      moneda: data.moneda,
+      nombre_plan: data.nombre_plan,
+      force: data.force ?? true,
+    })
+    .then((res) => res.data)
+    .catch(handleError),
+
+  createFacturaRecibo: (data) =>
+    apiPagos
+      .post("/factura-recibo/new", {
+        pago_id_pago: data.pago_id_pago,
+        tipo: data.tipo,
+        numero: data.numero,
+        razon_social: data.razon_social,
+        nit_ci: data.nit_ci,
+      })
+      .then((res) => res.data)
+      .catch(handleError),
+
+  confirmarPagoPorSuscripcion: (idSuscripcion, data) =>
+    apiPagos
+      .put(`/pagos/confirmar/suscripcion/${idSuscripcion}`, {
+        tipo: data.tipo,
+        razon_social: data.razon_social,
+        nit_ci: data.nit_ci,
+      })
+      .then((res) => res.data)
+      .catch(handleError),
+};
+
+export const qrApi = {
+  generarQR: (data) =>
+    apiPagos.post("/qr/generar", data).then((res) => res.data).catch(handleError),
+
+  verificarPagoQR: (data) =>
+    apiPagos.post("/qr/verificar", data).then((res) => res.data).catch(handleError),
+};
+
+export const certificadosApi = {
+  enviarCertificadoPorMatricula: (idMatricula) =>
+    apiPagos
+      .post("/certificados/enviar", { id_matricula: idMatricula })
+      .then((res) => res.data)
+      .catch(handleError),
+};
+export const comprobantesApi = {
+  enviarComprobantePorPago: ({ idSuscripcionPago, email }) =>
+    apiPagos
+      .post("/comprobantes/enviar", {
+        id_suscripcion_pago: idSuscripcionPago,
+        user_email: email,
+      })
+      .then((res) => res.data)
+      .catch(handleError),
+};
+// =========================
 // ORCHESTRATION
 // =========================
 export const orchestrationApi = {
@@ -513,41 +605,10 @@ export const adminApi = {
       .then((res) => res.data)
       .catch(handleError),
 };
-
-// =========================
-// TEMPORALES PARA NO ROMPER
-// =========================
-export const pagoApi = {
-  fetchPagos: () =>
-    Promise.reject({ message: "pagoApi aún no migrada al gateway" }),
-  fetchPagoById: () =>
-    Promise.reject({ message: "pagoApi aún no migrada al gateway" }),
-  createPago: (data) =>
-    Promise.reject({
-      message: `pagoApi aún no migrada al gateway. Método recibido: ${normalizarMetodoPago(
-        data?.metodo
-      )}`,
-    }),
-  confirmarSuscripcionId: () =>
-    Promise.reject({ message: "pagoApi aún no migrada al gateway" }),
-  confirmarPagoSuscripcion: () =>
-    Promise.reject({ message: "pagoApi aún no migrada al gateway" }),
-  createSuscripcion: () =>
-    Promise.reject({ message: "pagoApi aún no migrada al gateway" }),
-  createFacturaRecibo: () =>
-    Promise.reject({ message: "pagoApi aún no migrada al gateway" }),
-  confirmarPagoPorSuscripcion: () =>
-    Promise.reject({ message: "pagoApi aún no migrada al gateway" }),
-};
-
-export const qrApi = {
-  generarQR: () =>
-    Promise.reject({ message: "qrApi aún no migrada al gateway" }),
-  verificarPagoQR: () =>
-    Promise.reject({ message: "qrApi aún no migrada al gateway" }),
-};
-
-export const comprobantesApi = {
-  enviarComprobantePorPago: () =>
-    Promise.reject({ message: "comprobantesApi aún no migrada al gateway" }),
+export const internalApi = {
+  cambiarPlanTenant: (tenantId, data) =>
+    apiInternal
+      .put(`/admin/tenants/${tenantId}/plan`, data)
+      .then((res) => res.data)
+      .catch(handleError),
 };
