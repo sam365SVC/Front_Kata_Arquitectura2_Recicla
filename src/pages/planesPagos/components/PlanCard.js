@@ -10,7 +10,7 @@ function PlanCard({ plan }) {
   
   const {
     nombre,
-    precio_mes,
+    precio,
     descripcion,
     destacado,
     etiqueta,
@@ -24,7 +24,7 @@ function PlanCard({ plan }) {
     caracteristicas_extra = [],
   } = plan;
 
-  const esGratis = precio_mes === 0;
+  const esGratis = precio === 0;
 
   const specs = [
     { label: "Dispositivos",       value: max_dispositivos === -1 ? "Ilimitados" : max_dispositivos },
@@ -50,9 +50,9 @@ function PlanCard({ plan }) {
 
       {/* Precio */}
       <div className="plan-card__precio-wrapper">
-        {!esGratis && <span className="plan-card__precio-moneda">USD</span>}
+        {!esGratis && <span className="plan-card__precio-moneda">BOB</span>}
         <span className="plan-card__precio">
-          {esGratis ? "Gratis" : precio_mes}
+          {esGratis ? "Gratis" : precio}
         </span>
         {!esGratis && (
           <span className="plan-card__precio-periodo">/mes</span>
