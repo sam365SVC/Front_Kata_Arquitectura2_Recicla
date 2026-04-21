@@ -571,6 +571,9 @@ export const pagoApi = {
       })
       .then((res) => res.data)
       .catch(handleError),
+  fetchSuscripciones: () =>
+    apiPagos.get("/suscripcion-pagos").then((res) => res.data).catch(handleError), 
+
 };
 
 

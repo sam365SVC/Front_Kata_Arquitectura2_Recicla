@@ -18,7 +18,7 @@ import {
 
 import { fetchPagosByTenant } from "../slicesCotizaciones/CotizacionesThunk"; // ajusta ruta
 import {
-  selectPagos,
+  selectCotizaciones,
   selectPagosLoading,
   selectPagosError,
 } from "../slicesCotizaciones/CotizacionesSlice"; // ajusta ruta
@@ -83,7 +83,10 @@ const EstadoBadge = ({ estado }) => {
 const PagosEmpresa = () => {
   const dispatch = useDispatch();
 
-  const pagos   = useSelector(selectPagos);
+  const pagos = useSelector(selectCotizaciones);
+  console.log("pagos desde selector", pagos);
+  const cotizaciones = useSelector(selectCotizaciones);
+  console.log("cotizaciones desde selector", cotizaciones);
   const loading = useSelector(selectPagosLoading);
   const error   = useSelector(selectPagosError);
 
