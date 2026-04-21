@@ -62,7 +62,7 @@ const NAV_ITEMS = [
     description:
       "Observa en graficas, estadisticas y rangos sobre tu negocio",
   },
-    id: "misPagos",
+  {id: "misPagos",
     label: "Mis pagos",
     icon: FiCheck,
     title: "Historial de pagos",

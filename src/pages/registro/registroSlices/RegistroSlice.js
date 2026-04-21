@@ -96,32 +96,32 @@ const registroSlice = createSlice({
       })
 
       .addCase(fetchTenantsDisponibles.fulfilled, (state, action) => {
-  state.isLoading = false;
-
-  state.items = Array.isArray(action.payload?.tenants)
-    ? action.payload.tenants.map(mapTenantDisponible)
-    : [];
-
-  state.total = action.payload?.total ?? 0;
-  state.pagina = action.payload?.pagina ?? 1;
-  state.totalPaginas = action.payload?.totalPaginas ?? 1;
-  state.error = null;
-
-  console.log("FULFILLED PAYLOAD:", action.payload);
-  console.log("STATE ITEMS EN SLICE:", state.items);
-})
-
-      .addCase(fetchTenantsDisponibles.rejected, (state, action) => {
-
         state.isLoading = false;
 
-        state.error =
+        state.items = Array.isArray(action.payload?.tenants)
+          ? action.payload.tenants.map(mapTenantDisponible)
+          : [];
 
-          action.payload || "Error al cargar empresas disponibles";
+        state.total = action.payload?.total ?? 0;
+        state.pagina = action.payload?.pagina ?? 1;
+        state.totalPaginas = action.payload?.totalPaginas ?? 1;
+        state.error = null;
 
-      }); 
-  },
-});
+        console.log("FULFILLED PAYLOAD:", action.payload);
+        console.log("STATE ITEMS EN SLICE:", state.items);
+      })
+
+            .addCase(fetchTenantsDisponibles.rejected, (state, action) => {
+
+              state.isLoading = false;
+
+              state.error =
+
+                action.payload || "Error al cargar empresas disponibles";
+
+            }); 
+        },
+      });
 
 export const { clearRegistroState } = registroSlice.actions;
 export default registroSlice.reducer;
