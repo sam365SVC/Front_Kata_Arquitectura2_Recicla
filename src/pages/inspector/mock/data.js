@@ -205,7 +205,7 @@ export const MOCK_SOLICITUDES = [
     tenantId:         1,
     tipoDispositivoId: TIPOS_DISPOSITIVO[0],
     cliente: {
-      nombre:   "María García López",
+      nombre:   "AAA García López",
       email:    "maria.garcia@email.com",
       telefono: "+591 70123456",
     },

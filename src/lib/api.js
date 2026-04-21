@@ -124,6 +124,16 @@ export const authApi = {
       .put(`/${id}/plan`, data)
       .then((res) => res.data)
       .catch(handleError),
+  activarUsuarioEmpresa: (data) =>
+    apiAuth
+      .post("/empleados/activar", data)
+      .then((res) => res.data)
+      .catch(handleError),
+  getAllTenants: (params = {}) =>
+  apiAuth
+    .get("/tenants", { params })
+    .then((res) => res.data)
+    .catch(handleError),
 };
 
 // alias viejo
@@ -431,6 +441,11 @@ export const empresasApi = {
   createUsuarioEmpresa: (data) =>
     apiAuth
       .post("/empleados/invitar", data)
+      .then((res) => res.data)
+      .catch(handleError),
+  activarUsuarioEmpresa: (data) =>
+    apiAuth
+      .post("/empleados/activar", data)
       .then((res) => res.data)
       .catch(handleError),
 
