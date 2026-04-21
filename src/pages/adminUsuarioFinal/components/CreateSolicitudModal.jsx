@@ -18,7 +18,7 @@ import { fetchTiposDispositivo} from "../slicesTiposDispositivo/TiposDispositivo
 
 import { crearSolicitudCotizacion } from "../slicesCotizaciones/CotizacionesThunk";
 import { selectCotizacionesState, selectCotizacionesCreating, selectCotizacionesError} from "../slicesCotizaciones/CotizacionesSlice";
-
+import { selectTenantId, selectUser } from "../../signin/slices/loginSelectors";
 
 import styles from "./CreateSolicitudModal.module.scss";
 import {
@@ -26,6 +26,8 @@ import {
   MONTO_BASE, AJUSTE_CONDICION,
   solicitudesApi,
 } from "../mock/data";
+
+
 
 // Pasos
 const PASOS = [
@@ -52,13 +54,23 @@ const TIPO_ICONOS = {
 
 // Validaciones
 const validar1 = (d) => {
-    const e = {};
-    if (!d.id.trim())       e.id       = "El id es obligatorio";
-    if (!d.nombre.trim())   e.nombre   = "El nombre es obligatorio";
-    if (!d.email.trim())    e.email    = "El email es obligatorio";
-    else if (!/^[^@]+@[^@]+\.[^@]+$/.test(d.email)) e.email = "Email inválido";
-    if (!d.telefono.trim()) e.telefono = "El teléfono es obligatorio";
-    return e;
+  const e = {};
+
+  if (!String(d.id || "").trim())
+    e.id = "El id es obligatorio";
+
+  if (!String(d.nombre || "").trim())
+    e.nombre = "El nombre es obligatorio";
+
+  if (!String(d.email || "").trim())
+    e.email = "El email es obligatorio";
+  else if (!/^[^@]+@[^@]+\.[^@]+$/.test(String(d.email)))
+    e.email = "Email inválido";
+
+  if (!String(d.telefono || "").trim())
+    e.telefono = "El teléfono es obligatorio";
+
+  return e;
 };
 
 const validar2 = (d) => {
@@ -125,7 +137,7 @@ const calcularPreview = (tipo, equipoData) => {
   };
 };
 
-const subirImagenesSolicitud = async (archivos) => {
+const subirImagenesSolicitud = async (archivos, tenantId, usuario = "cliente") => {
   if (!archivos || archivos.length === 0) return [];
 
   const formData = new FormData();
@@ -133,6 +145,9 @@ const subirImagenesSolicitud = async (archivos) => {
   archivos.forEach((file) => {
     formData.append("imagenes", file);
   });
+
+  formData.append("tenantId", tenantId);
+  formData.append("usuario", usuario);
 
   const response = await fetch("http://localhost:4001/api/core/upload/solicitudes", {
     method: "POST",
@@ -580,8 +595,8 @@ const Paso4 = ({ clienteData, equipoData, tiposDispositivo }) => {
             ["Canal", "Web"],
           ].map(([k, v]) => (
             <div key={k} className={styles.confirmStep__summary_row}>
-              <span>{k}</span>
-              <strong>{v}</strong>
+              <span>{k}: </span>
+              <strong> {v}</strong>
             </div>
           ))}
         </div>
@@ -603,6 +618,9 @@ const CreateSolicitudModal = ({ onClose, onSuccess }) => {
   const dispatch = useDispatch();
 
   const tiposDispositivo = useSelector(selectTiposDispositivo) || [];
+  //datos necesarios para creacion de solicitud
+  const tenantId = useSelector(selectTenantId);
+  const user = useSelector(selectUser);
 
   console.log("Tipos dispositivo en CreateSolicitudModal:", tiposDispositivo);
 
@@ -614,10 +632,10 @@ const CreateSolicitudModal = ({ onClose, onSuccess }) => {
   const [errors, setErrors] = useState({});
 
   const [clienteData, setClienteData] = useState({
-    id: "CLI-2024-0001",
-    nombre:   "María García López",
-    email:    "maria.garcia@email.com",
-    telefono: "+591 70123456",
+    id: "",
+    nombre:   "",
+    email:    "",
+    telefono: "",
   });
 
   const [equipoData, setEquipoData] = useState({
@@ -633,8 +651,23 @@ const CreateSolicitudModal = ({ onClose, onSuccess }) => {
   });
 
   useEffect(() => {
-    dispatch(fetchTiposDispositivo({ tenantId: 1 }));
+    dispatch(fetchTiposDispositivo({ tenantId }));
   }, [dispatch]);
+
+  useEffect(() => {
+    if (!user) return;
+
+    setClienteData((prev) => ({
+      ...prev,
+      id: user?.id || user?.uid || user?.clienteId || "",
+      nombre:
+        [user?.nombre, user?.apellido].filter(Boolean).join(" ") ||
+        user?.nombres ||
+        "",
+      email: user?.email || user?.mail || "",
+      telefono: user?.telefono || "",
+    }));
+  }, [user]);
 
 
   const handleClienteChange = useCallback((field, value) => {
@@ -692,11 +725,34 @@ const CreateSolicitudModal = ({ onClose, onSuccess }) => {
 
   const enviar = async () => {
   try {
-    const fotosSubidas = await subirImagenesSolicitud(equipoData.archivos);
+    const fotosSubidas = await subirImagenesSolicitud(
+      equipoData.archivos,
+      tenantId,
+      user?.email || user?.nombre || "cliente"
+    );
+    console.log("Fotos subidas con éxito:", fotosSubidas);
+    console.log("Datos a enviar:", {
+      tenantId,
+      cliente: {
+        id: clienteData.id,
+        nombre: clienteData.nombre,
+        email: clienteData.email,
+        telefono: clienteData.telefono,
+      },
+      tipoDispositivoId: equipoData.tipoDispositivoId,
+      datosEquipo: {
+        marca: equipoData.marca,
+        modelo: equipoData.modelo,
+        antiguedad: Number(equipoData.antiguedad),
+        condicionDeclarada: equipoData.condicionDeclarada,
+        descripcion: equipoData.descripcion,
+        fotos: fotosSubidas,
+      },
+    });
 
     const resultAction = await dispatch(
       crearSolicitudCotizacion({
-        tenantId: 1,
+        tenantId,
         cliente: {
           id: clienteData.id,
           nombre: clienteData.nombre,

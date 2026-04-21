@@ -1,5 +1,5 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import { cotizacionesApi } from "../../../lib/api";
+import { cotizacionesApi, orchestrationApi, ordenesApi } from "../../../lib/api";
 
 export const fetchCotizacionesByClienteId = createAsyncThunk(
   "cotizaciones/fetchCotizacionesByClienteId",
@@ -54,9 +54,13 @@ export const crearSolicitudCotizacion = createAsyncThunk(
 
 export const aceptarCotizacionInicial = createAsyncThunk(
   "cotizaciones/aceptarCotizacionInicial",
-  async ({ solicitudId, usuario = "cliente" }, { rejectWithValue }) => {
+  async ({ solicitudId, logistica= "cliente" }, { rejectWithValue }) => {
     try {
-      const response = await cotizacionesApi.aceptarCotizacionInicial(solicitudId, usuario);
+      const response = await orchestrationApi.aceptarYCrearLogistica(
+        solicitudId,
+        { logistica }
+      );
+
       return response?.data || response;
     } catch (error) {
       return rejectWithValue(
@@ -73,6 +77,23 @@ export const rechazarCotizacionInicial = createAsyncThunk(
       const response = await cotizacionesApi.rechazarCotizacionInicial(solicitudId, estado);
       return response?.data || response;
     } catch (error) {
+      return rejectWithValue(
+        error?.response?.data || error?.message || error
+      );
+    }
+  }
+);
+
+export const fetchUbicacionesByTenantId = createAsyncThunk(
+  "ordenes/fetchUbicacionesByTenantId",
+  async (_, { rejectWithValue }) => {
+    try {
+      console.log("ENTRÓ AL THUNK fetchUbicacionesByTenantId");
+      const response = await ordenesApi.fetchUbicacionesByTenantId();
+      console.log("RESPUESTA UBICACIONES:", response);
+      return response?.data || [];
+    } catch (error) {
+      console.error("ERROR THUNK UBICACIONES:", error);
       return rejectWithValue(
         error?.response?.data || error?.message || error
       );
