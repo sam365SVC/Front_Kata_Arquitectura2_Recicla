@@ -524,35 +524,93 @@ export const adminApi = {
 // =========================
 export const pagoApi = {
   fetchPagos: () =>
-    Promise.reject({ message: "pagoApi aún no migrada al gateway" }),
-  fetchPagoById: () =>
-    Promise.reject({ message: "pagoApi aún no migrada al gateway" }),
+    api.get('/pagos').then((res) => res.data).catch(handleError),
+
+  fetchPagoById: (id) =>
+    api.get(`/pagos/${id}`).then((res) => res.data).catch(handleError),
+
   createPago: (data) =>
-    Promise.reject({
-      message: `pagoApi aún no migrada al gateway. Método recibido: ${normalizarMetodoPago(
-        data?.metodo
-      )}`,
-    }),
-  confirmarSuscripcionId: () =>
-    Promise.reject({ message: "pagoApi aún no migrada al gateway" }),
-  confirmarPagoSuscripcion: () =>
-    Promise.reject({ message: "pagoApi aún no migrada al gateway" }),
-  createSuscripcion: () =>
-    Promise.reject({ message: "pagoApi aún no migrada al gateway" }),
-  createFacturaRecibo: () =>
-    Promise.reject({ message: "pagoApi aún no migrada al gateway" }),
-  confirmarPagoPorSuscripcion: () =>
-    Promise.reject({ message: "pagoApi aún no migrada al gateway" }),
+    api
+      .post('/pagos/new', {
+        ...data,
+        metodo: normalizarMetodoPago(data?.metodo),
+      })
+      .then((res) => res.data)
+      .catch(handleError),
+  
+    // SUSCRIPCIONES    
+  confirmarSuscripcionId: (idSuscripcion) =>
+    api
+      .get(`/suscripcion-pagos/${idSuscripcion}`)
+      .then(res => res.data)
+      .catch(handleError),
+    
+  confirmarPagoSuscripcion: (idSuscripcion, data) =>
+    api
+      .put(`/suscripcion-pagos/${idSuscripcion}`, data)
+        .then(res => res.data)
+        .catch(handleError),
+    
+  createSuscripcion: (data) =>
+    api
+      .post('/suscripcion-pagos/new', {
+        user_id: data.user_id,
+        servicio_id: data.servicio_id,
+        meses: data.meses,
+        precio_unitario: data.precio_unitario,
+        moneda: data.moneda,
+      })
+      .then(res => res.data)
+      .catch(handleError),
+
+  createFacturaRecibo: (data) =>
+    api
+      .post('/factura-recibo/new', {
+        pago_id_pago: data.pago_id_pago,
+        tipo: data.tipo,
+        numero: data.numero,
+        razon_social: data.razon_social,
+        nit_ci: data.nit_ci,
+      })
+      .then(res => res.data)
+      .catch(handleError),
+
+  confirmarPagoPorSuscripcion: (idSuscripcion, data) =>
+  api
+    .put(`/pagos/confirmar/suscripcion/${idSuscripcion}`, {
+      tipo: data.tipo,
+      razon_social: data.razon_social,
+      nit_ci: data.nit_ci,
+    })
+    .then(res => res.data)
+    .catch(handleError),
+    
 };
 
 export const qrApi = {
-  generarQR: () =>
-    Promise.reject({ message: "qrApi aún no migrada al gateway" }),
-  verificarPagoQR: () =>
-    Promise.reject({ message: "qrApi aún no migrada al gateway" }),
+  generarQR: (data) =>
+    api.post('/qr/generar', data).then((res) => res.data).catch(handleError),
+
+  verificarPagoQR: (data) =>
+    api.post('/qr/verificar', data).then((res) => res.data).catch(handleError),
+};
+
+export const certificadosApi = {
+  enviarCertificadoPorMatricula: (idMatricula) =>
+    api
+      .post('/certificados/enviar', { id_matricula: idMatricula })
+      .then((res) => res.data)
+      .catch(handleError),
 };
 
 export const comprobantesApi = {
-  enviarComprobantePorPago: () =>
-    Promise.reject({ message: "comprobantesApi aún no migrada al gateway" }),
+  enviarComprobantePorPago: ({ idPago, email }) =>
+    api
+      .post('/comprobantes/enviar', { 
+        id_suscripcion_pago: idPago,
+        user_email: email, 
+      })
+      .then((res) => res.data)
+      .catch(handleError),
+
 };
