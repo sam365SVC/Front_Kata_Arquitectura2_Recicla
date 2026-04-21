@@ -1,5 +1,5 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import { flagsApi } from "../../../lib/api";
+import { flagsApi, adminApi } from "../../../lib/api";
 
 const normalizeText = (value) => String(value || "").trim();
 
@@ -20,6 +20,21 @@ const capitalizeReportType = (value) => {
   return raw.charAt(0).toUpperCase() + raw.slice(1);
 };
 
+const formatMesesHistorial = (value) => {
+  if (value === null || value === undefined || value === "") {
+    return "No definido";
+  }
+
+  if (String(value).toLowerCase() === "ilimitado") {
+    return "Ilimitado";
+  }
+
+  const num = Number(value);
+  if (Number.isNaN(num)) return String(value);
+
+  return `${num} ${num === 1 ? "mes" : "meses"}`;
+};
+
 const mapPlanActual = (response) => {
   const payload = response?.data || response || null;
   if (!payload) return null;
@@ -36,17 +51,14 @@ const mapPlanActual = (response) => {
     precio: payload?.precio ?? null,
     moneda: "Bs.",
     estado: "Activo",
-    renovacion:
-      fechas?.ciclo_fin ||
-      fechas?.expira_en ||
-      null,
+    renovacion: fechas?.ciclo_fin || fechas?.expira_en || null,
     metodoPago: "No definido",
 
     dispositivos: limites?.max_dispositivos ?? null,
     reglas: limites?.max_reglas ?? null,
     inspectores: limites?.max_inspectores ?? null,
     cotizacionesMes: limites?.max_cotizaciones_mes ?? null,
-    historial: limites?.meses_historial ?? "No definido",
+    historial: formatMesesHistorial(limites?.meses_historial),
     reportes: capitalizeReportType(limites?.tipo_reportes),
     puedeExportar: Boolean(limites?.puede_exportar),
 
@@ -72,12 +84,24 @@ const mapPlanDisponible = (plan) => ({
   reglas: plan?.max_reglas ?? null,
   inspectores: plan?.max_inspectores ?? null,
   cotizacionesMes: plan?.max_cotizaciones_mes ?? null,
-  historial: plan?.meses_historial ?? "No definido",
+  historial: formatMesesHistorial(plan?.meses_historial),
   reportes: capitalizeReportType(plan?.tipo_reportes),
   puedeExportar: Boolean(plan?.puede_exportar),
   destacado: false,
   raw: plan,
 });
+
+const getTodayAndNextYear = () => {
+  const today = new Date();
+
+  const inicio = today.toISOString().slice(0, 10);
+
+  const nextYear = new Date(today);
+  nextYear.setFullYear(today.getFullYear() + 1);
+  const fin = nextYear.toISOString().slice(0, 10);
+
+  return { inicio, fin };
+};
 
 export const fetchPlanEmpresa = createAsyncThunk(
   "planEmpresa/fetchPlanEmpresa",
@@ -153,11 +177,16 @@ export const cambiarPlanEmpresa = createAsyncThunk(
         throw new Error("No se encontró el plan seleccionado");
       }
 
+      const { inicio, fin } = getTodayAndNextYear();
+
       const payload = {
         nuevo_plan: planSeleccionado?.nombre,
+        ciclo_inicio: inicio,
+        ciclo_fin: fin,
+        forzar: true,
       };
 
-      await flagsApi.cambiarPlan(tenantId, payload);
+      await adminApi.cambiarPlanTenant(tenantId, payload);
 
       const planActualizadoResponse = await flagsApi.fetchFlags(tenantId);
 

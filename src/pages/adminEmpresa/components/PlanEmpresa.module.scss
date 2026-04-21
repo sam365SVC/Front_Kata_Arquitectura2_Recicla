@@ -375,9 +375,13 @@
 
 .usageInfoRow {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 14px;
   margin-top: 4px;
+
+  @include respond-to($bp-lg) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 
   @include respond-to($bp-sm) {
     grid-template-columns: 1fr;
@@ -506,7 +510,7 @@
 
 .planTable {
   width: 100%;
-  min-width: 980px;
+  min-width: 1180px;
   border-collapse: separate;
   border-spacing: 0;
 
@@ -542,6 +546,7 @@
       font-size: 14px;
       font-weight: 700;
       vertical-align: middle;
+      word-break: break-word;
     }
 
     tr:last-child td {
