@@ -27,6 +27,12 @@ import {
   selectInspecciones,
   selectInspeccionesLoading,
 } from "../slicesInspecciones/InspeccionesSlice";
+import {
+  selectUser,
+  selectUserId,
+  selectTenantId,
+} from "../../signin/slices/loginSelectors";
+import { use } from "react";
 
 const fmtFecha = (d) =>
   d
@@ -149,14 +155,20 @@ const MisInspecciones = () => {
   const [detalle, setDetalle] = useState(null);
   const [toast, setToast] = useState(null);
 
+  const user = useSelector(selectUser);
+  const tenantId =  useSelector(selectTenantId);
+  const inspectorId = useSelector(selectUserId);
+
   const cargar = useCallback(() => {
-    dispatch(
-      fetchInspeccionesByInspectorId({
-        tenantId: 1,
-        inspectorId: "INSP-2024-0001",
-      })
-    );
-  }, [dispatch]);
+  if (!tenantId || !inspectorId) return;
+
+  dispatch(
+    fetchInspeccionesByInspectorId({
+      tenantId,
+      inspectorId,
+    })
+  );
+}, [dispatch, tenantId, inspectorId]);
 
   useEffect(() => {
     cargar();
