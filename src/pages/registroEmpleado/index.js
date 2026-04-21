@@ -79,7 +79,7 @@ const RegistroEmpleadoMain = () => {
         color: COLORS.text,
       }).then(() => {
         dispatch(clearActivarEmpleadoState());
-        navigate("/sign-in");
+        navigate("/signin");
       });
     }
   }, [success, dispatch, navigate]);
