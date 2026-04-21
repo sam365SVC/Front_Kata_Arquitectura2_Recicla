@@ -1,4 +1,5 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect, useCallback } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import {
   FiDollarSign,
   FiSearch,
@@ -11,76 +12,18 @@ import {
   FiCreditCard,
   FiUser,
   FiPackage,
+  FiRefreshCw,
+  FiAlertCircle,
 } from "react-icons/fi";
-import styles from "./GastosServicio.module.scss";
 
-const MOCK_GASTOS = [
-  {
-    _id: "GST-001",
-    fecha: "2026-04-18T10:30:00.000Z",
-    empresa: "EcoTech S.R.L.",
-    cliente: "Juan Pérez",
-    dispositivo: "Samsung A24",
-    tipoDispositivo: "Smartphone",
-    montoPagado: 850,
-    moneda: "BOB",
-    estado: "pagado",
-    metodoPago: "transferencia",
-    observacion: "Pago completado luego de inspección aprobada",
-  },
-  {
-    _id: "GST-002",
-    fecha: "2026-04-18T15:10:00.000Z",
-    empresa: "Green Systems",
-    cliente: "María López",
-    dispositivo: "HP Pavilion 15",
-    tipoDispositivo: "Laptop",
-    montoPagado: 1450,
-    moneda: "BOB",
-    estado: "pagado",
-    metodoPago: "qr",
-    observacion: "Pago confirmado al cliente por recompra",
-  },
-  {
-    _id: "GST-003",
-    fecha: "2026-04-19T09:20:00.000Z",
-    empresa: "ReUse Bolivia",
-    cliente: "Carlos Fernández",
-    dispositivo: "LG Smart TV 43",
-    tipoDispositivo: "Televisor",
-    montoPagado: 1200,
-    moneda: "BOB",
-    estado: "pendiente",
-    metodoPago: "transferencia",
-    observacion: "Pendiente de confirmación bancaria",
-  },
-  {
-    _id: "GST-004",
-    fecha: "2026-04-19T13:45:00.000Z",
-    empresa: "EcoTech S.R.L.",
-    cliente: "Ana Rojas",
-    dispositivo: "iPhone 12",
-    tipoDispositivo: "Smartphone",
-    montoPagado: 2100,
-    moneda: "BOB",
-    estado: "pagado",
-    metodoPago: "tarjeta",
-    observacion: "Proceso concluido exitosamente",
-  },
-  {
-    _id: "GST-005",
-    fecha: "2026-04-20T08:15:00.000Z",
-    empresa: "Nova Circular",
-    cliente: "Luis Vargas",
-    dispositivo: "Lenovo Ideapad 3",
-    tipoDispositivo: "Laptop",
-    montoPagado: 980,
-    moneda: "BOB",
-    estado: "anulado",
-    metodoPago: "efectivo",
-    observacion: "Operación anulada por inconsistencias",
-  },
-];
+import { fetchPagosByTenant } from "../slicesCotizaciones/CotizacionesThunk";
+import {
+  selectCotizaciones,
+  selectPagosLoading,
+  selectPagosError,
+} from "../slicesCotizaciones/CotizacionesSlice";
+
+import styles from "./GastosServicio.module.scss";
 
 const fmtFecha = (fecha) =>
   fecha
@@ -92,86 +35,142 @@ const fmtFecha = (fecha) =>
     : "—";
 
 const fmtMonto = (monto, moneda = "BOB") =>
-  `${moneda === "BOB" ? "Bs." : moneda} ${Number(monto || 0).toLocaleString("es-BO", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })}`;
+  `${moneda === "BOB" ? "Bs." : moneda} ${Number(monto || 0).toLocaleString(
+    "es-BO",
+    {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }
+  )}`;
+
+const getMontoInicial = (cot) =>
+  cot?.montoInicial ?? cot?.monto_inicial ?? 0;
+
+const getMontoFinal = (cot) =>
+  cot?.montoFinal ?? cot?.monto_final ?? null;
+
+const getMoneda = (cot) => cot?.moneda ?? "BOB";
+
+const normalizeEstado = (estado = "") =>
+  String(estado).toLowerCase().replace(/_/g, "_");
+
+const ESTADO_MAP = {
+  pagada: { mod: "success", label: "Pagada" },
+  pendiente: { mod: "warning", label: "Pendiente" },
+  anulado: { mod: "danger", label: "Anulado" },
+  final_generada: { mod: "info", label: "Final generada" },
+  preliminar_generada: { mod: "info", label: "Preliminar generada" },
+  preliminar_aceptada: { mod: "warning", label: "Preliminar aceptada" },
+  aprobada: { mod: "success", label: "Aprobada" },
+  rechazada: { mod: "danger", label: "Rechazada" },
+  finalizada: { mod: "success", label: "Finalizada" },
+  final_aceptada: { mod: "success", label: "Final aceptada" },
+};
 
 const EstadoBadge = ({ estado }) => {
-  const map = {
-    pagado: "success",
-    pendiente: "warning",
-    anulado: "danger",
-  };
-
-  const label = {
-    pagado: "Pagado",
-    pendiente: "Pendiente",
-    anulado: "Anulado",
-  };
-
+  const key = normalizeEstado(estado);
+  const entry = ESTADO_MAP[key] ?? { mod: "default", label: estado };
   return (
-    <span className={`${styles.estadoBadge} ${styles[`estadoBadge--${map[estado] || "default"}`]}`}>
-      {label[estado] || estado}
+    <span className={`${styles.estadoBadge} ${styles[`estadoBadge--${entry.mod}`]}`}>
+      {entry.label}
     </span>
   );
 };
 
+const yaEstaPagada = (cotizacion) => {
+  const estado = normalizeEstado(cotizacion?.estado);
+  return estado === "pagada";
+};
+
+const puedePagar = (cotizacion) => {
+  const estado = normalizeEstado(cotizacion?.estado);
+  return estado === "aprobada" || estado === "final_aceptada";
+};
+
 const GastosServicio = () => {
+  const dispatch = useDispatch();
+
+  const cotizaciones = useSelector(selectCotizaciones);
+  const loading = useSelector(selectPagosLoading);
+  const error = useSelector(selectPagosError);
+
   const [busqueda, setBusqueda] = useState("");
   const [filtroEstado, setFiltroEstado] = useState("");
-  const [filtroMetodo, setFiltroMetodo] = useState("");
   const [detalle, setDetalle] = useState(null);
 
-  const gastosFiltrados = useMemo(() => {
-    let lista = [...MOCK_GASTOS];
+  const cargar = useCallback(() => {
+    dispatch(fetchPagosByTenant());
+  }, [dispatch]);
+
+  useEffect(() => {
+    cargar();
+  }, [cargar]);
+
+  const cotizacionesFiltradas = useMemo(() => {
+    let lista = [...cotizaciones];
 
     if (busqueda.trim()) {
       const q = busqueda.toLowerCase();
-      lista = lista.filter(
-        (g) =>
-          g._id.toLowerCase().includes(q) ||
-          g.empresa.toLowerCase().includes(q) ||
-          g.cliente.toLowerCase().includes(q) ||
-          g.dispositivo.toLowerCase().includes(q)
-      );
+      lista = lista.filter((c) => {
+        const cliente = c.cliente || {};
+        const tipo = c.tipoDispositivoId || {};
+        const datosEquipo = c.datosEquipo || {};
+
+        return (
+          String(c._id || "").toLowerCase().includes(q) ||
+          String(cliente.nombre || "").toLowerCase().includes(q) ||
+          String(cliente.email || "").toLowerCase().includes(q) ||
+          String(tipo.nombre || "").toLowerCase().includes(q) ||
+          String(datosEquipo.marca || "").toLowerCase().includes(q) ||
+          String(datosEquipo.modelo || "").toLowerCase().includes(q)
+        );
+      });
     }
 
     if (filtroEstado) {
-      lista = lista.filter((g) => g.estado === filtroEstado);
-    }
-
-    if (filtroMetodo) {
-      lista = lista.filter((g) => g.metodoPago === filtroMetodo);
+      lista = lista.filter(
+        (c) => normalizeEstado(c.estado) === filtroEstado
+      );
     }
 
     return lista;
-  }, [busqueda, filtroEstado, filtroMetodo]);
+  }, [cotizaciones, busqueda, filtroEstado]);
 
   const resumen = useMemo(() => {
-    const total = MOCK_GASTOS.length;
-    const pagados = MOCK_GASTOS.filter((g) => g.estado === "pagado");
-    const pendientes = MOCK_GASTOS.filter((g) => g.estado === "pendiente");
-    const anulados = MOCK_GASTOS.filter((g) => g.estado === "anulado");
-
-    const totalPagado = pagados.reduce((acc, g) => acc + Number(g.montoPagado || 0), 0);
-    const totalPendiente = pendientes.reduce((acc, g) => acc + Number(g.montoPagado || 0), 0);
-    const totalAnulado = anulados.reduce((acc, g) => acc + Number(g.montoPagado || 0), 0);
+    const pagadas = cotizaciones.filter((c) => yaEstaPagada(c));
+    const pendientesPago = cotizaciones.filter((c) => puedePagar(c));
+    const rechazadas = cotizaciones.filter(
+      (c) => normalizeEstado(c.estado) === "rechazada"
+    );
 
     return {
-      total,
-      totalPagado,
-      totalPendiente,
-      totalAnulado,
+      total: cotizaciones.length,
+      totalPagado: pagadas.reduce(
+        (acc, c) => acc + Number(getMontoFinal(c) ?? getMontoInicial(c)),
+        0
+      ),
+      totalPendiente: pendientesPago.reduce(
+        (acc, c) => acc + Number(getMontoFinal(c) ?? getMontoInicial(c)),
+        0
+      ),
+      totalAnulado: rechazadas.reduce(
+        (acc, c) => acc + Number(getMontoFinal(c) ?? getMontoInicial(c)),
+        0
+      ),
     };
-  }, []);
+  }, [cotizaciones]);
 
-  const hayFiltros = busqueda || filtroEstado || filtroMetodo;
+  const hayFiltros = busqueda || filtroEstado;
 
   const limpiarFiltros = () => {
     setBusqueda("");
     setFiltroEstado("");
-    setFiltroMetodo("");
+  };
+
+  const handlePagar = (cotizacion) => {
+    console.log("Ir a pagar:", cotizacion);
+    // aquí luego puedes navegar o abrir modal
+    // navigate(`/cliente/pago/${cotizacion._id}`)
   };
 
   return (
@@ -179,41 +178,40 @@ const GastosServicio = () => {
       <div className={styles.pageHeader}>
         <div>
           <h1>Mis Gastos</h1>
-          <p>Pagos realizados a clientes por dispositivos recepcionados y procesados.</p>
+          <p>Cotizaciones de la empresa y pagos realizados a clientes.</p>
         </div>
+        <button
+          type="button"
+          className={styles.btnRefresh}
+          onClick={cargar}
+          disabled={loading}
+          title="Recargar"
+        >
+          <FiRefreshCw size={14} className={loading ? styles.spinning : ""} />
+          {loading ? "Cargando..." : "Actualizar"}
+        </button>
       </div>
 
       <div className={styles.stats}>
         <div className={`${styles.statCard} ${styles["statCard--total"]}`}>
-          <div className={styles.statCard__icon}>
-            <FiClipboard size={18} />
-          </div>
+          <div className={styles.statCard__icon}><FiClipboard size={18} /></div>
           <div className={styles.statCard__value}>{resumen.total}</div>
-          <div className={styles.statCard__label}>Total de egresos</div>
+          <div className={styles.statCard__label}>Total de cotizaciones</div>
         </div>
-
         <div className={`${styles.statCard} ${styles["statCard--paid"]}`}>
-          <div className={styles.statCard__icon}>
-            <FiDollarSign size={18} />
-          </div>
+          <div className={styles.statCard__icon}><FiDollarSign size={18} /></div>
           <div className={styles.statCard__value}>{fmtMonto(resumen.totalPagado)}</div>
           <div className={styles.statCard__label}>Total pagado</div>
         </div>
-
         <div className={`${styles.statCard} ${styles["statCard--pending"]}`}>
-          <div className={styles.statCard__icon}>
-            <FiCalendar size={18} />
-          </div>
+          <div className={styles.statCard__icon}><FiCalendar size={18} /></div>
           <div className={styles.statCard__value}>{fmtMonto(resumen.totalPendiente)}</div>
-          <div className={styles.statCard__label}>Pendiente</div>
+          <div className={styles.statCard__label}>Por pagar</div>
         </div>
-
         <div className={`${styles.statCard} ${styles["statCard--cancelled"]}`}>
-          <div className={styles.statCard__icon}>
-            <FiTrendingDown size={18} />
-          </div>
+          <div className={styles.statCard__icon}><FiTrendingDown size={18} /></div>
           <div className={styles.statCard__value}>{fmtMonto(resumen.totalAnulado)}</div>
-          <div className={styles.statCard__label}>Anulado</div>
+          <div className={styles.statCard__label}>Rechazadas</div>
         </div>
       </div>
 
@@ -222,7 +220,7 @@ const GastosServicio = () => {
           <FiSearch size={15} className={styles.searchWrap__icon} />
           <input
             type="text"
-            placeholder="Buscar por ID, empresa, cliente o dispositivo..."
+            placeholder="Buscar por ID, cliente, dispositivo..."
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
           />
@@ -231,19 +229,12 @@ const GastosServicio = () => {
         <div className={styles.filterSelect}>
           <select value={filtroEstado} onChange={(e) => setFiltroEstado(e.target.value)}>
             <option value="">Todos los estados</option>
-            <option value="pagado">Pagado</option>
-            <option value="pendiente">Pendiente</option>
-            <option value="anulado">Anulado</option>
-          </select>
-        </div>
-
-        <div className={styles.filterSelect}>
-          <select value={filtroMetodo} onChange={(e) => setFiltroMetodo(e.target.value)}>
-            <option value="">Todos los métodos</option>
-            <option value="transferencia">Transferencia</option>
-            <option value="qr">QR</option>
-            <option value="tarjeta">Tarjeta</option>
-            <option value="efectivo">Efectivo</option>
+            <option value="preliminar_generada">Preliminar generada</option>
+            <option value="preliminar_aceptada">Preliminar aceptada</option>
+            <option value="aprobada">Aprobada</option>
+            <option value="final_aceptada">Final aceptada</option>
+            <option value="pagada">Pagada</option>
+            <option value="rechazada">Rechazada</option>
           </select>
         </div>
 
@@ -255,54 +246,112 @@ const GastosServicio = () => {
       </div>
 
       <div className={styles.tableWrap}>
-        {gastosFiltrados.length === 0 ? (
+        {loading ? (
+          <div className={styles.loading}>
+            <div className={styles.loading__spinner} />
+            <p>Cargando cotizaciones...</p>
+          </div>
+        ) : error ? (
+          <div className={styles.errorState}>
+            <FiAlertCircle size={28} />
+            <h3>Error al cargar</h3>
+            <p>{error}</p>
+            <button type="button" className={styles.btnRetry} onClick={cargar}>
+              Reintentar
+            </button>
+          </div>
+        ) : cotizacionesFiltradas.length === 0 ? (
           <div className={styles.empty}>
             <FiFilter size={26} />
-            <h3>Sin resultados</h3>
-            <p>No se encontraron gastos con los filtros aplicados.</p>
+            <h3>{hayFiltros ? "Sin resultados" : "Sin cotizaciones registradas"}</h3>
+            <p>
+              {hayFiltros
+                ? "No se encontraron cotizaciones con los filtros aplicados."
+                : "Aún no hay cotizaciones registradas para este tenant."}
+            </p>
           </div>
         ) : (
           <table className={styles.table}>
             <thead>
               <tr>
                 <th>ID</th>
-                <th>Empresa</th>
                 <th>Cliente</th>
                 <th>Dispositivo</th>
+                <th>Monto inicial</th>
+                <th>Monto final</th>
                 <th>Fecha</th>
-                <th>Monto</th>
                 <th>Estado</th>
-                <th>Método</th>
                 <th>Acción</th>
               </tr>
             </thead>
             <tbody>
-              {gastosFiltrados.map((gasto) => (
-                <tr key={gasto._id}>
-                  <td>
-                    <span className={styles.idCell}>{gasto._id}</span>
-                  </td>
-                  <td>{gasto.empresa}</td>
-                  <td>{gasto.cliente}</td>
-                  <td>{gasto.dispositivo}</td>
-                  <td>{fmtFecha(gasto.fecha)}</td>
-                  <td className={styles.amountCell}>{fmtMonto(gasto.montoPagado, gasto.moneda)}</td>
-                  <td>
-                    <EstadoBadge estado={gasto.estado} />
-                  </td>
-                  <td className={styles.metodoCell}>{gasto.metodoPago}</td>
-                  <td>
-                    <button
-                      type="button"
-                      className={styles.btnView}
-                      onClick={() => setDetalle(gasto)}
-                    >
-                      <FiEye size={14} />
-                      Ver
-                    </button>
-                  </td>
-                </tr>
-              ))}
+              {cotizacionesFiltradas.map((cotizacion) => {
+                const cliente = cotizacion.cliente || {};
+                const tipo = cotizacion.tipoDispositivoId || {};
+                const datosEquipo = cotizacion.datosEquipo || {};
+
+                return (
+                  <tr key={cotizacion._id}>
+                    <td>
+                      <span className={styles.idCell}>{cotizacion._id}</span>
+                    </td>
+
+                    <td>
+                      <div>
+                        <div>{cliente.nombre || "—"}</div>
+                        <div className={styles.subtext}>{cliente.email || ""}</div>
+                      </div>
+                    </td>
+
+                    <td>
+                      <div>
+                        <div>{tipo.nombre || "—"}</div>
+                        <div className={styles.subtext}>
+                          {[datosEquipo.marca, datosEquipo.modelo].filter(Boolean).join(" ")}
+                        </div>
+                      </div>
+                    </td>
+
+                    <td className={styles.amountCell}>
+                      {fmtMonto(getMontoInicial(cotizacion), getMoneda(cotizacion))}
+                    </td>
+
+                    <td className={styles.amountCell}>
+                      {getMontoFinal(cotizacion) != null
+                        ? fmtMonto(getMontoFinal(cotizacion), getMoneda(cotizacion))
+                        : <span className={styles["montoCell--null"]}>Pendiente</span>}
+                    </td>
+
+                    <td>{fmtFecha(cotizacion.updatedAt || cotizacion.createdAt)}</td>
+
+                    <td>
+                      <EstadoBadge estado={cotizacion.estado} />
+                    </td>
+
+                    <td>
+                      {puedePagar(cotizacion) ? (
+                        <button
+                          type="button"
+                          className={styles.btnPay}
+                          onClick={() => handlePagar(cotizacion)}
+                        >
+                          <FiCreditCard size={14} />
+                          Pagar
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          className={styles.btnView}
+                          onClick={() => setDetalle(cotizacion)}
+                        >
+                          <FiEye size={14} />
+                          Ver detalle
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         )}
@@ -313,14 +362,13 @@ const GastosServicio = () => {
           <aside
             className={styles.drawer}
             onClick={(e) => e.stopPropagation()}
-            aria-label="Detalle del gasto"
+            aria-label="Detalle de la cotización"
           >
             <div className={styles.drawer__header}>
               <div>
-                <p className={styles.drawer__eyebrow}>Detalle de gasto</p>
+                <p className={styles.drawer__eyebrow}>Detalle de cotización</p>
                 <h3>{detalle._id}</h3>
               </div>
-
               <button
                 type="button"
                 className={styles.drawer__close}
@@ -334,50 +382,47 @@ const GastosServicio = () => {
               <div className={styles.detailCard}>
                 <div className={styles.detailRow}>
                   <span><FiCalendar size={14} /> Fecha</span>
-                  <strong>{fmtFecha(detalle.fecha)}</strong>
+                  <strong>{fmtFecha(detalle.updatedAt || detalle.createdAt)}</strong>
                 </div>
-
                 <div className={styles.detailRow}>
                   <span><FiClipboard size={14} /> Estado</span>
                   <strong><EstadoBadge estado={detalle.estado} /></strong>
                 </div>
-
                 <div className={styles.detailRow}>
-                  <span><FiCreditCard size={14} /> Método</span>
-                  <strong>{detalle.metodoPago}</strong>
+                  <span><FiDollarSign size={14} /> Monto inicial</span>
+                  <strong>{fmtMonto(getMontoInicial(detalle), getMoneda(detalle))}</strong>
                 </div>
-
                 <div className={styles.detailRow}>
-                  <span><FiDollarSign size={14} /> Monto pagado</span>
-                  <strong>{fmtMonto(detalle.montoPagado, detalle.moneda)}</strong>
+                  <span><FiDollarSign size={14} /> Monto final</span>
+                  <strong>
+                    {getMontoFinal(detalle) != null
+                      ? fmtMonto(getMontoFinal(detalle), getMoneda(detalle))
+                      : "Pendiente"}
+                  </strong>
                 </div>
               </div>
 
               <div className={styles.detailCard}>
                 <div className={styles.detailRow}>
-                  <span><FiPackage size={14} /> Dispositivo</span>
-                  <strong>{detalle.dispositivo}</strong>
-                </div>
-
-                <div className={styles.detailRow}>
-                  <span><FiPackage size={14} /> Tipo</span>
-                  <strong>{detalle.tipoDispositivo}</strong>
-                </div>
-
-                <div className={styles.detailRow}>
                   <span><FiUser size={14} /> Cliente</span>
-                  <strong>{detalle.cliente}</strong>
+                  <strong>{detalle.cliente?.nombre || "—"}</strong>
                 </div>
-
                 <div className={styles.detailRow}>
-                  <span><FiClipboard size={14} /> Empresa</span>
-                  <strong>{detalle.empresa}</strong>
+                  <span><FiUser size={14} /> Email</span>
+                  <strong>{detalle.cliente?.email || "—"}</strong>
                 </div>
-              </div>
-
-              <div className={styles.detailNote}>
-                <p>Observación</p>
-                <span>{detalle.observacion || "Sin observaciones."}</span>
+                <div className={styles.detailRow}>
+                  <span><FiPackage size={14} /> Tipo dispositivo</span>
+                  <strong>{detalle.tipoDispositivoId?.nombre || "—"}</strong>
+                </div>
+                <div className={styles.detailRow}>
+                  <span><FiClipboard size={14} /> Modelo</span>
+                  <strong>
+                    {[detalle.datosEquipo?.marca, detalle.datosEquipo?.modelo]
+                      .filter(Boolean)
+                      .join(" ") || "—"}
+                  </strong>
+                </div>
               </div>
             </div>
           </aside>
