@@ -1,23 +1,29 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import {
   FiX,
   FiCheckCircle,
   FiXCircle,
   FiInfo,
   FiDollarSign,
+  FiMapPin,
 } from "react-icons/fi";
 import { MdOutlineDevices } from "react-icons/md";
 import { useDispatch, useSelector } from "react-redux";
+
+import Swal from "sweetalert2";
 
 import styles from "./CotizacionModal.module.scss";
 import {
   aceptarCotizacionInicial,
   rechazarCotizacionInicial,
+  fetchUbicacionesByTenantId
 } from "../slicesCotizaciones/CotizacionesThunk";
 import {
   selectCotizacionesLoading,
+  selectUbicaciones
 } from "../slicesCotizaciones/CotizacionesSlice";
 import { selectTiposDispositivo } from "../slicesTiposDispositivo/TiposDispositivoSlice";
+import { selectTenantId } from "../../signin/slices/loginSelectors";
 
 const CONDICIONES = {
   excelente: { label: "Excelente" },
@@ -29,9 +35,29 @@ const CONDICIONES = {
 const CotizacionModal = ({ solicitud, onClose, onDecision }) => {
   const dispatch = useDispatch();
   const [step, setStep] = useState("ver");
+  const [selectedUbicacionId, setSelectedUbicacionId] = useState("");
 
   const loading = useSelector(selectCotizacionesLoading);
   const tiposDispositivo = useSelector(selectTiposDispositivo) || [];
+  const tenantId = useSelector(selectTenantId);
+
+  const ubicaciones = useSelector(selectUbicaciones);
+
+  const isLoading = useSelector(selectCotizacionesLoading);
+
+  useEffect(() => {
+  console.log("DISPARANDO fetchUbicacionesByTenantId");
+  dispatch(fetchUbicacionesByTenantId());
+}, [dispatch]);
+  const ubicacionSeleccionada = useMemo(() => {
+    return (
+      ubicaciones.find(
+        (u) => String(u.id || u._id || u.ubicacionId) === String(selectedUbicacionId)
+      ) || null
+    );
+  }, [ubicaciones, selectedUbicacionId]);
+
+  console.log("Ubicaciones disponibles:", ubicaciones);
 
   const eq = solicitud?.datosEquipo;
 
@@ -50,19 +76,81 @@ const CotizacionModal = ({ solicitud, onClose, onDecision }) => {
 
   if (!solicitud) return null;
 
+  const generarPaqueteId = () => {
+      const timestamp = Date.now(); // tiempo actual
+      const random = Math.floor(Math.random() * 1000); // pequeño random
+      return `pkg_${timestamp}_${random}`;
+  };
+
+  
+
   const handleAceptar = async () => {
+  try {
+    if (!selectedUbicacionId || !ubicacionSeleccionada) {
+      Swal.fire({
+        icon: "warning",
+        title: "Selecciona una ubicación",
+        text: "Debes elegir una ubicación de destino antes de continuar.",
+        confirmButtonColor: "#79864B",
+      });
+      return;
+    }
+
+    const paqueteId = generarPaqueteId();
+
+    const logistica = {
+      direccion:
+        ubicacionSeleccionada.direccion ||
+        ubicacionSeleccionada.nombre ||
+        "Sin dirección",
+      referencia: ubicacionSeleccionada.referencia || "",
+      ubicacionId:
+        ubicacionSeleccionada.id ||
+        ubicacionSeleccionada._id ||
+        ubicacionSeleccionada.ubicacionId,
+      coordenadas:
+        ubicacionSeleccionada.coordenadas ||
+        [ubicacionSeleccionada.longitud, ubicacionSeleccionada.latitud].filter(
+          (v) => v !== undefined && v !== null
+        ),
+      prioridad: "normal",
+      paqueteId,
+      notas: "Creada desde el orquestador",
+    };
+
     const resultAction = await dispatch(
       aceptarCotizacionInicial({
         solicitudId: solicitud._id,
-        usuario: "cliente",
+        logistica,
       })
     );
 
     if (aceptarCotizacionInicial.fulfilled.match(resultAction)) {
+      Swal.fire({
+        icon: "success",
+        title: "Solicitud aceptada",
+        text: "La logística fue creada correctamente.",
+        confirmButtonColor: "#79864B",
+      });
+
       onDecision?.(solicitud._id, "aceptada", resultAction.payload);
       onClose?.();
+    } else {
+      throw new Error(
+        resultAction.payload?.message ||
+          resultAction.payload ||
+          "No se pudo aceptar la cotización"
+      );
     }
-  };
+  } catch (error) {
+    Swal.fire({
+      icon: "error",
+      title: "Error",
+      text: error.message || "Ocurrió un error al aceptar la cotización",
+      confirmButtonColor: "#79864B",
+    });
+  }
+};
 
   const handleRechazar = async () => {
     const resultAction = await dispatch(
@@ -182,6 +270,57 @@ const CotizacionModal = ({ solicitud, onClose, onDecision }) => {
                   })}
                 </div>
               )}
+              <div className={styles.ubicacionCard}>
+  <div className={styles.ubicacionCard__header}>
+    <FiMapPin size={16} />
+    <div>
+      <p className={styles.ubicacionCard__title}>
+        Ubicación de destino
+      </p>
+      <span className={styles.ubicacionCard__subtitle}>
+        Selecciona dónde recogeremos tu equipo
+      </span>
+    </div>
+  </div>
+
+  <div className={styles.ubicacionCard__selectWrap}>
+    <select
+      value={selectedUbicacionId}
+      onChange={(e) => setSelectedUbicacionId(e.target.value)}
+      disabled={loading}
+    >
+      <option value="">Selecciona una ubicación</option>
+      {ubicaciones.map((u) => (
+        <option
+          key={u._id || u.id || u.ubicacionId}
+          value={u._id || u.id || u.ubicacionId}
+        >
+          {u.nombre || u.direccion || "Ubicación sin nombre"}
+        </option>
+      ))}
+    </select>
+  </div>
+
+  {ubicacionSeleccionada && (
+    <div className={styles.ubicacionCard__detail}>
+      <div>
+        <span>Dirección</span>
+        <strong>
+          {ubicacionSeleccionada.direccion ||
+            ubicacionSeleccionada.nombre ||
+            "—"}
+        </strong>
+      </div>
+
+      <div>
+        <span>Referencia</span>
+        <strong>
+          {ubicacionSeleccionada.referencia || "Sin referencia"}
+        </strong>
+      </div>
+    </div>
+  )}
+</div>
             </>
           )}
 

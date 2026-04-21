@@ -20,6 +20,8 @@ import {
   selectCotizacionesLoading,
 } from "../slicesCotizaciones/CotizacionesSlice";
 
+import { selectTenantId, selectUser } from "../../signin/slices/loginSelectors";
+
 const fmtFecha = (d) =>
   d
     ? new Date(d).toLocaleDateString("es-BO", {
@@ -54,11 +56,14 @@ const MisCotizaciones = () => {
     const [detalle,    setDetalle]      = useState(null);   // solicitud para drawer
 
     const [toast, setToast] = useState(null);
+    //datos necesarios para creacion de solicitud
+      const tenantId = useSelector(selectTenantId);
+      const user = useSelector(selectUser);
 
     // Carga 
     const cargar = useCallback(() => {
-    dispatch(fetchCotizacionesByClienteId({ tenantId: 1, clienteId: "CLI-2024-0001" }));
-    }, [dispatch]);
+    dispatch(fetchCotizacionesByClienteId({ tenantId: tenantId, clienteId: user?.id }));
+    }, [dispatch, tenantId, user?.id]);
 
     useEffect(() => { cargar(); }, [cargar]);
 

@@ -192,6 +192,11 @@ export const ordenesApi = {
       .patch(`/ordenes/${id}/estado`, data)
       .then((res) => res.data)
       .catch(handleError),
+  fetchUbicacionesByTenantId: () =>
+    apiLogistics
+      .get(`/ubicaciones`)
+      .then((res) => res.data)
+      .catch(handleError),
 };
 
 export const conductoresApi = {
