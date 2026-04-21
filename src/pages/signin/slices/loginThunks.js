@@ -9,6 +9,10 @@ function normalizeLoginResponse(res) {
 
   const email = res?.email ?? "";
   const rol = res?.userRol ?? "";
+  const nombres = res?.nombre ?? "";
+  const apellido = res?.apellido ?? "";
+  const nombre = [nombres, apellido].filter(Boolean).join(" ") || email.split("@")[0];
+
 
   const tenantId = res?.tenantId ?? null;
   const tenantNombre = res?.tenant_nombre ?? "";
@@ -19,7 +23,7 @@ function normalizeLoginResponse(res) {
     ok,
     id,
     mail: email,
-    nombres: email || "Usuario",
+    nombres: nombre|| "Usuario",
     rol,
     tenantId,
     tenantNombre,
