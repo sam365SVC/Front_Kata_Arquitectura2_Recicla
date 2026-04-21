@@ -9,21 +9,35 @@ import {
   FiClock,
   FiBarChart2,
   FiArrowUpRight,
+  FiDownload,
+  FiTrendingUp,
+  FiCreditCard,
 } from "react-icons/fi";
 import styles from "./PlanChangeModal.module.scss";
 
 const featureValue = (value) => {
-  if (value === null || value === undefined || value === "") return "No";
+  if (value === null || value === undefined || value === "") return "No definido";
   return value;
 };
 
 const isPositiveFeature = (value) => {
   const normalized = String(value || "").toLowerCase().trim();
-  return normalized !== "no" && normalized !== "ninguno" && normalized !== "-";
+  return (
+    normalized !== "no" &&
+    normalized !== "ninguno" &&
+    normalized !== "-" &&
+    normalized !== "no definido" &&
+    normalized !== "false"
+  );
 };
 
 const formatPrice = (precio, moneda = "Bs.") => {
-  if (precio === null || precio === undefined || precio === "") {
+  if (
+    precio === null ||
+    precio === undefined ||
+    precio === "" ||
+    String(precio).toLowerCase() === "null"
+  ) {
     return "Personalizado";
   }
 
@@ -33,7 +47,42 @@ const formatPrice = (precio, moneda = "Bs.") => {
     return `${moneda} ${precio}`;
   }
 
-  return `${moneda} ${parsed.toLocaleString("es-BO")}`;
+  return `${moneda} ${parsed.toLocaleString("es-BO", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
+};
+
+const formatHistorial = (value) => {
+  if (value === null || value === undefined || value === "") {
+    return "No definido";
+  }
+
+  const normalized = String(value).toLowerCase().trim();
+
+  if (normalized === "ilimitado") return "Ilimitado";
+
+  const parsed = Number(value);
+  if (Number.isNaN(parsed)) return value;
+
+  if (parsed === 1) return "1 mes";
+  return `${parsed} meses`;
+};
+
+const formatReportes = (value) => {
+  const normalized = String(value || "").toLowerCase().trim();
+
+  if (!normalized) return "No definido";
+  if (normalized === "ninguno") return "Ninguno";
+  if (normalized === "basico") return "Básicos";
+  if (normalized === "avanzado") return "Avanzados";
+  if (normalized === "personalizado") return "Personalizado";
+
+  return value;
+};
+
+const formatBooleanFeature = (value) => {
+  return value ? "Sí" : "No";
 };
 
 const getPlanSubtitle = (plan) => {
@@ -136,17 +185,12 @@ const PlanChangeModal = ({
                     </div>
 
                     <div className={styles.planPrice}>
-                      {plan.precio === null || plan.precio === undefined ? (
-                        <>
-                          <strong>Personalizado</strong>
-                          <span>contáctanos</span>
-                        </>
-                      ) : (
-                        <>
-                          <strong>{formatPrice(plan.precio, plan.moneda)}</strong>
-                          <span>por mes</span>
-                        </>
-                      )}
+                      <strong>{formatPrice(plan.precio, plan.moneda)}</strong>
+                      <span>
+                        {plan.precio === null || plan.precio === undefined
+                          ? "contáctanos"
+                          : "por mes"}
+                      </span>
                     </div>
                   </div>
 
@@ -164,6 +208,13 @@ const PlanChangeModal = ({
                     <div className={styles.planHighlight}>
                       <FiUsers size={15} />
                       <span>{featureValue(plan.inspectores)} inspectores</span>
+                    </div>
+
+                    <div className={styles.planHighlight}>
+                      <FiTrendingUp size={15} />
+                      <span>
+                        {featureValue(plan.cotizacionesMes)} cotizaciones/mes
+                      </span>
                     </div>
                   </div>
 
@@ -247,12 +298,24 @@ const PlanChangeModal = ({
 
                   <tr>
                     <td className={styles.featureCell}>
+                      <FiTrendingUp size={15} />
+                      Cotizaciones por mes
+                    </td>
+                    {plans.map((plan) => (
+                      <td key={`${plan.id}-cotizaciones`}>
+                        {featureValue(plan.cotizacionesMes)}
+                      </td>
+                    ))}
+                  </tr>
+
+                  <tr>
+                    <td className={styles.featureCell}>
                       <FiClock size={15} />
                       Historial de operaciones
                     </td>
                     {plans.map((plan) => (
                       <td key={`${plan.id}-historial`}>
-                        {featureValue(plan.historial)}
+                        {formatHistorial(plan.historial)}
                       </td>
                     ))}
                   </tr>
@@ -262,22 +325,62 @@ const PlanChangeModal = ({
                       <FiBarChart2 size={15} />
                       Reportes
                     </td>
+                    {plans.map((plan) => {
+                      const reportes = formatReportes(plan.reportes);
+                      return (
+                        <td key={`${plan.id}-reportes`}>
+                          <span
+                            className={`${styles.reportBadge} ${
+                              isPositiveFeature(reportes)
+                                ? styles.reportBadgeOk
+                                : styles.reportBadgeNo
+                            }`}
+                          >
+                            {isPositiveFeature(reportes) ? (
+                              <FiCheck size={14} />
+                            ) : (
+                              <FiX size={14} />
+                            )}
+                            {reportes}
+                          </span>
+                        </td>
+                      );
+                    })}
+                  </tr>
+
+                  <tr>
+                    <td className={styles.featureCell}>
+                      <FiDownload size={15} />
+                      Exportación
+                    </td>
                     {plans.map((plan) => (
-                      <td key={`${plan.id}-reportes`}>
+                      <td key={`${plan.id}-exportar`}>
                         <span
                           className={`${styles.reportBadge} ${
-                            isPositiveFeature(plan.reportes)
+                            plan.puedeExportar
                               ? styles.reportBadgeOk
                               : styles.reportBadgeNo
                           }`}
                         >
-                          {isPositiveFeature(plan.reportes) ? (
+                          {plan.puedeExportar ? (
                             <FiCheck size={14} />
                           ) : (
                             <FiX size={14} />
                           )}
-                          {featureValue(plan.reportes)}
+                          {formatBooleanFeature(plan.puedeExportar)}
                         </span>
+                      </td>
+                    ))}
+                  </tr>
+
+                  <tr>
+                    <td className={styles.featureCell}>
+                      <FiCreditCard size={15} />
+                      Precio mensual
+                    </td>
+                    {plans.map((plan) => (
+                      <td key={`${plan.id}-precio`}>
+                        {formatPrice(plan.precio, plan.moneda)}
                       </td>
                     ))}
                   </tr>

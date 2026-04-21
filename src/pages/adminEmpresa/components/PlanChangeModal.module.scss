@@ -311,26 +311,27 @@
 .planHighlights {
   display: grid;
   gap: 10px;
+}
 
-  div {
-    min-height: 44px;
-    border-radius: 14px;
-    padding: 10px 12px;
-    border: 1px solid rgba($main-3, 0.18);
-    background: $grey-5;
-    color: $black;
-    font-size: 14px;
-    font-weight: 800;
-    @include flex(center, flex-start, 8px);
+.planHighlight {
+  min-height: 44px;
+  border-radius: 14px;
+  padding: 10px 12px;
+  border: 1px solid rgba($main-3, 0.18);
+  background: $grey-5;
+  color: $black;
+  font-size: 14px;
+  font-weight: 800;
+  @include flex(center, flex-start, 8px);
 
-    svg {
-      color: $main-1;
-      flex-shrink: 0;
-    }
+  svg {
+    color: $main-1;
+    flex-shrink: 0;
+  }
 
-    span {
-      word-break: break-word;
-    }
+  span {
+    word-break: break-word;
+    line-height: 1.45;
   }
 }
 
@@ -402,7 +403,7 @@
 
 .comparisonTable {
   width: 100%;
-  min-width: 980px;
+  min-width: 1100px;
   border-collapse: separate;
   border-spacing: 0;
 
