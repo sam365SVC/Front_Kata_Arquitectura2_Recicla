@@ -20,6 +20,7 @@ import planEmpresaReducer from '../pages/adminEmpresa/slicesPlanEmpresa/PlanEmpr
 //para cotizaciones y tipo de dispositivos
 // nivel inicial, posible actualizacion
 import cotizacionesReducer from '../pages/adminUsuarioFinal/slicesCotizaciones/CotizacionesSlice';
+import cotizacionesTenantReducer from '../pages/adminEmpresa/slicesCotizaciones/CotizacionesSlice';
 import tiposDispositivoReducer from '../pages/adminUsuarioFinal/slicesTiposDispositivo/TiposDispositivoSlice';
 import usuariosEmpresaReducer from '../pages/adminEmpresa/slicesUsuariosEmpresa/UsuariosEmpresaSlice';
 import tiposDispositivoEmpresaReducer from '../pages/adminEmpresa/slicesTiposDispositivoEmpresa/TiposDispositivoEmpresaSlice';
@@ -48,6 +49,10 @@ export const rootReducer = combineReducers({
   //COTIZACIONES POR EL CLIENTE 
   cotizaciones: cotizacionesReducer,
   tiposDispositivo: tiposDispositivoReducer,
+
+  //COTIZACIONES POR EL CLIENTE 
+  cotizacionesTenant: cotizacionesTenantReducer,
+
     // admin empresa
   usuariosEmpresa: usuariosEmpresaReducer,
   tiposDispositivoEmpresa: tiposDispositivoEmpresaReducer,

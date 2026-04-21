@@ -5,6 +5,7 @@ import {
   FiXCircle,
   FiInfo,
   FiDollarSign,
+  FiMapPin,
 } from "react-icons/fi";
 import { MdOutlineDevices } from "react-icons/md";
 import { useDispatch, useSelector } from "react-redux";
@@ -120,7 +121,7 @@ const CotizacionModal = ({ solicitud, onClose, onDecision }) => {
     const resultAction = await dispatch(
       aceptarCotizacionInicial({
         solicitudId: solicitud._id,
-        data:logistica,
+        logistica,
       })
     );
 
@@ -269,38 +270,57 @@ const CotizacionModal = ({ solicitud, onClose, onDecision }) => {
                   })}
                 </div>
               )}
-              <div className={styles.ubicacionBox}>
-                <label className={styles.ubicacionBox__label}>
-                  Selecciona la ubicación de destino
-                </label>
+              <div className={styles.ubicacionCard}>
+  <div className={styles.ubicacionCard__header}>
+    <FiMapPin size={16} />
+    <div>
+      <p className={styles.ubicacionCard__title}>
+        Ubicación de destino
+      </p>
+      <span className={styles.ubicacionCard__subtitle}>
+        Selecciona dónde recogeremos tu equipo
+      </span>
+    </div>
+  </div>
 
-                <select
-                  value={selectedUbicacionId}
-                  onChange={(e) => setSelectedUbicacionId(e.target.value)}
-                  className={styles.ubicacionBox__select}
-                  disabled={loading}
-                >
-                  <option value="">Selecciona una ubicación</option>
-                  {ubicaciones.map((u) => (
-                    <option
-                      key={u._id || u.id || u.ubicacionId}
-                      value={u._id || u.id || u.ubicacionId}
-                    >
-                      {u.nombre || u.direccion || "Ubicación sin nombre"}
-                    </option>
-                  ))}
-                </select>
+  <div className={styles.ubicacionCard__selectWrap}>
+    <select
+      value={selectedUbicacionId}
+      onChange={(e) => setSelectedUbicacionId(e.target.value)}
+      disabled={loading}
+    >
+      <option value="">Selecciona una ubicación</option>
+      {ubicaciones.map((u) => (
+        <option
+          key={u._id || u.id || u.ubicacionId}
+          value={u._id || u.id || u.ubicacionId}
+        >
+          {u.nombre || u.direccion || "Ubicación sin nombre"}
+        </option>
+      ))}
+    </select>
+  </div>
 
-                {ubicacionSeleccionada && (
-                  <div className={styles.ubicacionBox__detail}>
-                    <strong>Dirección:</strong>{" "}
-                    {ubicacionSeleccionada.direccion || ubicacionSeleccionada.nombre || "—"}
-                    <br />
-                    <strong>Referencia:</strong>{" "}
-                    {ubicacionSeleccionada.referencia || "—"}
-                  </div>
-                )}
-              </div>
+  {ubicacionSeleccionada && (
+    <div className={styles.ubicacionCard__detail}>
+      <div>
+        <span>Dirección</span>
+        <strong>
+          {ubicacionSeleccionada.direccion ||
+            ubicacionSeleccionada.nombre ||
+            "—"}
+        </strong>
+      </div>
+
+      <div>
+        <span>Referencia</span>
+        <strong>
+          {ubicacionSeleccionada.referencia || "Sin referencia"}
+        </strong>
+      </div>
+    </div>
+  )}
+</div>
             </>
           )}
 
