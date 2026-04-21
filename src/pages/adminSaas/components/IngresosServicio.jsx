@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useCallback } from "react";
 import {
   FiDollarSign,
   FiSearch,
@@ -11,76 +11,19 @@ import {
   FiCreditCard,
   FiBriefcase,
   FiLayers,
+  FiRefreshCw,
+  FiAlertCircle,
 } from "react-icons/fi";
-import styles from "./IngresosServicio.module.scss";
+import { useDispatch, useSelector } from "react-redux";
 
-const MOCK_INGRESOS = [
-  {
-    _id: "ING-001",
-    fechaPago: "2026-04-18T09:15:00.000Z",
-    empresa: "EcoTech S.R.L.",
-    plan: "Basic",
-    periodo: "Abril 2026",
-    monto: 99,
-    moneda: "USD",
-    estado: "pagado",
-    metodoPago: "tarjeta",
-    referencia: "SUB-APR-001",
-    observacion: "Pago mensual procesado correctamente.",
-  },
-  {
-    _id: "ING-002",
-    fechaPago: "2026-04-18T11:40:00.000Z",
-    empresa: "Green Systems",
-    plan: "Premium",
-    periodo: "Abril 2026",
-    monto: 249,
-    moneda: "USD",
-    estado: "pagado",
-    metodoPago: "transferencia",
-    referencia: "SUB-APR-002",
-    observacion: "Suscripción renovada automáticamente.",
-  },
-  {
-    _id: "ING-003",
-    fechaPago: "2026-04-19T08:00:00.000Z",
-    empresa: "Nova Circular",
-    plan: "Free",
-    periodo: "Abril 2026",
-    monto: 0,
-    moneda: "USD",
-    estado: "activo",
-    metodoPago: "—",
-    referencia: "SUB-APR-003",
-    observacion: "Plan gratuito activo, sin cobro.",
-  },
-  {
-    _id: "ING-004",
-    fechaPago: "2026-04-19T14:25:00.000Z",
-    empresa: "ReUse Bolivia",
-    plan: "Basic",
-    periodo: "Abril 2026",
-    monto: 99,
-    moneda: "USD",
-    estado: "pendiente",
-    metodoPago: "qr",
-    referencia: "SUB-APR-004",
-    observacion: "Pendiente de confirmación de pago.",
-  },
-  {
-    _id: "ING-005",
-    fechaPago: "2026-04-20T10:20:00.000Z",
-    empresa: "Circular Hub",
-    plan: "Premium",
-    periodo: "Abril 2026",
-    monto: 249,
-    moneda: "USD",
-    estado: "vencido",
-    metodoPago: "tarjeta",
-    referencia: "SUB-APR-005",
-    observacion: "No se procesó la renovación del mes.",
-  },
-];
+import { fetchSuscripciones } from "../slicesIngresos/IngresosThunk";
+import {
+  selectSuscripciones,
+  selectSuscripcionesLoading,
+  selectSuscripcionesError,
+} from "../slicesIngresos/IngresosSlices";
+
+import styles from "./IngresosServicio.module.scss";
 
 const fmtFecha = (fecha) =>
   fecha
@@ -91,18 +34,24 @@ const fmtFecha = (fecha) =>
       })
     : "—";
 
-const fmtMonto = (monto, moneda = "USD") =>
-  `${moneda} ${Number(monto || 0).toLocaleString("en-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })}`;
+const fmtMonto = (monto, moneda = "BOB") =>
+  `${moneda === "BOB" ? "Bs." : moneda} ${Number(monto || 0).toLocaleString(
+    "es-BO",
+    {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }
+  )}`;
 
 const EstadoBadge = ({ estado }) => {
+  const estadoNormalizado = String(estado || "").toLowerCase();
+
   const map = {
     pagado: "success",
     pendiente: "warning",
     vencido: "danger",
     activo: "neutral",
+    confirmado: "success",
   };
 
   const label = {
@@ -110,55 +59,91 @@ const EstadoBadge = ({ estado }) => {
     pendiente: "Pendiente",
     vencido: "Vencido",
     activo: "Activo",
+    confirmado: "Confirmado",
   };
 
   return (
-    <span className={`${styles.estadoBadge} ${styles[`estadoBadge--${map[estado] || "default"}`]}`}>
-      {label[estado] || estado}
+    <span
+      className={`${styles.estadoBadge} ${
+        styles[`estadoBadge--${map[estadoNormalizado] || "default"}`]
+      }`}
+    >
+      {label[estadoNormalizado] || estado}
     </span>
   );
 };
 
 const IngresosServicio = () => {
+  const dispatch = useDispatch();
+
+  const suscripciones = useSelector(selectSuscripciones);
+  const loading = useSelector(selectSuscripcionesLoading);
+  const error = useSelector(selectSuscripcionesError);
+
   const [busqueda, setBusqueda] = useState("");
   const [filtroEstado, setFiltroEstado] = useState("");
   const [filtroPlan, setFiltroPlan] = useState("");
   const [detalle, setDetalle] = useState(null);
 
+  const cargar = useCallback(() => {
+    dispatch(fetchSuscripciones());
+  }, [dispatch]);
+
+  useEffect(() => {
+    cargar();
+  }, [cargar]);
+
   const ingresosFiltrados = useMemo(() => {
-    let lista = [...MOCK_INGRESOS];
+    let lista = [...suscripciones];
 
     if (busqueda.trim()) {
       const q = busqueda.toLowerCase();
       lista = lista.filter(
         (i) =>
-          i._id.toLowerCase().includes(q) ||
-          i.empresa.toLowerCase().includes(q) ||
-          i.plan.toLowerCase().includes(q) ||
-          i.referencia.toLowerCase().includes(q)
+          String(i.id_suscripcion_pago || "").toLowerCase().includes(q) ||
+          String(i.nombre_plan || "").toLowerCase().includes(q) ||
+          String(i.estado || "").toLowerCase().includes(q) ||
+          String(i.tenant_id || "").toLowerCase().includes(q)
       );
     }
 
     if (filtroEstado) {
-      lista = lista.filter((i) => i.estado === filtroEstado);
+      lista = lista.filter(
+        (i) => String(i.estado || "").toLowerCase() === filtroEstado
+      );
     }
 
     if (filtroPlan) {
-      lista = lista.filter((i) => i.plan === filtroPlan);
+      lista = lista.filter((i) => i.nombre_plan === filtroPlan);
     }
 
     return lista;
-  }, [busqueda, filtroEstado, filtroPlan]);
+  }, [suscripciones, busqueda, filtroEstado, filtroPlan]);
 
   const resumen = useMemo(() => {
-    const total = MOCK_INGRESOS.length;
-    const pagados = MOCK_INGRESOS.filter((i) => i.estado === "pagado");
-    const pendientes = MOCK_INGRESOS.filter((i) => i.estado === "pendiente");
-    const vencidos = MOCK_INGRESOS.filter((i) => i.estado === "vencido");
+    const total = suscripciones.length;
+    const pagados = suscripciones.filter(
+      (i) => String(i.estado || "").toUpperCase() === "PAGADO"
+    );
+    const pendientes = suscripciones.filter(
+      (i) => String(i.estado || "").toUpperCase() === "PENDIENTE"
+    );
+    const vencidos = suscripciones.filter(
+      (i) => String(i.estado || "").toUpperCase() === "VENCIDO"
+    );
 
-    const totalCobrado = pagados.reduce((acc, i) => acc + Number(i.monto || 0), 0);
-    const totalPendiente = pendientes.reduce((acc, i) => acc + Number(i.monto || 0), 0);
-    const totalVencido = vencidos.reduce((acc, i) => acc + Number(i.monto || 0), 0);
+    const totalCobrado = pagados.reduce(
+      (acc, i) => acc + Number(i.total || 0),
+      0
+    );
+    const totalPendiente = pendientes.reduce(
+      (acc, i) => acc + Number(i.total || 0),
+      0
+    );
+    const totalVencido = vencidos.reduce(
+      (acc, i) => acc + Number(i.total || 0),
+      0
+    );
 
     return {
       total,
@@ -166,7 +151,7 @@ const IngresosServicio = () => {
       totalPendiente,
       totalVencido,
     };
-  }, []);
+  }, [suscripciones]);
 
   const hayFiltros = busqueda || filtroEstado || filtroPlan;
 
@@ -183,6 +168,16 @@ const IngresosServicio = () => {
           <h1>Mis Ingresos</h1>
           <p>Pagos recibidos por suscripciones y renovaciones de empresas del servicio.</p>
         </div>
+
+        <button
+          type="button"
+          className={styles.btnRefresh}
+          onClick={cargar}
+          disabled={loading}
+        >
+          <FiRefreshCw size={14} className={loading ? styles.spinning : ""} />
+          {loading ? "Cargando..." : "Actualizar"}
+        </button>
       </div>
 
       <div className={styles.stats}>
@@ -224,7 +219,7 @@ const IngresosServicio = () => {
           <FiSearch size={15} className={styles.searchWrap__icon} />
           <input
             type="text"
-            placeholder="Buscar por ID, empresa, plan o referencia..."
+            placeholder="Buscar por ID, plan, estado o tenant..."
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
           />
@@ -243,9 +238,10 @@ const IngresosServicio = () => {
         <div className={styles.filterSelect}>
           <select value={filtroPlan} onChange={(e) => setFiltroPlan(e.target.value)}>
             <option value="">Todos los planes</option>
-            <option value="Free">Free</option>
+            <option value="Freemium">Freemium</option>
             <option value="Basic">Basic</option>
             <option value="Premium">Premium</option>
+            <option value="Enterprise">Enterprise</option>
           </select>
         </div>
 
@@ -257,7 +253,18 @@ const IngresosServicio = () => {
       </div>
 
       <div className={styles.tableWrap}>
-        {ingresosFiltrados.length === 0 ? (
+        {loading ? (
+          <div className={styles.empty}>
+            <FiFilter size={26} />
+            <h3>Cargando ingresos...</h3>
+          </div>
+        ) : error ? (
+          <div className={styles.empty}>
+            <FiAlertCircle size={26} />
+            <h3>Error al cargar</h3>
+            <p>{error}</p>
+          </div>
+        ) : ingresosFiltrados.length === 0 ? (
           <div className={styles.empty}>
             <FiFilter size={26} />
             <h3>Sin resultados</h3>
@@ -268,31 +275,35 @@ const IngresosServicio = () => {
             <thead>
               <tr>
                 <th>ID</th>
-                <th>Empresa</th>
+                <th>Tenant</th>
                 <th>Plan</th>
-                <th>Período</th>
-                <th>Fecha</th>
-                <th>Monto</th>
+                <th>Meses</th>
+                <th>Fecha inicio</th>
+                <th>Fecha fin</th>
+                <th>Total</th>
                 <th>Estado</th>
-                <th>Método</th>
                 <th>Acción</th>
               </tr>
             </thead>
             <tbody>
               {ingresosFiltrados.map((ingreso) => (
-                <tr key={ingreso._id}>
+                <tr key={ingreso.id_suscripcion_pago}>
                   <td>
-                    <span className={styles.idCell}>{ingreso._id}</span>
+                    <span className={styles.idCell}>
+                      {ingreso.id_suscripcion_pago}
+                    </span>
                   </td>
-                  <td>{ingreso.empresa}</td>
-                  <td className={styles.planCell}>{ingreso.plan}</td>
-                  <td>{ingreso.periodo}</td>
-                  <td>{fmtFecha(ingreso.fechaPago)}</td>
-                  <td className={styles.amountCell}>{fmtMonto(ingreso.monto, ingreso.moneda)}</td>
+                  <td>{ingreso.tenant_id}</td>
+                  <td className={styles.planCell}>{ingreso.nombre_plan}</td>
+                  <td>{ingreso.meses}</td>
+                  <td>{fmtFecha(ingreso.fecha_inicio)}</td>
+                  <td>{fmtFecha(ingreso.fecha_fin)}</td>
+                  <td className={styles.amountCell}>
+                    {fmtMonto(ingreso.total, ingreso.moneda)}
+                  </td>
                   <td>
                     <EstadoBadge estado={ingreso.estado} />
                   </td>
-                  <td className={styles.metodoCell}>{ingreso.metodoPago}</td>
                   <td>
                     <button
                       type="button"
@@ -320,7 +331,7 @@ const IngresosServicio = () => {
             <div className={styles.drawer__header}>
               <div>
                 <p className={styles.drawer__eyebrow}>Detalle del ingreso</p>
-                <h3>{detalle._id}</h3>
+                <h3>{detalle.id_suscripcion_pago}</h3>
               </div>
 
               <button
@@ -335,8 +346,8 @@ const IngresosServicio = () => {
             <div className={styles.drawer__body}>
               <div className={styles.detailCard}>
                 <div className={styles.detailRow}>
-                  <span><FiCalendar size={14} /> Fecha de pago</span>
-                  <strong>{fmtFecha(detalle.fechaPago)}</strong>
+                  <span><FiCalendar size={14} /> Fecha de creación</span>
+                  <strong>{fmtFecha(detalle.creado_en)}</strong>
                 </div>
 
                 <div className={styles.detailRow}>
@@ -345,41 +356,41 @@ const IngresosServicio = () => {
                 </div>
 
                 <div className={styles.detailRow}>
-                  <span><FiCreditCard size={14} /> Método</span>
-                  <strong>{detalle.metodoPago}</strong>
+                  <span><FiDollarSign size={14} /> Precio unitario</span>
+                  <strong>{fmtMonto(detalle.precio_unitario, detalle.moneda)}</strong>
                 </div>
 
                 <div className={styles.detailRow}>
-                  <span><FiDollarSign size={14} /> Monto</span>
-                  <strong>{fmtMonto(detalle.monto, detalle.moneda)}</strong>
+                  <span><FiDollarSign size={14} /> Total</span>
+                  <strong>{fmtMonto(detalle.total, detalle.moneda)}</strong>
                 </div>
               </div>
 
               <div className={styles.detailCard}>
                 <div className={styles.detailRow}>
-                  <span><FiBriefcase size={14} /> Empresa</span>
-                  <strong>{detalle.empresa}</strong>
+                  <span><FiBriefcase size={14} /> Tenant</span>
+                  <strong>{detalle.tenant_id}</strong>
                 </div>
 
                 <div className={styles.detailRow}>
                   <span><FiLayers size={14} /> Plan</span>
-                  <strong>{detalle.plan}</strong>
+                  <strong>{detalle.nombre_plan}</strong>
                 </div>
 
                 <div className={styles.detailRow}>
-                  <span><FiCalendar size={14} /> Período</span>
-                  <strong>{detalle.periodo}</strong>
+                  <span><FiCalendar size={14} /> Fecha inicio</span>
+                  <strong>{fmtFecha(detalle.fecha_inicio)}</strong>
                 </div>
 
                 <div className={styles.detailRow}>
-                  <span><FiClipboard size={14} /> Referencia</span>
-                  <strong>{detalle.referencia}</strong>
+                  <span><FiCalendar size={14} /> Fecha fin</span>
+                  <strong>{fmtFecha(detalle.fecha_fin)}</strong>
                 </div>
-              </div>
 
-              <div className={styles.detailNote}>
-                <p>Observación</p>
-                <span>{detalle.observacion || "Sin observaciones."}</span>
+                <div className={styles.detailRow}>
+                  <span><FiCreditCard size={14} /> Meses</span>
+                  <strong>{detalle.meses}</strong>
+                </div>
               </div>
             </div>
           </aside>
