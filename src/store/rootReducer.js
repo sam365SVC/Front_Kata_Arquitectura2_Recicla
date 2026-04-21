@@ -31,6 +31,7 @@ import activarEmpleadoReducer from '../pages/registroEmpleado/empleadoSlices/Reg
 import tenantReducer from '../pages/adminSaas/slicesEmpresas/EmpresaSlices';
 import reportesReducer from '../pages/adminEmpresa/slicesReportes/ReportesSlice'
 import ingresosReducer from '../pages/adminSaas/slicesIngresos/IngresosSlices'; 
+import cotizacionPagosReducer from '../pages/adminEmpresa/slicesCotizaciones/CotizacionesSlice';
 
 const loginPersistConfig = {
   key: 'login',
@@ -69,6 +70,7 @@ export const rootReducer = combineReducers({
   tenants: tenantReducer,
   reportes: reportesReducer,
   ingresos: ingresosReducer,
+  cotizacionPagos: cotizacionPagosReducer,
 });
 
 export default rootReducer;
