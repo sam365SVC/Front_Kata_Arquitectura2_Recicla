@@ -1,7 +1,7 @@
 export const getRedirectByRole = (rol) => {
   switch (rol) {
     case "SUPERADMIN":
-      return "/admin-empresa";
+      return "/admin-servicio";
 
     case "ADMIN_TENANT":
       return "/admin-empresa";

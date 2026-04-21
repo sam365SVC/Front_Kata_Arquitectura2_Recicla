@@ -1,57 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { FaFilePdf, FaFileExcel, FaChartPie, FaMobileAlt, FaRecycle, FaClipboardCheck, FaDownload } from 'react-icons/fa';
-import Swal from 'sweetalert2';
-import { Chart, registerables } from 'chart.js';
-Chart.register(...registerables);
-
-const GQL_URL = 'http://localhost:4009/graphql';
-const TENANT_ID = 7;
-
-async function callGQL(query, variables = {}) {
-  const res = await fetch(GQL_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ query, variables }),
-  });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  const json = await res.json();
-  if (json.errors) throw new Error(json.errors[0].message);
-  return json.data;
-}
-
-// ─── Queries / Mutations ──────────────────────────────────────────────────────
-
-const Q_RESUMEN = `
-  query {
-    resumenCotizaciones(filtro: { tenantId: ${TENANT_ID} }) {
-      total aceptadas pendientes rechazadas montoTotalFinal moneda
-    }
-  }
-`;
-
-const Q_DISPOSITIVOS = `
-  query {
-    dispositivosMasCotizados(filtro: { tenantId: ${TENANT_ID} }) {
-      nombre totalSolicitudes montoPromedio
-    }
-  }
-`;
-
-const M_GENERAR = (mutation) => `
-  mutation GenerarReporte($filtro: FiltroReporte!) {
-    ${mutation}(filtro: $filtro) {
-      fileName
-      downloadUrl
-      formato
-      generadoEn
-      metadata { totalRegistros tipoReporte }
-    }
-  }
-`;
 import { useDispatch, useSelector } from 'react-redux';
-import { FaFilePdf, FaFileExcel, FaChartPie, FaMobileAlt, FaRecycle, FaClipboardCheck, FaDownload } from 'react-icons/fa';
 import Swal from 'sweetalert2';
 import { Chart, registerables } from 'chart.js';
+import { FaFilePdf, FaFileExcel, FaChartPie, FaMobileAlt, FaRecycle, FaClipboardCheck, FaDownload } from 'react-icons/fa';
 import styles from "./ReportesReecicla.module.scss";
 import {
   fetchDatosReportes,
@@ -136,24 +87,6 @@ const ReporteCard = ({ icon, titulo, descripcion, mutation, onGenerar, loading }
 // ─── Componente principal ─────────────────────────────────────────────────────
 
 const ReportesReecicla = () => {
-  const [resumen, setResumen] = useState(null);
-  const [dispositivos, setDispositivos] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [fechaDesde, setFechaDesde] = useState('2026-01-01');
-  const [fechaHasta, setFechaHasta] = useState('2026-12-31');
-  const [ultimoReporte, setUltimoReporte] = useState(null);
-
-  const chartEstadosRef = useRef(null);
-  const chartDispRef = useRef(null);
-  const chartEstadosInstance = useRef(null);
-  const chartDispInstance = useRef(null);
-
-  // Cargar datos al montar
-  useEffect(() => {
-    cargarDatos();
-  }, []);
-
-  // Renderizar gráficos cuando lleguen los datos
   const dispatch = useDispatch();
 
   // ── Selectores Redux ──────────────────────────────────────────────────────
@@ -192,31 +125,6 @@ const ReportesReecicla = () => {
     if (dispositivos.length) renderChartDispositivos();
   }, [dispositivos]);
 
-  const cargarDatos = async () => {
-    try {
-      const [dataResumen, dataDisp] = await Promise.all([
-        callGQL(Q_RESUMEN),
-        callGQL(Q_DISPOSITIVOS),
-      ]);
-      setResumen(dataResumen.resumenCotizaciones);
-      setDispositivos(dataDisp.dispositivosMasCotizados || []);
-    } catch (err) {
-      console.error('Error cargando datos:', err);
-      // Datos de demostración si el microservicio no responde
-      setResumen({ total: 85, aceptadas: 42, pendientes: 31, rechazadas: 12, montoTotalFinal: 48500, moneda: 'BOB' });
-      setDispositivos([
-        { nombre: 'Smartphone', totalSolicitudes: 55, montoPromedio: 380 },
-        { nombre: 'Laptop', totalSolicitudes: 38, montoPromedio: 720 },
-        { nombre: 'Tablet', totalSolicitudes: 22, montoPromedio: 290 },
-        { nombre: 'Smart TV', totalSolicitudes: 17, montoPromedio: 510 },
-        { nombre: 'Consola', totalSolicitudes: 9, montoPromedio: 430 },
-      ]);
-    }
-  };
-
-  const renderChartEstados = () => {
-    if (!chartEstadosRef.current || !resumen) return;
-    if (chartEstadosInstance.current) chartEstadosInstance.current.destroy();
   // ── Mostrar error global en Swal ──────────────────────────────────────────
   useEffect(() => {
     if (error) {
@@ -315,7 +223,6 @@ const ReportesReecicla = () => {
 
   const renderChartDispositivos = () => {
     if (!chartDispRef.current || !dispositivos.length) return;
-    if (chartDispInstance.current) chartDispInstance.current.destroy();
     chartDispInstance.current?.destroy();
     const colores = ['#1D9E75', '#185FA5', '#BA7517', '#A32D2D', '#533AB7'];
     const top5 = dispositivos.slice(0, 5);
@@ -344,53 +251,6 @@ const ReportesReecicla = () => {
     });
   };
 
-  const generarReporte = async (mutation) => {
-    setLoading(true);
-    try {
-      Swal.fire({
-        title: 'Generando reporte...',
-        html: 'Por favor espere',
-        allowOutsideClick: false,
-        didOpen: () => Swal.showLoading(),
-      });
-
-      const data = await callGQL(M_GENERAR(mutation), {
-        filtro: { tenantId: TENANT_ID, fechaDesde, fechaHasta },
-      });
-
-      const resultado = data[mutation];
-      setUltimoReporte(resultado);
-      Swal.close();
-
-      await Swal.fire({
-        icon: 'success',
-        title: 'Reporte listo',
-        html: `
-          <p><strong>${resultado.fileName}</strong></p>
-          <p style="font-size:13px;color:#666">${resultado.metadata?.totalRegistros ?? '?'} registros · ${new Date(resultado.generadoEn).toLocaleString()}</p>
-        `,
-        showCancelButton: true,
-        confirmButtonText: '<span>Descargar</span>',
-        cancelButtonText: 'Cerrar',
-        confirmButtonColor: '#1D9E75',
-        cancelButtonColor: '#888',
-      }).then((res) => {
-        if (res.isConfirmed) {
-          window.open(`http://localhost:4009${resultado.downloadUrl}`, '_blank');
-        }
-      });
-    } catch (err) {
-      Swal.close();
-      Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: err.message || 'No se pudo generar el reporte',
-        confirmButtonColor: '#1D9E75',
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
   // ── Helpers ───────────────────────────────────────────────────────────────
 
   const formatMoneda = (valor, moneda = 'BOB') => {
@@ -398,19 +258,6 @@ const ReportesReecicla = () => {
     return valor.toLocaleString('es-BO', { style: 'currency', currency: moneda, maximumFractionDigits: 0 });
   };
 
-  return (
-    <div style={styles.container}>
-      {/* Header */}
-      <div style={styles.header}>
-        <div>
-          <h1 style={styles.h1}>
-            <FaRecycle style={{ marginRight: 10, color: '#1D9E75' }} />
-            Reportes Reecicla
-          </h1>
-          <p style={styles.subtitle}>Estadísticas de cotizaciones e inspecciones · Tenant {TENANT_ID}</p>
-        </div>
-        <button style={styles.btnRefresh} onClick={cargarDatos}>
-          Actualizar datos
   // ── Render ────────────────────────────────────────────────────────────────
 
   return (
@@ -430,26 +277,6 @@ const ReportesReecicla = () => {
       </div>
 
       {/* Estadísticas */}
-      <div style={styles.statsGrid}>
-        <StatCard label="Total cotizaciones" value={resumen?.total} color="blue" />
-        <StatCard label="Aceptadas" value={resumen?.aceptadas} color="green" />
-        <StatCard label="Pendientes" value={resumen?.pendientes} color="amber" />
-        <StatCard label="Rechazadas" value={resumen?.rechazadas} color="red" />
-        <StatCard label="Monto total" value={formatMoneda(resumen?.montoTotalFinal, resumen?.moneda)} />
-      </div>
-
-      {/* Gráficos */}
-      <div style={styles.chartsRow}>
-        {/* Donut estados */}
-        <div style={styles.chartCard}>
-          <div style={styles.chartTitle}>
-            <FaChartPie size={14} style={{ marginRight: 6, color: '#185FA5' }} />
-            Estado de cotizaciones
-          </div>
-          <div style={styles.legend}>
-            {[['#185FA5', 'Aceptadas'], ['#BA7517', 'Pendientes'], ['#A32D2D', 'Rechazadas']].map(([c, l]) => (
-              <span key={l} style={styles.legendItem}>
-                <span style={{ ...styles.legendDot, background: c }} />
       <div className={styles.statsGrid}>
         <StatCard label="Total cotizaciones" value={resumen?.total}       color="blue"  />
         <StatCard label="Aceptadas"          value={resumen?.aceptadas}   color="green" />

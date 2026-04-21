@@ -108,7 +108,7 @@ const CotizacionModal = ({ solicitud, onClose, onDecision }) => {
         ubicacionSeleccionada.id ||
         ubicacionSeleccionada._id ||
         ubicacionSeleccionada.ubicacionId,
-      coordenadas:
+      coordinates:
         ubicacionSeleccionada.coordenadas ||
         [ubicacionSeleccionada.longitud, ubicacionSeleccionada.latitud].filter(
           (v) => v !== undefined && v !== null
