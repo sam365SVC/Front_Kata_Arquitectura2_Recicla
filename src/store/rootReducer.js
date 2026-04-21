@@ -28,6 +28,7 @@ import planesReducer from '../pages/planesPagos/slicesPlanes/PlanSlice';
 import registroSliceReducer from '../pages/registro/registroSlices/RegistroSlice';
 import activarEmpleadoReducer from '../pages/registroEmpleado/empleadoSlices/RegistroEmpleadoSlices';
 import tenantReducer from '../pages/adminSaas/slicesEmpresas/EmpresaSlices';
+import reportesReducer from '../pages/adminEmpresa/slicesReportes/ReportesSlice'
 const loginPersistConfig = {
   key: 'login',
   storage,
@@ -59,6 +60,8 @@ export const rootReducer = combineReducers({
   registro: registroSliceReducer,
   activarEmpleado: activarEmpleadoReducer,
   tenants: tenantReducer,
+  reportes: reportesReducer,
+
 });
 
 export default rootReducer;
