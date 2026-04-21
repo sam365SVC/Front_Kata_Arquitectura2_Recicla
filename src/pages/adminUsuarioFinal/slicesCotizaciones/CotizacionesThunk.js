@@ -54,7 +54,7 @@ export const crearSolicitudCotizacion = createAsyncThunk(
 
 export const aceptarCotizacionInicial = createAsyncThunk(
   "cotizaciones/aceptarCotizacionInicial",
-  async ({ solicitudId, logistica= "cliente" }, { rejectWithValue }) => {
+  async ({ solicitudId, logistica }, { rejectWithValue }) => {
     try {
       const response = await orchestrationApi.aceptarYCrearLogistica(
         solicitudId,
