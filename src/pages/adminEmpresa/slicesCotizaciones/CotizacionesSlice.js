@@ -2,7 +2,7 @@ import { createSlice } from "@reduxjs/toolkit";
 import { fetchPagosByTenant } from "./CotizacionesThunk";
 
 const initialState = {
-  pagos: [],
+  cotizaciones: [],
   loading: false,
   error: null,
 };
@@ -27,7 +27,7 @@ const cotizacionPagosSlice = createSlice({
         // Soporta { pagos: [] } o directamente []
         state.pagos = Array.isArray(action.payload)
           ? action.payload
-          : action.payload?.pagos ?? action.payload?.data ?? [];
+          : action.payload?.data ?? action.payload?.data ?? [];
       })
       .addCase(fetchPagosByTenant.rejected, (state, action) => {
         state.loading = false;
@@ -39,7 +39,7 @@ const cotizacionPagosSlice = createSlice({
 export const { clearPagos } = cotizacionPagosSlice.actions;
 
 // ─── Selectores ───────────────────────────────────────────────────────────────
-export const selectPagos        = (state) => state.cotizacionPagos?.pagos   ?? [];
+export const selectCotizaciones        = (state) => state.cotizacionPagos?.pagos   ?? [];
 export const selectPagosLoading = (state) => state.cotizacionPagos?.loading ?? false;
 export const selectPagosError   = (state) => state.cotizacionPagos?.error   ?? null;
 

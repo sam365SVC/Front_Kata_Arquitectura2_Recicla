@@ -652,7 +652,14 @@ export const pagoApi = {
   fetchById: (id) =>
     api
       .get(`/cotizacion-pagos/${id}`)
+      .then((res) => res.data),
+  fetchSuscripciones: () =>
+    api
+      .get('/suscripcion-pagos')
       .then((res) => res.data)
+      .catch(handleError),
+
+  
     
 };
 
