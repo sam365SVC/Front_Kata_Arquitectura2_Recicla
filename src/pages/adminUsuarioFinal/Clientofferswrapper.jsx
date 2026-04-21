@@ -13,6 +13,8 @@ import { MdOutlineDevices } from "react-icons/md";
 import styles from "./ClientOffersWrapper.module.scss";
 import MisCotizaciones from "./components/MisCotizaciones";
 
+import SaldoScreen from "./components/SaldoScreen";
+
 import { useSelector, useDispatch } from "react-redux";
 import {
   selectUser,
@@ -46,7 +48,9 @@ const renderContent = (tab, props) => {
   switch (tab) {
     case "cotizaciones":
       return <MisCotizaciones {...props} />;
-
+    
+    case "pagos":
+      return <SaldoScreen {...props} />;
     default:
       return (
         <div
