@@ -13,6 +13,7 @@ import {
   FiSmartphone,
   FiCalendar,
   FiHash,
+  FiXSquare,
 } from "react-icons/fi";
 import { MdOutlineDevices, MdOutlineHistory } from "react-icons/md";
 import styles from "./DetailDrawer.module.scss";
@@ -118,14 +119,14 @@ const DetailDrawer = ({ inspeccion, onClose }) => {
               <FiHash size={11} style={{ marginRight: 3 }} />
               {inspeccion._id}
             </span>
-            <StatusBadge estado={inspeccion.estado} />
+          
           </div>
 
           <div className={styles.banner__client}>
-            <FiUser size={12} style={{ marginRight: 5 }} />
+            <FiUser size={8} style={{ marginRight: 5 }} />
             {cliente?.nombre || "—"}
             <span className={styles.banner__sep}>·</span>
-            <FiCalendar size={12} style={{ marginRight: 5 }} />
+            <FiCalendar size={8} style={{ marginRight: 5 }} />
             {fmtShort(inspeccion.createdAt)}
           </div>
         </div>
@@ -134,41 +135,6 @@ const DetailDrawer = ({ inspeccion, onClose }) => {
         <div className={styles.body}>
 
           {/* Timeline horizontal */}
-          <div className={styles.timeline}>
-            {FLUJO_INSPECCION.map((f, i) => {
-              const Icon   = f.icon;
-              const esDone = i < pasoActual - 1;
-              const esCurr = f.key === inspeccion.estado;
-
-              return (
-                <React.Fragment key={f.key}>
-                  <div className={styles.timeline__step}>
-                    <div
-                      className={`${styles.timeline__node}
-                        ${esDone ? styles["timeline__node--done"]    : ""}
-                        ${esCurr ? styles["timeline__node--current"] : ""}
-                      `}
-                    >
-                      <Icon size={14} />
-                    </div>
-                    <span
-                      className={`${styles.timeline__label}
-                        ${esDone ? styles["timeline__label--done"]    : ""}
-                        ${esCurr ? styles["timeline__label--current"] : ""}
-                      `}
-                    >
-                      {f.label}
-                    </span>
-                    {esCurr && <span className={styles.timeline__pill}>Actual</span>}
-                  </div>
-
-                  {i < FLUJO_INSPECCION.length - 1 && (
-                    <div className={`${styles.timeline__line} ${esDone ? styles["timeline__line--done"] : ""}`} />
-                  )}
-                </React.Fragment>
-              );
-            })}
-          </div>
 
           {/* Resumen de inspección */}
           <SectionCard icon={FiClipboard} title="Resumen de inspección" accent="primary">

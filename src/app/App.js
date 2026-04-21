@@ -57,7 +57,9 @@ import {
   CheckoutPago,
   CrearSuscripcion,
   AdminEmpresa,
-  Inspector
+  Inspector,
+  RegistroPage,
+  RegistroEmpleado
 } from '../pages';
 
 function App() {
@@ -137,6 +139,8 @@ function App() {
         <Route path="/crear-suscripcion/:id" element={<CrearSuscripcion />} />
         <Route path="/admin-empresa" element={<AdminEmpresa />} />
         <Route path="/inspector" element={<Inspector />} />
+        <Route path="/registro" element={<RegistroPage  />} />
+        <Route path="/registro-empleado" element={<RegistroEmpleado />} />
       </Routes>
     </div>
   );
