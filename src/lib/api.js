@@ -1,3 +1,65 @@
+import axios from 'axios';
+import { store } from '../store/index';
+
+
+// por ahora con la api del microservicio del core
+//NOTA: CAMBIAR CON LA INTEGRACION DE LOS DEMAS
+const api = axios.create({
+  baseURL: 'http://localhost:3000/api/',
+});
+const apiFlags = axios.create({
+  baseURL: 'http://localhost:3004',
+});
+const METODO_TRANSFERENCIA = 'TRANSFERENCIA';
+
+const normalizarMetodoPago = (metodo) => {
+  const valor = String(metodo || '').trim().toUpperCase();
+
+  if (valor === 'TRANSFERENCIA') return METODO_TRANSFERENCIA;
+
+  return valor;
+};
+
+// request interceptor
+/*
+api.interceptors.request.use((config) => {
+  const state = store.getState();
+  const user = state?.login?.user;
+
+  if (user?.token) {
+    if (user.expiresAt && Date.now() > user.expiresAt) {
+      store.dispatch({ type: 'login/logout' });
+      return Promise.reject({
+        message: 'Sesión expirada',
+        status: 401,
+      });
+    }
+
+    config.headers['x-token'] = user.token;
+  }
+
+  return config;
+});
+*/
+//TRAMPEADA TEMPORAL
+
+
+// response interceptor
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response) {
+      const errorData = {
+        message:
+          error.response.data?.msg ||
+          error.response.data?.message ||
+          'Error en la petición',
+        status: error.response.status,
+        data: error.response.data,
+      };
+
+      if (error.response.status === 401) {
+        store.dispatch({ type: 'login/logout' });
 import axios from "axios";
 import { store } from "../store/index";
 
@@ -124,6 +186,16 @@ export const authApi = {
       .put(`/${id}/plan`, data)
       .then((res) => res.data)
       .catch(handleError),
+  activarUsuarioEmpresa: (data) =>
+    apiAuth
+      .post("/empleados/activar", data)
+      .then((res) => res.data)
+      .catch(handleError),
+  getAllTenants: (params = {}) =>
+  apiAuth
+    .get("/tenants", { params })
+    .then((res) => res.data)
+    .catch(handleError),
 };
 
 // alias viejo
@@ -431,6 +503,11 @@ export const empresasApi = {
   createUsuarioEmpresa: (data) =>
     apiAuth
       .post("/empleados/invitar", data)
+      .then((res) => res.data)
+      .catch(handleError),
+  activarUsuarioEmpresa: (data) =>
+    apiAuth
+      .post("/empleados/activar", data)
       .then((res) => res.data)
       .catch(handleError),
 

@@ -1,66 +1,261 @@
-import React, { useEffect, useState, useRef } from 'react'
+import React, { useEffect, useState, useRef, useCallback } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet'
-import L from 'leaflet'
-import 'leaflet/dist/leaflet.css'
+import mapboxgl from 'mapbox-gl'
+import 'mapbox-gl/dist/mapbox-gl.css'
 import { FiNavigation, FiCheck, FiPackage, FiMapPin, FiPhone } from 'react-icons/fi'
 import { useSocket } from '../../../../socket/SocketContext'
 import { fetchOrdenes } from '../../../../store/thunks/ordenesThunks'
 import styles from './MiRuta.module.scss'
 
-delete L.Icon.Default.prototype._getIconUrl
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-  iconUrl:       'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-  shadowUrl:     'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-})
+mapboxgl.accessToken = process.env.REACT_APP_MAPBOX_TOKEN
+ 
 
-const makeIcon = (color, size = 14) => L.divIcon({
-  className: '',
-  html: `<div style="background:${color};border-radius:50%;width:${size}px;height:${size}px;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.3)"></div>`,
-  iconSize: [size, size], iconAnchor: [size / 2, size / 2],
-})
-
-const ICON_YO       = makeIcon('#FC6441', 18)
-const ICON_RECOGIDA = makeIcon('#79864B', 14)
-const ICON_DESTINO  = makeIcon('#0e3b46', 16)
-const ICON_DONE     = makeIcon('#1A7A56', 14)
-
-/**
- * Reorganiza los waypoints asegurando que kiosco y almacen_central
- * siempre queden al final del arreglo como punto final de la ruta.
- */
 const ordenarWaypoints = (waypoints) => {
   const recogidas = waypoints.filter(w => w.tipo === 'origen')
   const destinos  = waypoints.filter(w => w.tipo === 'kiosco' || w.tipo === 'almacen_central')
   return [...recogidas, ...destinos]
 }
-
+ 
 const CondicionBadge = ({ c }) => {
-  const cls = { excelente: styles['cond--excelente'], bueno: styles['cond--bueno'], regular: styles['cond--regular'], malo: styles['cond--malo'] }
+  const cls = {
+    excelente: styles['cond--excelente'],
+    bueno:     styles['cond--bueno'],
+    regular:   styles['cond--regular'],
+    malo:      styles['cond--malo'],
+  }
   return <span className={`${styles.cond} ${cls[c] || ''}`}>{c}</span>
 }
-
+ 
+// Colores por tipo de waypoint (deben coincidir con tu paleta)
+const MARKER_COLOR = {
+  done:    '#1A7A56',
+  destino: '#0e3b46',
+  origen:  '#79864B',
+  yo:      '#FC6441',
+}
+ 
 const MiRuta = () => {
   const dispatch = useDispatch()
   const { lista: ordenes } = useSelector(s => s.ordenes)
   const { emitirGPS, completarWaypoint, connected } = useSocket()
-
+ 
   // reemplazar con auth
   const conductorId = 'user_dev_001'
-
-  const [miPos,       setMiPos]       = useState(null)
-  const [trackingOn,  setTrackingOn]  = useState(false)
-  const [wpExpanded, setWpExpanded] = useState(null) // índice del waypoint con detalle abierto
-  const watchRef = useRef(null)
-
-  const ordenActiva = ordenes.find(o => ['asignada', 'en_ruta', 'en_punto'].includes(o.estado))
-
+ 
+  const [miPos,      setMiPos]      = useState(null)
+  const [trackingOn, setTrackingOn] = useState(false)
+  const [wpExpanded, setWpExpanded] = useState(null)
+  const [mapReady,   setMapReady]   = useState(false)
+ 
+  const mapContainerRef = useRef(null)
+  const mapRef          = useRef(null)
+  const watchRef        = useRef(null)
+  const miMarkerRef     = useRef(null)
+  const wpMarkersRef    = useRef([])   // array de mapboxgl.Marker
+ 
+  const ordenActiva = ordenes.find(o =>
+    ['asignada', 'en_ruta', 'en_punto'].includes(o.estado)
+  )
+ 
   useEffect(() => {
     dispatch(fetchOrdenes({ estado: ['en_ruta', 'asignada'] }))
   }, [dispatch])
-
-  // GPS del navegador \
+ 
+  const waypointsRaw = ordenActiva?.ruta?.waypoints || []
+  const waypoints    = ordenarWaypoints(waypointsRaw)
+  const proximoIdx   = waypoints.findIndex(w => !w.completado)
+ 
+  // Centro inicial: primer waypoint con coords o La Paz como fallback
+  const centerCoords = waypoints[0]?.lat
+    ? [waypoints[0].lng, waypoints[0].lat]
+    : [-68.15, -16.5]
+ 
+  // Inicializar Mapbox 
+  useEffect(() => {
+    if (mapRef.current || !mapContainerRef.current) return
+ 
+    mapRef.current = new mapboxgl.Map({
+      container: mapContainerRef.current,
+      style:     'mapbox://styles/mapbox/streets-v12',
+      center:    centerCoords,
+      zoom:      13,
+      attributionControl: false,
+    })
+ 
+    mapRef.current.addControl(new mapboxgl.AttributionControl({ compact: true }))
+    mapRef.current.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'bottom-right')
+ 
+    mapRef.current.on('load', () => setMapReady(true))
+ 
+    return () => {
+      mapRef.current?.remove()
+      mapRef.current = null
+    }
+  }, [])
+ 
+  // Dibujar ruta real con OSRM 
+  const dibujarRuta = useCallback(async (wps, posChofer) => {
+    const map = mapRef.current
+    if (!map || !mapReady) return
+ 
+    const coordsValidas = wps.filter(w => w.lat && w.lng)
+    if (coordsValidas.length < 1) return
+ 
+    // Si tenemos posición del chofer, la ponemos primero
+    const puntosRuta = posChofer
+      ? [{ lng: posChofer.lng, lat: posChofer.lat }, ...coordsValidas]
+      : coordsValidas
+ 
+    if (puntosRuta.length < 2) return
+ 
+    const coordStr = puntosRuta.map(p => `${p.lng},${p.lat}`).join(';')
+ 
+    try {
+      const res  = await fetch(
+        `https://router.project-osrm.org/route/v1/driving/${coordStr}?overview=full&geometries=geojson`
+      )
+      const data = await res.json()
+ 
+      if (!data.routes?.length) return
+      const geojson = data.routes[0].geometry
+ 
+      // Actualizar o crear source + layer
+      if (map.getSource('ruta')) {
+        map.getSource('ruta').setData({
+          type: 'Feature',
+          geometry: geojson,
+        })
+      } else {
+        map.addSource('ruta', {
+          type: 'geojson',
+          data: { type: 'Feature', geometry: geojson },
+        })
+ 
+        // Sombra de la línea
+        map.addLayer({
+          id:     'ruta-shadow',
+          type:   'line',
+          source: 'ruta',
+          paint:  {
+            'line-color': 'rgba(0,0,0,0.15)',
+            'line-width': 8,
+            'line-blur':  4,
+          },
+        })
+ 
+        // Línea principal
+        map.addLayer({
+          id:     'ruta-line',
+          type:   'line',
+          source: 'ruta',
+          paint:  {
+            'line-color':      '#79864B',
+            'line-width':      4,
+            'line-dasharray':  [2, 1.5],
+          },
+        })
+      }
+ 
+      // Ajustar cámara para mostrar toda la ruta (incluida posición del chofer)
+      const bounds = new mapboxgl.LngLatBounds()
+      puntosRuta.forEach(p => bounds.extend([p.lng, p.lat]))
+      map.fitBounds(bounds, { padding: 60, maxZoom: 15, duration: 900 })
+    } catch (err) {
+      console.error('[OSRM ruta]', err)
+    }
+  }, [mapReady])
+ 
+  // Colocar marcadores de waypoints 
+  const dibujarMarcadores = useCallback((wps) => {
+    const map = mapRef.current
+    if (!map || !mapReady) return
+ 
+    // Limpiar marcadores anteriores
+    wpMarkersRef.current.forEach(m => m.remove())
+    wpMarkersRef.current = []
+ 
+    wps.forEach((w, i) => {
+      if (!w.lat || !w.lng) return
+ 
+      const esDestino = w.tipo === 'kiosco' || w.tipo === 'almacen_central'
+      const color     = w.completado ? MARKER_COLOR.done
+                      : esDestino    ? MARKER_COLOR.destino
+                      :                MARKER_COLOR.origen
+ 
+      // Elemento del marcador personalizado
+      const el = document.createElement('div')
+      el.style.cssText = `
+        background: ${color};
+        width: ${esDestino ? '32px' : '28px'};
+        height: ${esDestino ? '32px' : '28px'};
+        border-radius: 50%;
+        border: 3px solid white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 900;
+        font-size: 11px;
+        font-family: sans-serif;
+        cursor: pointer;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+        transition: transform 0.15s ease;
+        ${i === wps.findIndex(wp => !wp.completado) ? 'box-shadow: 0 0 0 4px rgba(121,134,75,0.35), 0 2px 8px rgba(0,0,0,0.35);' : ''}
+      `
+      el.textContent = i + 1
+      el.addEventListener('mouseenter', () => { el.style.transform = 'scale(1.15)' })
+      el.addEventListener('mouseleave', () => { el.style.transform = 'scale(1)' })
+ 
+      const popup = new mapboxgl.Popup({ offset: 20, closeButton: false })
+        .setHTML(`
+          <div style="font-family:sans-serif;padding:4px 2px">
+            <strong style="font-size:13px">${i + 1}. ${w.nombre}</strong>
+            <p style="margin:3px 0 0;font-size:11px;color:#666">${w.tipo?.replace(/_/g, ' ')}</p>
+            ${w.completado ? '<p style="margin:3px 0 0;font-size:11px;color:#1A7A56;font-weight:700">✓ Completado</p>'
+              : i === wps.findIndex(wp => !wp.completado) ? '<p style="margin:3px 0 0;font-size:11px;color:#79864B;font-weight:700">⟳ Próxima parada</p>'
+              : '<p style="margin:3px 0 0;font-size:11px;color:#999">Pendiente</p>'}
+          </div>
+        `)
+ 
+      const marker = new mapboxgl.Marker({ element: el, anchor: 'center' })
+        .setLngLat([w.lng, w.lat])
+        .setPopup(popup)
+        .addTo(map)
+ 
+      wpMarkersRef.current.push(marker)
+    })
+  }, [mapReady])
+ 
+  // Redibujar cuando cambien waypoints, posición del chofer o el mapa esté listo
+  useEffect(() => {
+    if (!mapReady || !waypoints.length) return
+    dibujarRuta(waypoints, miPos)
+    dibujarMarcadores(waypoints)
+  }, [mapReady, waypoints, miPos, dibujarRuta, dibujarMarcadores])
+ 
+  // Marcador de posición propia
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !mapReady || !miPos) return
+ 
+    if (!miMarkerRef.current) {
+      const el = document.createElement('div')
+      el.style.cssText = `
+        background: ${MARKER_COLOR.yo};
+        width: 20px; height: 20px; border-radius: 50%;
+        border: 3px solid white;
+        box-shadow: 0 0 0 4px rgba(252,100,65,0.3), 0 2px 8px rgba(0,0,0,0.4);
+      `
+      miMarkerRef.current = new mapboxgl.Marker({ element: el, anchor: 'center' })
+        .setLngLat([miPos.lng, miPos.lat])
+        .setPopup(new mapboxgl.Popup({ closeButton: false }).setText('Mi posición'))
+        .addTo(map)
+    } else {
+      miMarkerRef.current.setLngLat([miPos.lng, miPos.lat])
+    }
+  }, [miPos, mapReady])
+ 
+  // GPS del navegador
   const iniciarTracking = () => {
     if (!navigator.geolocation) return
     setTrackingOn(true)
@@ -68,40 +263,40 @@ const MiRuta = () => {
       (pos) => {
         const { latitude: lat, longitude: lng, speed } = pos.coords
         setMiPos({ lat, lng })
-        emitirGPS({ lat, lng, velocidad: speed ? Math.round(speed * 3.6) : 0, ordenId: ordenActiva?._id || null, conductorId })
+        emitirGPS({
+          lat, lng,
+          velocidad: speed ? Math.round(speed * 3.6) : 0,
+          ordenId:   ordenActiva?._id || null,
+          conductorId,
+        })
       },
       (err) => console.error('[GPS]', err),
       { enableHighAccuracy: true, maximumAge: 3000, timeout: 5000 }
     )
   }
-
+ 
   const detenerTracking = () => {
-    if (watchRef.current) { navigator.geolocation.clearWatch(watchRef.current); watchRef.current = null }
+    if (watchRef.current) {
+      navigator.geolocation.clearWatch(watchRef.current)
+      watchRef.current = null
+    }
     setTrackingOn(false)
   }
-
+ 
   useEffect(() => () => detenerTracking(), [])
-
-  // Waypoints reordenados: recogidas primero, destinos al final
-  const waypointsRaw     = ordenActiva?.ruta?.waypoints || []
-  const waypoints        = ordenarWaypoints(waypointsRaw)
-  const rutaLine         = waypoints.filter(w => w.lat && w.lng).map(w => [w.lat, w.lng])
-  const center           = miPos ? [miPos.lat, miPos.lng] : waypoints[0]?.lat ? [waypoints[0].lat, waypoints[0].lng] : [-16.5, -68.15]
-  const proximoIdx       = waypoints.findIndex(w => !w.completado)
-
-  // Búsqueda de datos del equipo correspondiente a un waypoint de origen
-  // Usa el índice original para mantener coherencia con el backend
-  const getEquipoPorWp = (wpIdx) => {
-    return ordenActiva?.equipos?.[wpIdx] || null
-  }
-
+ 
+  const getEquipoPorWp = (wpIdx) => ordenActiva?.equipos?.[wpIdx] || null
+ 
   return (
     <div className={styles.wrap}>
+ 
       {/* Track bar */}
       <div className={styles.trackBar}>
         <div className={styles.trackBar__info}>
           <span className={`${styles.trackDot} ${trackingOn ? styles['trackDot--on'] : ''}`} />
-          <span className={styles.trackLabel}>{trackingOn ? 'Enviando posición...' : 'GPS inactivo'}</span>
+          <span className={styles.trackLabel}>
+            {trackingOn ? 'Enviando posición...' : 'GPS inactivo'}
+          </span>
         </div>
         <button
           className={`${styles.trackBtn} ${trackingOn ? styles['trackBtn--stop'] : ''}`}
@@ -112,42 +307,12 @@ const MiRuta = () => {
           {trackingOn ? 'Detener GPS' : 'Iniciar GPS'}
         </button>
       </div>
-
-      {/* Mapa */}
+ 
+      {/* Mapa Mapbox */}
       <div className={styles.mapWrap}>
-        <MapContainer center={center} zoom={14} style={{ width: '100%', height: '100%' }}>
-          <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org">OpenStreetMap</a>'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
-
-          {miPos && (
-            <Marker position={[miPos.lat, miPos.lng]} icon={ICON_YO}>
-              <Popup>Mi posición actual</Popup>
-            </Marker>
-          )}
-
-          {waypoints.map((w, i) => {
-            if (!w.lat || !w.lng) return null
-            const esDestino = w.tipo === 'kiosco' || w.tipo === 'almacen_central'
-            const icon = w.completado ? ICON_DONE : esDestino ? ICON_DESTINO : ICON_RECOGIDA
-            return (
-              <Marker key={i} position={[w.lat, w.lng]} icon={icon}>
-                <Popup>
-                  <strong>{i + 1}. {w.nombre}</strong><br />
-                  {w.tipo?.replace(/_/g, ' ')}<br />
-                  {w.completado ? '✓ Completado' : i === proximoIdx ? '⟳ Próxima parada' : 'Pendiente'}
-                </Popup>
-              </Marker>
-            )
-          })}
-
-          {rutaLine.length > 1 && (
-            <Polyline positions={rutaLine} pathOptions={{ color: '#79864B', weight: 3, dashArray: '6 4', opacity: 0.75 }} />
-          )}
-        </MapContainer>
+        <div ref={mapContainerRef} style={{ width: '100%', height: '100%' }} />
       </div>
-
+ 
       {/* Lista de waypoints */}
       {ordenActiva ? (
         <div className={styles.waypointsList}>
@@ -159,56 +324,78 @@ const MiRuta = () => {
               {ordenActiva.ruta?.distanciaKm} km total
             </p>
           </div>
-
+ 
           {waypoints.map((w, i) => {
             const esDestino  = w.tipo === 'kiosco' || w.tipo === 'almacen_central'
             const esProximo  = i === proximoIdx
             const equipo     = !esDestino ? getEquipoPorWp(waypointsRaw.indexOf(w)) : null
             const isExpanded = wpExpanded === i
-
+ 
             return (
-              <div key={i} className={`${styles.wp} ${w.completado ? styles['wp--done'] : ''} ${esProximo ? styles['wp--proximo'] : ''} ${esDestino ? styles['wp--destino'] : ''}`}>
+              <div
+                key={i}
+                className={`
+                  ${styles.wp}
+                  ${w.completado ? styles['wp--done']    : ''}
+                  ${esProximo    ? styles['wp--proximo'] : ''}
+                  ${esDestino    ? styles['wp--destino'] : ''}
+                `}
+              >
                 {/* Fila principal */}
                 <div className={styles.wp__main}>
-                  <div className={`${styles.wp__num} ${esDestino ? styles['wp__num--destino'] : ''}`}>{i + 1}</div>
+                  <div className={`${styles.wp__num} ${esDestino ? styles['wp__num--destino'] : ''}`}>
+                    {i + 1}
+                  </div>
                   <div className={styles.wp__body}>
-                    {esProximo && !w.completado && <span className={styles.wp__proximoTag}>Próxima parada</span>}
+                    {esProximo && !w.completado && (
+                      <span className={styles.wp__proximoTag}>Próxima parada</span>
+                    )}
                     <p className={styles.wp__nombre}>{w.nombre}</p>
                     <p className={styles.wp__tipo}>{w.tipo?.replace(/_/g, ' ')}</p>
-                    {w.direccion && <p className={styles.wp__dir}><FiMapPin size={11} /> {w.direccion}</p>}
+                    {w.direccion  && <p className={styles.wp__dir}><FiMapPin size={11} /> {w.direccion}</p>}
                     {w.referencia && <p className={styles.wp__ref}>{w.referencia}</p>}
                   </div>
-
+ 
                   {!w.completado ? (
-                    <button className={styles.wp__btn}
-                      onClick={() => completarWaypoint({ ordenId: ordenActiva._id, waypointIndex: waypointsRaw.indexOf(w) })}>
+                    <button
+                      className={styles.wp__btn}
+                      onClick={() => completarWaypoint({
+                        ordenId:       ordenActiva._id,
+                        waypointIndex: waypointsRaw.indexOf(w),
+                      })}
+                    >
                       <FiCheck size={14} /> Llegué
                     </button>
                   ) : (
                     <span className={styles.wp__doneTag}><FiCheck size={14} /> Listo</span>
                   )}
                 </div>
-
-                {/* Info del equipo para paradas de recogida */}
+ 
+                {/* Expandir equipo — paradas de recogida */}
                 {!esDestino && (
-                  <button className={styles.wp__expandBtn} onClick={() => setWpExpanded(isExpanded ? null : i)}>
+                  <button
+                    className={styles.wp__expandBtn}
+                    onClick={() => setWpExpanded(isExpanded ? null : i)}
+                  >
                     <FiPackage size={12} />
                     Ver equipo a recoger
                     <span className={styles.wp__expandArrow}>{isExpanded ? '▲' : '▼'}</span>
                   </button>
                 )}
-
+ 
                 {!esDestino && isExpanded && (
                   <div className={styles.wp__equipoCard}>
-                    {/* Datos del cliente */}
+                    {/* Cliente */}
                     <div className={styles.equipoSec}>
                       <p className={styles.equipoSec__title}>Cliente</p>
                       <div className={styles.equipoRow}>
                         <FiPhone size={11} />
-                        <span>{ordenActiva.cliente?.nombre} · {ordenActiva.cliente?.telefono || 'Sin teléfono'}</span>
+                        <span>
+                          {ordenActiva.cliente?.nombre} · {ordenActiva.cliente?.telefono || 'Sin teléfono'}
+                        </span>
                       </div>
                     </div>
-
+ 
                     {/* Origen */}
                     <div className={styles.equipoSec}>
                       <p className={styles.equipoSec__title}>Dirección de recogida</p>
@@ -220,7 +407,7 @@ const MiRuta = () => {
                         <p className={styles.equipoRef}>{ordenActiva.origen.referencia}</p>
                       )}
                     </div>
-
+ 
                     {/* Equipos */}
                     {ordenActiva.equipos?.length > 0 && (
                       <div className={styles.equipoSec}>
@@ -241,20 +428,25 @@ const MiRuta = () => {
                     )}
                   </div>
                 )}
-
-                {/* Destino final: info del kiosco/almacén */}
-                {esDestino && isExpanded && (
-                  <div className={styles.wp__equipoCard}>
-                    <p className={styles.equipoSec__title}>Punto de entrega final</p>
-                    <p className={styles.equipoRow}><FiMapPin size={11} /> {w.nombre} · {w.tipo?.replace(/_/g, ' ')}</p>
-                  </div>
-                )}
-
+ 
+                {/* Destino final */}
                 {esDestino && (
-                  <button className={styles.wp__expandBtn} onClick={() => setWpExpanded(isExpanded ? null : i)}>
+                  <button
+                    className={styles.wp__expandBtn}
+                    onClick={() => setWpExpanded(isExpanded ? null : i)}
+                  >
                     <FiMapPin size={12} /> Destino final
                     <span className={styles.wp__expandArrow}>{isExpanded ? '▲' : '▼'}</span>
                   </button>
+                )}
+ 
+                {esDestino && isExpanded && (
+                  <div className={styles.wp__equipoCard}>
+                    <p className={styles.equipoSec__title}>Punto de entrega final</p>
+                    <p className={styles.equipoRow}>
+                      <FiMapPin size={11} /> {w.nombre} · {w.tipo?.replace(/_/g, ' ')}
+                    </p>
+                  </div>
                 )}
               </div>
             )
@@ -269,5 +461,5 @@ const MiRuta = () => {
     </div>
   )
 }
-
+ 
 export default MiRuta

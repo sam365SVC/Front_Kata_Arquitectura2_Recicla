@@ -53,7 +53,10 @@ import {
   CheckoutPago,
   CrearSuscripcion,
   AdminEmpresa,
-  Inspector
+  Inspector,
+  RegistroPage,
+  RegistroEmpleado,
+  AdminService
 } from '../pages';
 
 function App() {
@@ -118,6 +121,19 @@ function App() {
         <Route path="/contact" element={<Contact />} />
         <Route path="*" element={<Error />} />
 
+        <Route path="/admin" element={<Admin />} />
+       
+        <Route path="/admin-usfin" element={<AdminUsuarioFinal />} />
+        <Route path="/despachador" element={<Despachador />} />
+        <Route path="/conductor" element={<Conductor />} />
+        <Route path="/planes-pagos" element={<PlanesPagos />} />
+        <Route path="/checkout-pagos/:id" element={<CheckoutPago />} />
+        <Route path="/crear-suscripcion/:id" element={<CrearSuscripcion />} />
+        <Route path="/admin-empresa" element={<AdminEmpresa />} />
+        <Route path="/inspector" element={<Inspector />} />
+        <Route path="/registro" element={<RegistroPage  />} />
+        <Route path="/registro-empleado" element={<RegistroEmpleado />} />
+        <Route path="/admin-servicio" element={<AdminService />} />
         <Route
 
           path="/admin"
@@ -140,9 +156,24 @@ function App() {
 
           element={
 
-            <ProtectedRoute allowedRoles={["SUPERADMIN", "ADMIN_TENANT"]}>
+            <ProtectedRoute allowedRoles={["ADMIN_TENANT"]}>
 
               <AdminEmpresa />
+
+            </ProtectedRoute>
+
+          }
+
+        />
+        <Route
+
+          path="/admin-servicio"
+
+          element={
+
+            <ProtectedRoute allowedRoles={["SUPERADMIN"]}>
+
+              <AdminService />
 
             </ProtectedRoute>
 

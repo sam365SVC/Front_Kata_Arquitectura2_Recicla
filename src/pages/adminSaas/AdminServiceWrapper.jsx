@@ -1,105 +1,196 @@
 import React, { useEffect, useMemo, useState } from "react";
 import {
-  FiClipboard,
   FiMenu,
   FiChevronLeft,
   FiChevronRight,
   FiLogOut,
-  FiTool,
+  FiUsers,
+  FiSettings,
+  FiCreditCard,
 } from "react-icons/fi";
+import { MdOutlineBusinessCenter } from "react-icons/md";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 
-import styles from "./ClientOffersWrapper.module.scss";
-import MisInspecciones from "./components/MisInspecciones";
+import styles from "./AdminServicioWrapper.module.scss";
+import UsuariosEmpresa from "./components/UsuariosEmpresa";
+import TiposDispositivoEmpresa from "./components/TiposDispositivoEmpresa";
+import EmpresasService from "./components/EmpresasServicio";
+import IngresosService from "./components/IngresosServicio";
+import GastosService from "./components/GastosServicio";
 
 import { logout } from "../signin/slices/loginSlice";
-import { selectUser } from "../signin/slices/loginSelectors";
+import {
+  selectTenantId,
+  selectTenantName,
+  selectUser,
+} from "../signin/slices/loginSelectors";
 
 const NAV_ITEMS = [
   {
-    id: "asignadas",
-    label: "Inspecciones asignadas",
-    icon: FiClipboard,
-    title: "Inspecciones asignadas",
-    description: "Revisa y gestiona las inspecciones técnicas que tienes asignadas.",
+    id: "usuariosEmpresa",
+    label: "Usuarios de la empresa",
+    icon: FiUsers,
+    title: "Gestión de usuarios",
+    description:
+      "Administra empleados, accesos y usuarios asociados a la empresa.",
+  },
+  {
+    id: "tiposDispositivo",
+    label: "Tipos de dispositivos",
+    icon: FiSettings,
+    title: "Administración de dispositivos",
+    description:
+      "Configura qué dispositivos se recepcionan y qué condiciones serán consideradas.",
+  },
+  {
+
+    id: "empresas",
+
+    label: "Mis empresas",
+
+    icon: MdOutlineBusinessCenter,
+
+    title: "Gestión de empresas",
+
+    description:
+
+      "Administra los tenants registrados en la plataforma.",
+
+  },
+
+  {
+
+    id: "ingresos",
+
+    label: "Mis ingresos",
+
+    icon: FiCreditCard,
+
+    title: "Ingresos por suscripciones",
+
+    description:
+
+      "Visualiza pagos, planes y métricas de ingresos del sistema.",
+
+  },
+
+  {
+
+    id: "gastos",
+
+    label: "Mis gastos",
+
+    icon: FiSettings,
+
+    title: "Gastos operativos",
+
+    description:
+
+      "Controla los pagos realizados a clientes por dispositivos.",
+
   },
 ];
 
-const renderContent = (tab) => {
+const renderContent = (tab, props) => {
   switch (tab) {
-    case "asignadas":
-      return <MisInspecciones />;
+    case "usuariosEmpresa":
+      return <UsuariosEmpresa {...props} />;
+
+    case "tiposDispositivo":
+      return <TiposDispositivoEmpresa {...props} />;
+
+    case "empresas":
+      return <EmpresasService {...props} />;
+
+    case "ingresos":
+      return <IngresosService {...props} />;
+
+    case "gastos":
+      return <GastosService {...props} />;
+
     default:
-      return <MisInspecciones />;
+      return <UsuariosEmpresa {...props} />;
   }
 };
 
 const getInitials = (name = "") => {
-  if (!name.trim()) return "IN";
+  if (!name.trim()) return "AE";
 
   return name
     .split(" ")
     .filter(Boolean)
     .slice(0, 2)
-    .map((p) => p[0])
+    .map((part) => part[0])
     .join("")
     .toUpperCase();
 };
 
 const getDisplayNameFromEmail = (email = "") => {
-  if (!email || !email.includes("@")) return "Inspector";
+  if (!email || !email.includes("@")) return "Administrador";
 
-  return email
-    .split("@")[0]
+  const localPart = email.split("@")[0];
+
+  return localPart
     .split(/[._-]/)
     .filter(Boolean)
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(" ");
 };
 
-const InspectorWrapper = ({
-  inspectorNombre: inspectorNombreProp,
-  inspectorEmail: inspectorEmailProp,
+const AdminEmpresaWrapper = ({
+  empresaNombre: empresaNombreProp,
+  adminNombre: adminNombreProp,
+  adminEmail: adminEmailProp,
+  tenantId: tenantIdProp,
 }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const user = useSelector(selectUser);
+  const tenantIdState = useSelector(selectTenantId);
+  const tenantNameState = useSelector(selectTenantName);
 
-  const [activeTab, setActiveTab] = useState("asignadas");
+  const [activeTab, setActiveTab] = useState("usuariosEmpresa");
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  const inspectorEmail =
-    inspectorEmailProp || user?.mail || user?.email || "inspector@email.com";
+  const userEmail =
+    adminEmailProp || user?.mail || user?.email || "sin-correo@empresa.com";
 
-  const inspectorNombre =
-    inspectorNombreProp ||
+  const userName =
+    adminNombreProp ||
     user?.nombres ||
     [user?.nombre, user?.apellido].filter(Boolean).join(" ") ||
-    getDisplayNameFromEmail(inspectorEmail);
+    getDisplayNameFromEmail(userEmail);
+
+  const empresaNombre =
+    empresaNombreProp ||
+    tenantNameState ||
+    user?.tenantNombre ||
+    "Mi empresa";
+
+  const adminNombre = userName;
+  const adminEmail = userEmail;
+  const tenantId = tenantIdProp || tenantIdState || user?.tenantId || "";
 
   const activeItem = useMemo(
-    () => NAV_ITEMS.find((n) => n.id === activeTab) || NAV_ITEMS[0],
+    () => NAV_ITEMS.find((item) => item.id === activeTab) || NAV_ITEMS[0],
     [activeTab]
   );
 
-  const iniciales = useMemo(
-    () => getInitials(inspectorNombre),
-    [inspectorNombre]
-  );
+  const iniciales = useMemo(() => getInitials(adminNombre), [adminNombre]);
 
   useEffect(() => {
-    const handle = () => {
+    const handleResize = () => {
       if (window.innerWidth > 991) setMobileOpen(false);
       if (window.innerWidth <= 991) setCollapsed(false);
     };
 
-    handle();
-    window.addEventListener("resize", handle);
-    return () => window.removeEventListener("resize", handle);
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   const handleNav = (id) => {
@@ -161,7 +252,7 @@ const InspectorWrapper = ({
 
         <div className={styles.mobileBar__info}>
           <h2>
-            Panel <span>Inspector</span>
+            Admin <span>Servicio</span>
           </h2>
           <p>{activeItem.label}</p>
         </div>
@@ -178,18 +269,21 @@ const InspectorWrapper = ({
         <aside className={sidebarClass}>
           <div className={styles.sidebar__brand}>
             <div className={styles.sidebar__brandIcon}>
-              <FiTool size={22} />
+              <MdOutlineBusinessCenter size={22} />
             </div>
+
             <div className={styles.sidebar__brandText}>
-              <h1>Inspector</h1>
-              <p>Panel operativo</p>
+              <h1>Admin Servicio</h1>
+              <p>Gestión global del sistema</p>
             </div>
           </div>
 
           <button
             className={styles.sidebar__toggleBtn}
-            onClick={() => setCollapsed((c) => !c)}
-            aria-label={collapsed ? "Expandir" : "Colapsar"}
+            onClick={() => setCollapsed((prev) => !prev)}
+            aria-label={
+              collapsed ? "Expandir menú lateral" : "Colapsar menú lateral"
+            }
             type="button"
           >
             {collapsed ? (
@@ -206,24 +300,24 @@ const InspectorWrapper = ({
 
           <nav
             className={styles.sidebar__nav}
-            aria-label="Navegación del inspector"
+            aria-label="Navegación del administrador de empresa"
           >
             {NAV_ITEMS.map((item) => {
               const Icon = item.icon;
-              const isAct = activeTab === item.id;
+              const isActive = activeTab === item.id;
 
               return (
                 <button
                   key={item.id}
                   className={[
                     styles.sidebar__navItem,
-                    isAct ? styles["sidebar__navItem--active"] : "",
+                    isActive ? styles["sidebar__navItem--active"] : "",
                   ]
                     .filter(Boolean)
                     .join(" ")}
                   onClick={() => handleNav(item.id)}
                   title={collapsed ? item.label : undefined}
-                  aria-current={isAct ? "page" : undefined}
+                  aria-current={isActive ? "page" : undefined}
                   type="button"
                 >
                   <span className={styles.sidebar__navIcon}>
@@ -238,9 +332,11 @@ const InspectorWrapper = ({
           <div className={styles.sidebar__footer}>
             <div className={styles.sidebar__footerUser}>
               <div className={styles.sidebar__footerAvatar}>{iniciales}</div>
+
               <div className={styles.sidebar__footerInfo}>
-                <p title={inspectorNombre}>{inspectorNombre}</p>
-                <span title={inspectorEmail}>{inspectorEmail}</span>
+                <p title={adminNombre}>{adminNombre}</p>
+                <span title={empresaNombre}>{empresaNombre}</span>
+                <small title={adminEmail}>{adminEmail}</small>
               </div>
 
               <button
@@ -257,11 +353,18 @@ const InspectorWrapper = ({
         </aside>
 
         <main className={styles.main}>
-          <div className={styles.contentBody}>{renderContent(activeTab)}</div>
+          <div className={styles.contentBody}>
+            {renderContent(activeTab, {
+              tenantId,
+              empresaNombre,
+              adminNombre,
+              adminEmail,
+            })}
+          </div>
         </main>
       </div>
     </>
   );
 };
 
-export default InspectorWrapper;
+export default AdminEmpresaWrapper;
