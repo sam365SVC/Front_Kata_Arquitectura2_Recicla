@@ -6,6 +6,7 @@ import { WOW } from 'wowjs';
 import Preloader from '../components/Preloader';
 import ScrollToTop from '../components/ScrollToTop';
 import LoadTop from '../components/ScrollToTop/LoadTop';
+import ProtectedRoute from "../components/auth/ProtectedRoute";
 
 import {
   About,
@@ -16,9 +17,6 @@ import {
   Cart,
   Checkout,
   Contact,
-  CourseDetails,
-  CourseOne,
-  CourseTwo,
   Error,
   Event,
   EventDetails,
@@ -48,8 +46,6 @@ import {
   TeacherDetails,
   Testimonial,
   Admin,
-  Estudiante,
-  Docente,
   AdminUsuarioFinal,
   Despachador,
   Conductor,
@@ -57,7 +53,10 @@ import {
   CheckoutPago,
   CrearSuscripcion,
   AdminEmpresa,
-  Inspector
+  Inspector,
+  RegistroPage,
+  RegistroEmpleado,
+  AdminService
 } from '../pages';
 
 function App() {
@@ -93,10 +92,6 @@ function App() {
         <Route path="/home-5" element={<HomeFive />} />
         <Route path="/home-5-one-page" element={<HomeFiveOnePage />} />
         <Route path="/about-us" element={<About />} />
-        <Route path="/course-1" element={<CourseOne />} />
-        <Route path="/course-2" element={<CourseTwo />} />
-        <Route path="/course-details" element={<CourseDetails />} />
-        <Route path="/course-details/:id" element={<CourseDetails />} />
         <Route path="/event" element={<Event />} />
         <Route path="/event-details" element={<EventDetails />} />
         <Route path="/teacher" element={<Teacher />} />
@@ -127,8 +122,7 @@ function App() {
         <Route path="*" element={<Error />} />
 
         <Route path="/admin" element={<Admin />} />
-        <Route path="/admin-estudiante" element={<Estudiante />} />
-        <Route path="/admin-docente" element={<Docente />} />
+       
         <Route path="/admin-usfin" element={<AdminUsuarioFinal />} />
         <Route path="/despachador" element={<Despachador />} />
         <Route path="/conductor" element={<Conductor />} />
@@ -137,6 +131,168 @@ function App() {
         <Route path="/crear-suscripcion/:id" element={<CrearSuscripcion />} />
         <Route path="/admin-empresa" element={<AdminEmpresa />} />
         <Route path="/inspector" element={<Inspector />} />
+        <Route path="/registro" element={<RegistroPage  />} />
+        <Route path="/registro-empleado" element={<RegistroEmpleado />} />
+        <Route path="/admin-servicio" element={<AdminService />} />
+        <Route
+
+          path="/admin"
+
+          element={
+
+            <ProtectedRoute allowedRoles={["ADMIN_LOGISTICA"]}>
+
+              <Admin />
+
+            </ProtectedRoute>
+
+          }
+
+        />
+
+        <Route
+
+          path="/admin-empresa"
+
+          element={
+
+            <ProtectedRoute allowedRoles={["ADMIN_TENANT"]}>
+
+              <AdminEmpresa />
+
+            </ProtectedRoute>
+
+          }
+
+        />
+        <Route
+
+          path="/admin-servicio"
+
+          element={
+
+            <ProtectedRoute allowedRoles={["SUPERADMIN"]}>
+
+              <AdminService />
+
+            </ProtectedRoute>
+
+          }
+
+        />
+
+        <Route
+
+          path="/admin-usuario-final"
+
+          element={
+
+            <ProtectedRoute allowedRoles={["CLIENTE"]}>
+
+              <AdminUsuarioFinal />
+
+            </ProtectedRoute>
+
+          }
+
+        />
+
+        <Route
+
+          path="/despachador"
+
+          element={
+
+            <ProtectedRoute allowedRoles={["DESPACHADOR"]}>
+
+              <Despachador />
+
+            </ProtectedRoute>
+
+          }
+
+        />
+
+        <Route
+
+          path="/conductor"
+
+          element={
+
+            <ProtectedRoute allowedRoles={["CONDUCTOR"]}>
+
+              <Conductor />
+
+            </ProtectedRoute>
+
+          }
+
+        />
+
+        <Route
+
+          path="/inspector"
+
+          element={
+
+            <ProtectedRoute allowedRoles={["INSPECTOR"]}>
+
+              <Inspector />
+
+            </ProtectedRoute>
+
+          }
+
+        />
+
+        <Route
+
+          path="/planes-pagos"
+
+          element={
+
+            <ProtectedRoute allowedRoles={["SUPERADMIN", "ADMIN_TENANT", "CLIENTE"]}>
+
+              <PlanesPagos />
+
+            </ProtectedRoute>
+
+          }
+
+        />
+
+        <Route
+
+          path="/checkout-pagos/:id"
+
+          element={
+
+            <ProtectedRoute allowedRoles={["SUPERADMIN", "ADMIN_TENANT", "CLIENTE"]}>
+
+              <CheckoutPago />
+
+            </ProtectedRoute>
+
+          }
+
+        />
+
+        <Route
+
+          path="/crear-suscripcion/:id"
+
+          element={
+
+            <ProtectedRoute allowedRoles={["SUPERADMIN", "ADMIN_TENANT", "CLIENTE"]}>
+
+              <CrearSuscripcion />
+
+            </ProtectedRoute>
+            }
+
+        />
+
+          
       </Routes>
     </div>
   );

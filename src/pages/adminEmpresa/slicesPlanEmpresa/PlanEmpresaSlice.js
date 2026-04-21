@@ -29,6 +29,7 @@ const planEmpresaSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+      // PLAN ACTUAL
       .addCase(fetchPlanEmpresa.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -42,6 +43,7 @@ const planEmpresaSlice = createSlice({
         state.error = action.payload || "No se pudo obtener el plan actual";
       })
 
+      // PLANES DISPONIBLES
       .addCase(fetchPlanesDisponibles.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -58,6 +60,7 @@ const planEmpresaSlice = createSlice({
           action.payload || "No se pudieron obtener los planes disponibles";
       })
 
+      // CAMBIAR PLAN
       .addCase(cambiarPlanEmpresa.pending, (state) => {
         state.loading = true;
         state.error = null;

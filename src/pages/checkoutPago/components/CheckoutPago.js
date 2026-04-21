@@ -353,7 +353,21 @@ const CheckoutPagos = ({ onBack, onSuccess }) => {
         razonSocial,
         nitCi,
       })
-    );
+    ).unwrap()
+  .then((res) => {
+    Swal.fire({
+      icon: "success",
+      title: "Pago confirmado",
+      text: res.message || "Operación exitosa",
+    });
+  })
+  .catch((error) => {
+    Swal.fire({
+      icon: "error",
+      title: "Error",
+      text: error || "Ocurrió un problema",
+    });
+  });
   }, [
     dispatch,
     metodoSeleccionado,
@@ -457,6 +471,7 @@ const CheckoutPagos = ({ onBack, onSuccess }) => {
           idSuscripcion: compra.idSuscripcion,
           total: montoPendienteCalculado,
           moneda: compra.moneda,
+          tipoPago: 'SAAS',
           gloss: "Pago de suscripción",
           additionalData: `Compra ${compra.idSuscripcion}`,
         })
@@ -495,6 +510,7 @@ const CheckoutPagos = ({ onBack, onSuccess }) => {
           idSuscripcion: compra.idSuscripcion,
           total: montoPendienteCalculado,
           tipo: tipoComprobante,
+          tipoPago: 'SAAS',
           razonSocial,
           nitCi,
         })
@@ -528,6 +544,7 @@ const CheckoutPagos = ({ onBack, onSuccess }) => {
           idSuscripcion: compra.idSuscripcion,
           total: montoPendienteCalculado,
           tipo: tipoComprobante,
+          tipoPago: 'SAAS',
           razonSocial,
           nitCi,
         })
@@ -561,6 +578,7 @@ const CheckoutPagos = ({ onBack, onSuccess }) => {
           idSuscripcion: compra.idSuscripcion,
           tipo: tipoComprobante,
           razonSocial,
+          tipoPago: 'SAAS',
           nitCi,
         })
       ).unwrap();
