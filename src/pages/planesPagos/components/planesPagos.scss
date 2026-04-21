@@ -1,15 +1,12 @@
-// planesPagos.scss
 @use '../../../assets/scss/utils/colors' as *;
 @use '../../../assets/scss/utils/typography' as *;
 
-// ─── Page wrapper ───────────────────────────────────────────────────────────
 .planes-pagos {
   min-height: 100vh;
   background-color: var(--it-grey-1);
   font-family: var(--it-font-body);
   padding: 0 0 80px;
 
-  // ─── Hero / header ────────────────────────────────────────────────────────
   &__hero {
     background-color: var(--it-black-3);
     padding: 72px 24px 56px;
@@ -22,7 +19,11 @@
       position: absolute;
       inset: 0;
       background:
-        radial-gradient(ellipse 60% 80% at 50% -10%, rgba(var(--it-main-3), .18) 0%, transparent 70%);
+        radial-gradient(
+          ellipse 60% 80% at 50% -10%,
+          rgba(var(--it-main-3), .18) 0%,
+          transparent 70%
+        );
       pointer-events: none;
     }
   }
@@ -61,29 +62,28 @@
     margin: 0 auto;
   }
 
-  // ─── Cards grid ──────────────────────────────────────────────────────────
   &__grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 24px;
-  max-width: 1200px;
-  margin: -40px auto 0;
-  padding: 0 24px;
-  position: relative;
-  z-index: 2;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+    max-width: 1200px;
+    margin: -40px auto 0;
+    padding: 0 24px;
+    position: relative;
+    z-index: 2;
 
-  @media (max-width: 1024px) {
-    grid-template-columns: repeat(2, 1fr);
+    @media (max-width: 1024px) {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    @media (max-width: 600px) {
+      grid-template-columns: 1fr;
+    }
   }
 
-  @media (max-width: 600px) {
-    grid-template-columns: 1fr;
-  }
-}
-
-  // ─── Loading / error ─────────────────────────────────────────────────────
   &__loading,
-  &__error {
+  &__error,
+  &__empty {
     text-align: center;
     padding: 60px 24px;
     color: var(--it-black-2);
@@ -94,7 +94,6 @@
     color: #c0392b;
   }
 
-  // ─── Footer note ──────────────────────────────────────────────────────────
   &__footer-note {
     text-align: center;
     margin-top: 40px;
@@ -109,7 +108,6 @@
   }
 }
 
-// ─── Plan Card ──────────────────────────────────────────────────────────────
 .plan-card {
   background-color: var(--it-white);
   border: 1.5px solid var(--it-border-1);
@@ -118,7 +116,7 @@
   display: flex;
   flex-direction: column;
   gap: 0;
-  transition: box-shadow .2s ease, transform .2s ease;
+  transition: box-shadow .2s ease, transform .2s ease, border-color .2s ease;
   position: relative;
   overflow: hidden;
 
@@ -127,7 +125,11 @@
     box-shadow: 0 12px 40px rgba(var(--it-black-3), .10);
   }
 
-  // Featured card
+  &--current {
+    border-color: var(--it-main-1);
+    box-shadow: 0 8px 24px rgba(var(--it-main-1), .08);
+  }
+
   &--featured {
     border-color: var(--it-main-1);
     border-width: 2px;
@@ -162,15 +164,21 @@
       color: var(--it-black-3);
       border-color: var(--it-main-3);
 
-      &:hover {
+      &:hover:not(:disabled) {
         background-color: var(--it-main-1);
         border-color: var(--it-main-1);
         color: var(--it-white);
       }
     }
+
+    .plan-card__cta--current {
+      background-color: rgba(var(--it-white), .14);
+      border-color: rgba(var(--it-white), .2);
+      color: var(--it-white);
+      cursor: not-allowed;
+    }
   }
 
-  // ── Badge ──────────────────────────────────────────────────────────────
   &__badge {
     position: absolute;
     top: 20px;
@@ -185,7 +193,6 @@
     padding: 3px 12px;
   }
 
-  // ── Header ─────────────────────────────────────────────────────────────
   &__header {
     margin-bottom: 20px;
   }
@@ -205,7 +212,6 @@
     line-height: 1.5;
   }
 
-  // ── Precio ─────────────────────────────────────────────────────────────
   &__precio-wrapper {
     display: flex;
     align-items: baseline;
@@ -234,7 +240,6 @@
     margin-left: 2px;
   }
 
-  // ── CTA ────────────────────────────────────────────────────────────────
   &__cta {
     width: 100%;
     padding: 13px 0;
@@ -246,23 +251,37 @@
     font-size: 14px;
     font-weight: 700;
     cursor: pointer;
-    transition: background-color .18s ease, color .18s ease;
+    transition: background-color .18s ease, color .18s ease, opacity .18s ease;
     margin-bottom: 24px;
 
-    &:hover {
+    &:hover:not(:disabled) {
       background-color: var(--it-main-1);
       color: var(--it-white);
     }
+
+    &:disabled {
+      cursor: not-allowed;
+    }
   }
 
-  // ── Divider ────────────────────────────────────────────────────────────
+  &__cta--current {
+    background-color: rgba(var(--it-main-1), .10);
+    border-color: rgba(var(--it-main-1), .22);
+    color: var(--it-main-1);
+    opacity: 1;
+
+    &:hover {
+      background-color: rgba(var(--it-main-1), .10);
+      color: var(--it-main-1);
+    }
+  }
+
   &__divider {
     height: 1px;
     background-color: var(--it-grey-4);
     margin-bottom: 20px;
   }
 
-  // ── Features ───────────────────────────────────────────────────────────
   &__section-label {
     font-size: 11px;
     font-weight: 700;
@@ -295,17 +314,12 @@
     flex-shrink: 0;
   }
 
-  &__feature-icon--cross {
-    color: #b0b8a6;
-  }
-
   &__feature-text {
     font-size: 13.5px;
     color: var(--it-text-body);
     line-height: 1.45;
   }
 
-  // ── Specs table ────────────────────────────────────────────────────────
   &__specs {
     margin-top: 20px;
     border-top: 1px solid var(--it-grey-4);
@@ -320,6 +334,7 @@
     justify-content: space-between;
     align-items: center;
     font-size: 13px;
+    gap: 12px;
   }
 
   &__spec-label {
@@ -333,6 +348,7 @@
     border-radius: 6px;
     padding: 2px 10px;
     font-size: 12px;
+    white-space: nowrap;
   }
 
   &--featured &__spec-value {

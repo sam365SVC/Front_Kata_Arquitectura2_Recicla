@@ -10,7 +10,12 @@ const initialState = {
 const planesSlice = createSlice({
   name: "planes",
   initialState,
-  reducers: {},
+  reducers: {
+    clearPlanesError: (state) => {
+      state.error = null;
+    },
+    resetPlanesState: () => initialState,
+  },
   extraReducers: (builder) => {
     builder
       .addCase(obtenerPlanesThunk.pending, (state) => {
@@ -19,13 +24,19 @@ const planesSlice = createSlice({
       })
       .addCase(obtenerPlanesThunk.fulfilled, (state, action) => {
         state.cargando = false;
-        state.planes = action.payload;
+        state.planes = Array.isArray(action.payload) ? action.payload : [];
       })
       .addCase(obtenerPlanesThunk.rejected, (state, action) => {
         state.cargando = false;
-        state.error = action.payload;
+        state.error = action.payload || "No se pudieron cargar los planes";
       });
   },
 });
+
+export const { clearPlanesError, resetPlanesState } = planesSlice.actions;
+
+export const selectPlanes = (state) => state.planes.planes;
+export const selectPlanesLoading = (state) => state.planes.cargando;
+export const selectPlanesError = (state) => state.planes.error;
 
 export default planesSlice.reducer;
