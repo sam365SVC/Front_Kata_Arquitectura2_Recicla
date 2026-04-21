@@ -5,9 +5,9 @@ import {
 } from "./RegistroThunk";
 
 const initialState = {
-  isLoading: false,
   error: null,
   success: false,
+  registroLoading: false,
 };
 
 const registroSlice = createSlice({
@@ -15,7 +15,7 @@ const registroSlice = createSlice({
   initialState,
   reducers: {
     clearRegistroState: (state) => {
-      state.isLoading = false;
+      state.registroLoading = false;
       state.error = null;
       state.success = false;
     },
@@ -23,30 +23,30 @@ const registroSlice = createSlice({
   extraReducers: (builder) => {
     builder
       .addCase(registrarClienteThunk.pending, (state) => {
-        state.isLoading = true;
+        state.registroLoading = true;
         state.error = null;
         state.success = false;
       })
       .addCase(registrarClienteThunk.fulfilled, (state) => {
-        state.isLoading = false;
+        state.registroLoading = false;
         state.success = true;
       })
       .addCase(registrarClienteThunk.rejected, (state, action) => {
-        state.isLoading = false;
+        state.registroLoading = false;
         state.error = action.payload || "Error al registrar cliente";
       })
 
       .addCase(registrarTenantThunk.pending, (state) => {
-        state.isLoading = true;
+        state.registroLoading = true;
         state.error = null;
         state.success = false;
       })
       .addCase(registrarTenantThunk.fulfilled, (state) => {
-        state.isLoading = false;
+        state.registroLoading = false;
         state.success = true;
       })
       .addCase(registrarTenantThunk.rejected, (state, action) => {
-        state.isLoading = false;
+        state.registroLoading = false;
         state.error = action.payload || "Error al registrar empresa";
       });
   },
