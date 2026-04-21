@@ -589,8 +589,16 @@ export const orchestrationApi = {
       )
       .then((res) => res.data)
       .catch(handleError),
-};
 
+  recibirYEnviarAInspeccion: (idOrden, data = {}) =>
+    apiOrchestration
+      .patch(
+        `/ordenes-logistica/${idOrden}/recibir-y-enviar-a-inspeccion`,
+        data
+      )
+      .then((res) => res.data)
+      .catch(handleError),
+};
 // =========================
 // ADMIN
 // =========================
