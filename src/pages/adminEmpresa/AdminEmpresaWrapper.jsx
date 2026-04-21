@@ -7,6 +7,7 @@ import {
   FiUsers,
   FiSettings,
   FiCreditCard,
+  FiCheck,
 } from "react-icons/fi";
 import { MdOutlineBusinessCenter } from "react-icons/md";
 import { useDispatch, useSelector } from "react-redux";
@@ -17,6 +18,7 @@ import styles from "./AdminEmpresaWrapper.module.scss";
 import UsuariosEmpresa from "./components/UsuariosEmpresa";
 import TiposDispositivoEmpresa from "./components/TiposDispositivoEmpresa";
 import PlanEmpresa from "./components/PlanEmpresa";
+import PagosEmpresa from "./components/PagosEmpresa";
 
 import { logout } from "../signin/slices/loginSlice";
 import {
@@ -50,6 +52,16 @@ const NAV_ITEMS = [
     description:
       "Revisa tu plan actual, sus beneficios, límites y opciones disponibles.",
   },
+  {
+    id: "misPagos",
+    label: "Mis pagos",
+    icon: FiCheck,
+    title: "Historial de pagos",
+    description:
+      "Revisa tu historial de pagos y detalles de transacciones.",
+
+  },
+
 ];
 
 const renderContent = (tab, props) => {
@@ -62,7 +74,8 @@ const renderContent = (tab, props) => {
 
     case "miPlan":
       return <PlanEmpresa {...props} />;
-
+    case "misPagos":
+      return <PagosEmpresa {...props} />;
     default:
       return <UsuariosEmpresa {...props} />;
   }
