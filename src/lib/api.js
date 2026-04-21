@@ -656,6 +656,38 @@ export const pagoApi = {
     
 };
 
+export const saldoApi = {
+  // Obtener movimientos de un usuario
+  fetchMovimientos: (userId) =>
+    api
+      .get(`/saldo/${userId}`)
+      .then((res) => res.data)
+      .catch(handleError),
+
+  // Obtener saldo actual
+  fetchSaldoActual: (userId) =>
+    api
+      .get(`/saldo/${userId}/saldo`)
+      .then((res) => res.data)
+      .catch(handleError),
+
+  // Crear movimiento (recarga, pago, ajuste)
+  crearMovimiento: (data) =>
+    api
+      .post('/saldo', {
+        user_id: data.user_id,
+        tipo_movimiento: data.tipo_movimiento, // EJ: "PAGO", "RECARGA"
+        naturaleza: data.naturaleza, // "C" (crédito) o "D" (débito)
+        monto: data.monto,
+        cotizacion_pago_id: data.cotizacion_pago_id,
+        pago_id: data.pago_id,
+        servicio_id: data.servicio_id,
+        observacion: data.observacion,
+      })
+      .then((res) => res.data)
+      .catch(handleError),
+};
+
 export const qrApi = {
   generarQR: (data) =>
     api.post('/qr/generar', data).then((res) => res.data).catch(handleError),
