@@ -35,6 +35,13 @@ const formatMesesHistorial = (value) => {
   return `${num} ${num === 1 ? "mes" : "meses"}`;
 };
 
+const parsePrecio = (value) => {
+  if (value === null || value === undefined || value === "") return null;
+
+  const parsed = Number(value);
+  return Number.isNaN(parsed) ? value : parsed;
+};
+
 const mapPlanActual = (response) => {
   const payload = response?.data || response || null;
   if (!payload) return null;
@@ -42,7 +49,6 @@ const mapPlanActual = (response) => {
   const limites = payload?.limites || {};
   const usoActual = payload?.uso_actual || {};
   const fechas = payload?.fechas || {};
-
   const planNombre = payload?.plan || "Sin plan";
 
   return {
@@ -77,8 +83,9 @@ const mapPlanDisponible = (plan) => ({
     plan?.id_plan ||
     plan?.id ||
     normalizeText(plan?.nombre).toLowerCase(),
+  id_plan: plan?.id_plan || plan?.id || null,
   nombre: plan?.nombre || "Sin nombre",
-  precio: plan?.precio ?? null,
+  precio: parsePrecio(plan?.precio),
   moneda: "Bs.",
   dispositivos: plan?.max_dispositivos ?? null,
   reglas: plan?.max_reglas ?? null,
@@ -87,7 +94,30 @@ const mapPlanDisponible = (plan) => ({
   historial: formatMesesHistorial(plan?.meses_historial),
   reportes: capitalizeReportType(plan?.tipo_reportes),
   puedeExportar: Boolean(plan?.puede_exportar),
-  destacado: false,
+  destacado: String(plan?.nombre || "").toLowerCase() === "premium",
+  etiqueta:
+    String(plan?.nombre || "").toLowerCase() === "premium"
+      ? "Recomendado"
+      : null,
+  descripcion:
+    String(plan?.nombre || "").toLowerCase() === "free"
+      ? "Ideal para comenzar y probar la plataforma."
+      : String(plan?.nombre || "").toLowerCase() === "basic"
+      ? "Para operaciones pequeñas con necesidades iniciales."
+      : String(plan?.nombre || "").toLowerCase() === "premium"
+      ? "Para empresas en crecimiento con mayor operación."
+      : String(plan?.nombre || "").toLowerCase() === "enterprise"
+      ? "Para operaciones avanzadas con necesidades amplias."
+      : "Una opción diseñada para ajustarse a las necesidades de tu empresa.",
+  caracteristicas_extra: [
+    `${plan?.max_dispositivos ?? "No definido"} dispositivos`,
+    `${plan?.max_reglas ?? "No definido"} reglas`,
+    `${plan?.max_inspectores ?? "No definido"} inspectores`,
+    `${plan?.max_cotizaciones_mes ?? "No definido"} cotizaciones/mes`,
+    `${formatMesesHistorial(plan?.meses_historial)} de historial`,
+    capitalizeReportType(plan?.tipo_reportes),
+    Boolean(plan?.puede_exportar) ? "Exportación disponible" : "Sin exportación",
+  ],
   raw: plan,
 });
 
