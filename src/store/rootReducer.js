@@ -33,6 +33,7 @@ import reportesReducer from '../pages/adminEmpresa/slicesReportes/ReportesSlice'
 import ingresosReducer from '../pages/adminSaas/slicesIngresos/IngresosSlices'; 
 import cotizacionPagosReducer from '../pages/adminEmpresa/slicesCotizaciones/CotizacionesSlice';
 
+import saldoReducer from '../pages/adminUsuarioFinal/slicesSaldo/saldoSlice'
 const loginPersistConfig = {
   key: 'login',
   storage,
@@ -71,6 +72,7 @@ export const rootReducer = combineReducers({
   reportes: reportesReducer,
   ingresos: ingresosReducer,
   cotizacionPagos: cotizacionPagosReducer,
+  saldo: saldoReducer,
 });
 
 export default rootReducer;
